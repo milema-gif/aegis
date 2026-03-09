@@ -1,5 +1,6 @@
 {
   "version": 1,
+  "gate_classification_version": 1,
   "project": "{{PROJECT_NAME}}",
   "pipeline_id": "{{PIPELINE_ID}}",
   "current_stage": "intake",
@@ -7,15 +8,42 @@
   "started_at": "{{STARTED_AT}}",
   "updated_at": "{{UPDATED_AT}}",
   "stages": [
-    { "name": "intake",      "index": 0, "status": "active",  "entered_at": null, "completed_at": null },
-    { "name": "research",    "index": 1, "status": "pending", "entered_at": null, "completed_at": null },
-    { "name": "roadmap",     "index": 2, "status": "pending", "entered_at": null, "completed_at": null },
-    { "name": "phase-plan",  "index": 3, "status": "pending", "entered_at": null, "completed_at": null },
-    { "name": "execute",     "index": 4, "status": "pending", "entered_at": null, "completed_at": null },
-    { "name": "verify",      "index": 5, "status": "pending", "entered_at": null, "completed_at": null },
-    { "name": "test-gate",   "index": 6, "status": "pending", "entered_at": null, "completed_at": null },
-    { "name": "advance",     "index": 7, "status": "pending", "entered_at": null, "completed_at": null },
-    { "name": "deploy",      "index": 8, "status": "pending", "entered_at": null, "completed_at": null }
+    {
+      "name": "intake", "index": 0, "status": "active", "entered_at": null, "completed_at": null,
+      "gate": { "type": "approval", "skippable": true, "max_retries": 0, "backoff": "none", "timeout_seconds": 0, "attempts": 0, "first_attempt_at": null, "last_result": null, "last_error": null, "pending_approval": false }
+    },
+    {
+      "name": "research", "index": 1, "status": "pending", "entered_at": null, "completed_at": null,
+      "gate": { "type": "approval", "skippable": true, "max_retries": 0, "backoff": "none", "timeout_seconds": 0, "attempts": 0, "first_attempt_at": null, "last_result": null, "last_error": null, "pending_approval": false }
+    },
+    {
+      "name": "roadmap", "index": 2, "status": "pending", "entered_at": null, "completed_at": null,
+      "gate": { "type": "approval", "skippable": true, "max_retries": 0, "backoff": "none", "timeout_seconds": 0, "attempts": 0, "first_attempt_at": null, "last_result": null, "last_error": null, "pending_approval": false }
+    },
+    {
+      "name": "phase-plan", "index": 3, "status": "pending", "entered_at": null, "completed_at": null,
+      "gate": { "type": "quality", "skippable": false, "max_retries": 2, "backoff": "fixed-5s", "timeout_seconds": 120, "attempts": 0, "first_attempt_at": null, "last_result": null, "last_error": null, "pending_approval": false }
+    },
+    {
+      "name": "execute", "index": 4, "status": "pending", "entered_at": null, "completed_at": null,
+      "gate": { "type": "quality", "skippable": false, "max_retries": 3, "backoff": "fixed-5s", "timeout_seconds": 300, "attempts": 0, "first_attempt_at": null, "last_result": null, "last_error": null, "pending_approval": false }
+    },
+    {
+      "name": "verify", "index": 5, "status": "pending", "entered_at": null, "completed_at": null,
+      "gate": { "type": "quality", "skippable": false, "max_retries": 2, "backoff": "fixed-5s", "timeout_seconds": 120, "attempts": 0, "first_attempt_at": null, "last_result": null, "last_error": null, "pending_approval": false }
+    },
+    {
+      "name": "test-gate", "index": 6, "status": "pending", "entered_at": null, "completed_at": null,
+      "gate": { "type": "quality", "skippable": false, "max_retries": 3, "backoff": "exp-5s", "timeout_seconds": 180, "attempts": 0, "first_attempt_at": null, "last_result": null, "last_error": null, "pending_approval": false }
+    },
+    {
+      "name": "advance", "index": 7, "status": "pending", "entered_at": null, "completed_at": null,
+      "gate": { "type": "none", "skippable": true, "max_retries": 0, "backoff": "none", "timeout_seconds": 0, "attempts": 0, "first_attempt_at": null, "last_result": null, "last_error": null, "pending_approval": false }
+    },
+    {
+      "name": "deploy", "index": 8, "status": "pending", "entered_at": null, "completed_at": null,
+      "gate": { "type": "quality,external", "skippable": false, "max_retries": 1, "backoff": "none", "timeout_seconds": 60, "attempts": 0, "first_attempt_at": null, "last_result": null, "last_error": null, "pending_approval": false }
+    }
   ],
   "integrations": {},
   "config": {
