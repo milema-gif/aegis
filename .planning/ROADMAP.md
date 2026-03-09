@@ -33,11 +33,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Pipeline state uses journaled persistence (atomic writes, corruption recovery via state.current.json + state.history.jsonl)
   4. At startup, pipeline announces which integrations are available (Engram, Sparrow) and which are missing
   5. Memory interface stub exists (read/write methods that work without Engram, storing to local JSON fallback)
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
+- [ ] 01-01-PLAN.md — State machine core, journaled persistence, integration detection, memory stub
+- [ ] 01-02-PLAN.md — /aegis:launch entry point, orchestrator workflow, stage stubs, test runner
 
 ### Phase 2: Gates and Checkpoints
 **Goal**: Pipeline enforces quality boundaries between stages and keeps the user informed at every transition
