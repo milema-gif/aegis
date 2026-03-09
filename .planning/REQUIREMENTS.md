@@ -10,7 +10,7 @@
 - [x] **PIPE-01**: User can launch full pipeline with `/aegis:launch` command
 - [x] **PIPE-02**: Pipeline executes 9 stages in sequence (intake, research, roadmap, phase-plan, execute, verify, test-gate, advance, deploy)
 - [x] **PIPE-03**: Hard gates between stages prevent advancing without stage completion
-- [ ] **PIPE-04**: User receives clear stage banners and progress summaries at each transition
+- [x] **PIPE-04**: User receives clear stage banners and progress summaries at each transition
 - [x] **PIPE-05**: Pipeline pauses at checkpoints for user approval before advancing
 - [x] **PIPE-06**: Each stage has retry/backoff/timeout policy to prevent gate deadlocks
 - [x] **PIPE-07**: Pipeline state uses journaled persistence (atomic writes + corruption recovery)
@@ -92,7 +92,7 @@
 | PIPE-07 | Phase 1 | Complete |
 | PORT-01 | Phase 1 | Complete |
 | PIPE-03 | Phase 2 | Complete |
-| PIPE-04 | Phase 2 | Pending |
+| PIPE-04 | Phase 2 | Complete |
 | PIPE-05 | Phase 2 | Complete |
 | PIPE-06 | Phase 2 | Complete |
 | GIT-01 | Phase 3 | Pending |
