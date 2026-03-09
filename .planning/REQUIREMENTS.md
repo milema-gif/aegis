@@ -8,12 +8,12 @@
 ### Pipeline
 
 - [ ] **PIPE-01**: User can launch full pipeline with `/aegis:launch` command
-- [ ] **PIPE-02**: Pipeline executes 9 stages in sequence (intake, research, roadmap, phase-plan, execute, verify, test-gate, advance, deploy)
+- [x] **PIPE-02**: Pipeline executes 9 stages in sequence (intake, research, roadmap, phase-plan, execute, verify, test-gate, advance, deploy)
 - [ ] **PIPE-03**: Hard gates between stages prevent advancing without stage completion
 - [ ] **PIPE-04**: User receives clear stage banners and progress summaries at each transition
 - [ ] **PIPE-05**: Pipeline pauses at checkpoints for user approval before advancing
 - [ ] **PIPE-06**: Each stage has retry/backoff/timeout policy to prevent gate deadlocks
-- [ ] **PIPE-07**: Pipeline state uses journaled persistence (atomic writes + corruption recovery)
+- [x] **PIPE-07**: Pipeline state uses journaled persistence (atomic writes + corruption recovery)
 
 ### Version Control
 
@@ -36,7 +36,7 @@
 
 ### Portability
 
-- [ ] **PORT-01**: Pipeline detects available integrations (Engram, Sparrow) at startup and announces capabilities
+- [x] **PORT-01**: Pipeline detects available integrations (Engram, Sparrow) at startup and announces capabilities
 
 ## v2 Requirements
 
@@ -88,9 +88,9 @@
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | PIPE-01 | Phase 1 | Pending |
-| PIPE-02 | Phase 1 | Pending |
-| PIPE-07 | Phase 1 | Pending |
-| PORT-01 | Phase 1 | Pending |
+| PIPE-02 | Phase 1 | Complete |
+| PIPE-07 | Phase 1 | Complete |
+| PORT-01 | Phase 1 | Complete |
 | PIPE-03 | Phase 2 | Pending |
 | PIPE-04 | Phase 2 | Pending |
 | PIPE-05 | Phase 2 | Pending |
