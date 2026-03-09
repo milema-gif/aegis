@@ -48,6 +48,7 @@
   "integrations": {},
   "config": {
     "auto_advance": false,
-    "yolo_mode": false
+    "yolo_mode": false,
+    "codex_opted_in": false
   }
 }
