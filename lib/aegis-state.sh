@@ -223,3 +223,31 @@ print(json.dumps(last_snapshot, indent=2))
   write_state "$recovered"
   echo "State recovered from journal" >&2
 }
+
+# --- read_yolo_mode() ---
+# Reads config.yolo_mode from state and prints "true" or "false".
+read_yolo_mode() {
+  python3 -c "
+import json
+with open('${AEGIS_DIR}/state.current.json') as f:
+    d = json.load(f)
+print(str(d.get('config', {}).get('yolo_mode', False)).lower())
+"
+}
+
+# --- read_stage_status(stage_name) ---
+# Reads a specific stage's status field and prints it.
+read_stage_status() {
+  local stage_name="${1:?read_stage_status requires stage_name}"
+  python3 -c "
+import json, sys
+with open('${AEGIS_DIR}/state.current.json') as f:
+    d = json.load(f)
+for s in d['stages']:
+    if s['name'] == '${stage_name}':
+        print(s.get('status', 'unknown'))
+        sys.exit(0)
+print('error: unknown stage', file=sys.stderr)
+sys.exit(1)
+"
+}
