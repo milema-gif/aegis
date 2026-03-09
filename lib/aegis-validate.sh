@@ -69,7 +69,7 @@ validate_sparrow_result() {
   )
 
   for pattern in "${error_patterns[@]}"; do
-    if echo "$result_text" | grep -qi "^${pattern}$" 2>/dev/null; then
+    if echo "$result_text" | grep -qi "$pattern" 2>/dev/null; then
       echo "SPARROW VALIDATION FAILED: Error pattern matched — ${pattern}" >&2
       return 1
     fi

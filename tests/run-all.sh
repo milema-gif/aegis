@@ -19,6 +19,7 @@ TESTS=(
   "test-advance-loop"
   "test-subagent-dispatch"
   "test-consultation"
+  "test-pipeline-integration"
 )
 
 PASS_COUNT=0
