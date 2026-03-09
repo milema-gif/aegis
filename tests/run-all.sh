@@ -18,6 +18,7 @@ TESTS=(
   "test-stage-workflows"
   "test-advance-loop"
   "test-subagent-dispatch"
+  "test-consultation"
 )
 
 PASS_COUNT=0
