@@ -14,10 +14,10 @@ Aegis is built in 6 phases following a strict dependency chain: pipeline skeleto
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Pipeline Foundation** - State machine, `/aegis:launch` entry point, 9-stage sequence, integration detection, journaled state persistence, memory interface stub
-- [ ] **Phase 2: Gates and Checkpoints** - Hard gates between stages, progress banners, human approval flow, retry/backoff/timeout policy, explicit gate classification (skippable vs unskippable)
+- [x] **Phase 1: Pipeline Foundation** - State machine, `/aegis:launch` entry point, 9-stage sequence, integration detection, journaled state persistence, memory interface stub
+- [x] **Phase 2: Gates and Checkpoints** - Hard gates between stages, progress banners, human approval flow, retry/backoff/timeout policy, explicit gate classification (skippable vs unskippable)
 - [x] **Phase 3: Stage Workflows** - Complete workflow files for all 9 stages, git tagging, rollback with compatibility checks (completed 2026-03-09)
-- [ ] **Phase 4: Subagent System** - Agent dispatch via Task tool, model routing rules, autonomous task delegation (built against stable workflow contracts)
+- [x] **Phase 4: Subagent System** - Agent dispatch via Task tool, model routing rules, autonomous task delegation (built against stable workflow contracts) (completed 2026-03-09)
 - [ ] **Phase 5: Engram Integration** - Full memory persistence at gates, context retrieval at intake, and duplication detection
 - [ ] **Phase 6: Multi-Model Consultation** - Sparrow/DeepSeek at routine gates, Codex at critical gates (user-explicit only)
 
@@ -127,6 +127,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 1. Pipeline Foundation | 2/2 | Complete | 2026-03-09 |
 | 2. Gates and Checkpoints | 2/2 | Complete | 2026-03-09 |
 | 3. Stage Workflows | 2/2 | Complete   | 2026-03-09 |
-| 4. Subagent System | 1/2 | In Progress|  |
+| 4. Subagent System | 2/2 | Complete | 2026-03-09 |
 | 5. Engram Integration | 0/2 | Not started | - |
 | 6. Multi-Model Consultation | 0/2 | Not started | - |
