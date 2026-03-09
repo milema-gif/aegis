@@ -5,12 +5,13 @@ This is a prompt document that Claude follows step by step.
 
 ## Libraries
 
-This orchestrator depends on four foundation libraries. Source them before use:
+This orchestrator depends on five foundation libraries. Source them before use:
 
 - **`lib/aegis-state.sh`** -- State machine: init, read, advance, journal, write, recover
 - **`lib/aegis-detect.sh`** -- Integration probes: Engram, Sparrow, Codex detection and announcement
 - **`lib/aegis-memory.sh`** -- Memory interface: save/search (local JSON stub, replaced by Engram in Phase 5)
 - **`lib/aegis-gates.sh`** -- Gate evaluation: evaluate gates, display banners/checkpoints, track retries
+- **`lib/aegis-git.sh`** -- Git tagging: tag_phase_completion, rollback, compatibility checks
 
 ## Important Rules
 
@@ -110,24 +111,50 @@ Ready to proceed.
 
 Read the `current_stage` from state and dispatch to the appropriate stage workflow:
 
-1. Determine the stage workflow path: `workflows/stages/{stage-name}.md`
+| Stage | Workflow File |
+|-------|--------------|
+| intake | workflows/stages/01-intake.md |
+| research | workflows/stages/02-research.md |
+| roadmap | workflows/stages/03-roadmap.md |
+| phase-plan | workflows/stages/04-phase-plan.md |
+| execute | workflows/stages/05-execute.md |
+| verify | workflows/stages/06-verify.md |
+| test-gate | workflows/stages/07-test-gate.md |
+| advance | workflows/stages/08-advance.md |
+| deploy | workflows/stages/09-deploy.md |
+
+1. Look up the workflow file for `current_stage` from the table above.
 2. Check if that workflow file exists.
    - **If the workflow exists:** Follow it. The stage workflow controls its own execution and signals completion.
-   - **If the workflow is missing (Phase 1 stubs):** Use `workflows/stages/stub.md` as the fallback. Announce: "Stage '{name}' workflow not yet implemented. Auto-completing for pipeline demonstration."
+   - **If the workflow is missing:** ERROR -- all 9 workflows should exist. Announce error and stop.
 3. After the stage signals completion, control falls through to **Step 5.5** for gate evaluation. Do NOT call `advance_stage()` here.
 
 ```bash
 source lib/aegis-state.sh
 
 CURRENT_STAGE=$(read_current_stage)
-STAGE_FILE="workflows/stages/${CURRENT_STAGE}.md"
+
+# Dispatch table — map stage name to numbered workflow file
+declare -A STAGE_FILES=(
+  [intake]="workflows/stages/01-intake.md"
+  [research]="workflows/stages/02-research.md"
+  [roadmap]="workflows/stages/03-roadmap.md"
+  [phase-plan]="workflows/stages/04-phase-plan.md"
+  [execute]="workflows/stages/05-execute.md"
+  [verify]="workflows/stages/06-verify.md"
+  [test-gate]="workflows/stages/07-test-gate.md"
+  [advance]="workflows/stages/08-advance.md"
+  [deploy]="workflows/stages/09-deploy.md"
+)
+
+STAGE_FILE="${STAGE_FILES[$CURRENT_STAGE]}"
 
 if [ -f "$STAGE_FILE" ]; then
   # Follow the stage-specific workflow
   echo "Dispatching to stage workflow: $STAGE_FILE"
 else
-  # Use stub — Phase 1 placeholder
-  echo "Stage '${CURRENT_STAGE}' workflow not yet implemented. Auto-completing for pipeline demonstration."
+  echo "ERROR: Stage workflow '$STAGE_FILE' is missing. All 9 workflows should exist."
+  exit 1
 fi
 
 # Stage completed — fall through to Step 5.5 for gate evaluation
@@ -216,7 +243,7 @@ fi
 | Resume (state exists) | Read state, detect integrations, dispatch to current stage |
 | Corrupt state | Attempt recovery from journal snapshots; offer reinit if recovery fails |
 | Missing integration | Announce as `[MISSING]`, use fallback (local-json for Engram, claude-only for Sparrow) |
-| Stage workflow missing | Use `workflows/stages/stub.md` as placeholder, auto-complete |
+| Stage workflow missing | ERROR -- all 9 workflows should exist, announce and stop |
 | Advance with phases remaining | Loop back to phase-plan (index 3) |
 | Advance with no phases remaining | Proceed to deploy (index 8) |
 | Deploy complete | Announce pipeline completion, no further transitions |
@@ -230,5 +257,3 @@ fi
 | Pending approval on resume | Checkpoint re-displayed at Step 2, user can approve or reject |
 
 ---
-
-*STUB: Stage-specific workflows will be created in Phase 3. Until then, all stages use `workflows/stages/stub.md`.*

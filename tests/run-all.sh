@@ -13,6 +13,9 @@ TESTS=(
   "test-memory-stub"
   "test-gate-evaluation"
   "test-gate-banners"
+  "test-git-operations"
+  "test-stage-workflows"
+  "test-advance-loop"
 )
 
 PASS_COUNT=0
