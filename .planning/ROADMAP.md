@@ -81,11 +81,11 @@ Plans:
   2. Model routing follows explicit rules: Claude orchestrates, subagents execute, GPT-4 Mini handles autonomous sub-tasks
   3. Subagent output is validated before the orchestrator consumes it
   4. Invocation protocol is documented and consistent across all stage workflows
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 04-01: TBD
-- [ ] 04-02: TBD
+- [ ] 04-01-PLAN.md — Subagent definitions, model routing table, invocation protocol, validation library, tests
+- [ ] 04-02-PLAN.md — Orchestrator subagent dispatch, stage workflow updates for 4 GSD-delegating stages
 
 ### Phase 5: Engram Integration
 **Goal**: Pipeline remembers decisions, bugs, and patterns across sessions and catches duplicated code
