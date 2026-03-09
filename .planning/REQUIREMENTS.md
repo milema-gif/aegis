@@ -12,11 +12,14 @@
 - [ ] **PIPE-03**: Hard gates between stages prevent advancing without stage completion
 - [ ] **PIPE-04**: User receives clear stage banners and progress summaries at each transition
 - [ ] **PIPE-05**: Pipeline pauses at checkpoints for user approval before advancing
+- [ ] **PIPE-06**: Each stage has retry/backoff/timeout policy to prevent gate deadlocks
+- [ ] **PIPE-07**: Pipeline state uses journaled persistence (atomic writes + corruption recovery)
 
 ### Version Control
 
 - [ ] **GIT-01**: Pipeline creates git tag at each phase completion
 - [ ] **GIT-02**: User can roll back to any phase tag with a single command
+- [ ] **GIT-03**: Rollback checks compatibility (warns if schema/migration state may diverge from code)
 
 ### Memory
 
@@ -60,6 +63,14 @@
 
 - **PORT-02**: Full graceful degradation — pipeline works without Engram/Sparrow for open-source users
 
+### Observability
+
+- **OBS-01**: Telemetry events per stage/gate (duration, fail causes, token usage)
+
+### Safety
+
+- **SAFE-01**: External-action confirmation policy — classify gates as quality/safety/cost/external
+
 ## Out of Scope
 
 | Feature | Reason |
@@ -76,27 +87,30 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PIPE-01 | — | Pending |
-| PIPE-02 | — | Pending |
-| PIPE-03 | — | Pending |
-| PIPE-04 | — | Pending |
-| PIPE-05 | — | Pending |
-| GIT-01 | — | Pending |
-| GIT-02 | — | Pending |
-| MEM-01 | — | Pending |
-| MEM-02 | — | Pending |
-| MEM-03 | — | Pending |
-| MDL-01 | — | Pending |
-| MDL-02 | — | Pending |
-| MDL-03 | — | Pending |
-| MDL-04 | — | Pending |
-| PORT-01 | — | Pending |
+| PIPE-01 | Phase 1 | Pending |
+| PIPE-02 | Phase 1 | Pending |
+| PIPE-07 | Phase 1 | Pending |
+| PORT-01 | Phase 1 | Pending |
+| PIPE-03 | Phase 2 | Pending |
+| PIPE-04 | Phase 2 | Pending |
+| PIPE-05 | Phase 2 | Pending |
+| PIPE-06 | Phase 2 | Pending |
+| GIT-01 | Phase 3 | Pending |
+| GIT-02 | Phase 3 | Pending |
+| GIT-03 | Phase 3 | Pending |
+| MDL-03 | Phase 4 | Pending |
+| MDL-04 | Phase 4 | Pending |
+| MEM-01 | Phase 5 | Pending |
+| MEM-02 | Phase 5 | Pending |
+| MEM-03 | Phase 5 | Pending |
+| MDL-01 | Phase 6 | Pending |
+| MDL-02 | Phase 6 | Pending |
 
 **Coverage:**
-- v1 requirements: 15 total
-- Mapped to phases: 0
-- Unmapped: 15
+- v1 requirements: 18 total
+- Mapped to phases: 18
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-09*
-*Last updated: 2026-03-09 after initial definition*
+*Last updated: 2026-03-09 after Codex/DeepSeek consensus review*
