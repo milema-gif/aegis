@@ -50,11 +50,11 @@ Plans:
   4. In YOLO mode, approval gates are skipped but quality gates (compilation, tests, state integrity) are always enforced
   5. Each stage has configurable retry count, backoff strategy, and timeout to prevent deadlocks
   6. Gates are explicitly classified: quality (unskippable), approval (skippable in YOLO), cost (warn), external (confirm)
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 02-01: TBD
-- [ ] 02-02: TBD
+- [ ] 02-01-PLAN.md — Gate engine core: definitions table, state extension, evaluation library, tests
+- [ ] 02-02-PLAN.md — Orchestrator integration: gate step, banners, approval flow, test runner update
 
 ### Phase 3: Stage Workflows
 **Goal**: Every pipeline stage has a complete workflow and the project history is tagged for rollback
