@@ -12,6 +12,7 @@ This orchestrator depends on five foundation libraries. Source them before use:
 - **`lib/aegis-memory.sh`** -- Memory interface: save/search (local JSON stub, replaced by Engram in Phase 5)
 - **`lib/aegis-gates.sh`** -- Gate evaluation: evaluate gates, display banners/checkpoints, track retries
 - **`lib/aegis-git.sh`** -- Git tagging: tag_phase_completion, rollback, compatibility checks
+- **`lib/aegis-validate.sh`** -- Output validation for subagent results
 
 ## Important Rules
 
@@ -20,6 +21,7 @@ This orchestrator depends on five foundation libraries. Source them before use:
 3. **Use the transition TABLE, not if/else chains, for stage ordering.** The canonical table is in `references/state-transitions.md`.
 4. **Detect integrations EVERY invocation** (cheap probes, stale cache is worse than re-probing).
 5. **Gate evaluation happens ONCE per stage completion attempt.** If a gate fails, the stage must be re-executed (re-invoke `/aegis:launch`) before the gate is re-evaluated. Do NOT retry the gate in-conversation -- this burns context.
+6. **For subagent stages, use the Agent tool with a structured prompt from invocation-protocol.md.** NEVER follow the stage workflow inline for subagent stages -- the subagent handles it in fresh context.
 
 ---
 
@@ -109,7 +111,9 @@ Ready to proceed.
 
 ## Step 5 -- Dispatch to Current Stage
 
-Read the `current_stage` from state and dispatch to the appropriate stage workflow:
+Read the `current_stage` from state and dispatch using one of two paths based on stage type.
+
+### Stage Dispatch Tables
 
 | Stage | Workflow File |
 |-------|--------------|
@@ -123,18 +127,46 @@ Read the `current_stage` from state and dispatch to the appropriate stage workfl
 | advance | workflows/stages/08-advance.md |
 | deploy | workflows/stages/09-deploy.md |
 
-1. Look up the workflow file for `current_stage` from the table above.
-2. Check if that workflow file exists.
-   - **If the workflow exists:** Follow it. The stage workflow controls its own execution and signals completion.
-   - **If the workflow is missing:** ERROR -- all 9 workflows should exist. Announce error and stop.
-3. After the stage signals completion, control falls through to **Step 5.5** for gate evaluation. Do NOT call `advance_stage()` here.
+| Stage | Agent | Agent File |
+|-------|-------|------------|
+| research | aegis-researcher | .claude/agents/aegis-researcher.md |
+| phase-plan | aegis-planner | .claude/agents/aegis-planner.md |
+| execute | aegis-executor | .claude/agents/aegis-executor.md |
+| verify | aegis-verifier | .claude/agents/aegis-verifier.md |
+
+### Path A -- Subagent Stages (research, phase-plan, execute, verify)
+
+These stages are dispatched to a subagent via the Agent tool. The orchestrator does NOT follow the stage workflow inline -- the subagent does.
+
+1. **Read the stage workflow file** to extract inputs, outputs, and success criteria.
+2. **Resolve the agent name** from the stage-to-agent mapping table above.
+3. **Resolve the model** from `references/model-routing.md` (use the routing table row matching the agent role).
+4. **Build the invocation prompt** using the template from `references/invocation-protocol.md`, filling in:
+   - **Objective:** from the stage workflow's title and purpose
+   - **Context Files:** `.aegis/state.current.json`, `.planning/ROADMAP.md`, plus stage-specific inputs from the workflow's `## Inputs` section
+   - **Constraints:** any prior-stage decisions from state, model routing rules
+   - **Success Criteria:** from the stage workflow's `## Completion Criteria`
+   - **Output:** from the stage workflow's `## Outputs`
+5. **Dispatch via Agent tool** with the constructed prompt.
+6. **On return:** source `lib/aegis-validate.sh` and call `validate_subagent_output "$CURRENT_STAGE" {expected_files}` using the file list from the workflow's `## Outputs`.
+7. **If validation passes:** fall through to Step 5.5 (gate evaluation).
+8. **If validation fails:** log the failure, mark the stage as failed in state, **STOP**.
 
 ```bash
 source lib/aegis-state.sh
+source lib/aegis-validate.sh
 
 CURRENT_STAGE=$(read_current_stage)
 
-# Dispatch table — map stage name to numbered workflow file
+# Stage-to-agent mapping (subagent stages only)
+declare -A STAGE_AGENTS=(
+  [research]="aegis-researcher"
+  [phase-plan]="aegis-planner"
+  [execute]="aegis-executor"
+  [verify]="aegis-verifier"
+)
+
+# Stage workflow file mapping
 declare -A STAGE_FILES=(
   [intake]="workflows/stages/01-intake.md"
   [research]="workflows/stages/02-research.md"
@@ -149,16 +181,39 @@ declare -A STAGE_FILES=(
 
 STAGE_FILE="${STAGE_FILES[$CURRENT_STAGE]}"
 
-if [ -f "$STAGE_FILE" ]; then
-  # Follow the stage-specific workflow
-  echo "Dispatching to stage workflow: $STAGE_FILE"
-else
+if [[ ! -f "$STAGE_FILE" ]]; then
   echo "ERROR: Stage workflow '$STAGE_FILE' is missing. All 9 workflows should exist."
   exit 1
 fi
 
+# Check if this is a subagent stage
+if [[ -n "${STAGE_AGENTS[$CURRENT_STAGE]+_}" ]]; then
+  AGENT_NAME="${STAGE_AGENTS[$CURRENT_STAGE]}"
+
+  # 1. Read stage workflow for inputs/outputs/criteria
+  # 2. Resolve model from references/model-routing.md
+  # 3. Build structured prompt per references/invocation-protocol.md
+  # 4. Dispatch via Agent tool
+  # 5. Validate output:
+  #    validate_subagent_output "$CURRENT_STAGE" {expected_output_files}
+  # 6. If validation fails: mark stage failed, STOP
+
+  echo "Dispatching to subagent: $AGENT_NAME (workflow: $STAGE_FILE)"
+else
+  # Path B: Follow the stage workflow inline
+  echo "Dispatching inline to stage workflow: $STAGE_FILE"
+fi
+
 # Stage completed — fall through to Step 5.5 for gate evaluation
 ```
+
+### Path B -- Non-subagent Stages (intake, roadmap, test-gate, advance, deploy)
+
+These stages are executed inline by the orchestrator. Follow the stage workflow file directly -- the orchestrator reads it and performs the actions itself.
+
+1. Look up the workflow file for `current_stage` from the table above.
+2. Follow the workflow. The stage workflow controls its own execution and signals completion.
+3. After the stage signals completion, control falls through to **Step 5.5** for gate evaluation. Do NOT call `advance_stage()` here.
 
 ## Step 5.5 -- Evaluate Gate
 
@@ -255,5 +310,8 @@ fi
 | Gate retries exhausted | Stage set to "failed", error displayed, user must intervene |
 | Gate timeout | Stage set to "failed" based on wall-clock, user must intervene |
 | Pending approval on resume | Checkpoint re-displayed at Step 2, user can approve or reject |
+| Subagent dispatch | Build structured prompt from invocation protocol, dispatch via Agent tool, validate output |
+| Subagent validation fails | Log error, mark stage failed, stop pipeline |
+| GPT-4 Mini delegation | Stage workflow optionally delegates cheap tasks via Sparrow (see model-routing.md) |
 
 ---
