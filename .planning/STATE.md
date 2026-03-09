@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 04-01-PLAN.md
+stopped_at: Completed 04-02-PLAN.md
 last_updated: "2026-03-09T06:49:39.171Z"
-last_activity: 2026-03-09 — Completed 04-01 (subagent definitions, routing, protocol, validation)
+last_activity: 2026-03-09 — Completed 04-02 (subagent dispatch wiring)
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 8
-  completed_plans: 7
-  percent: 88
+  completed_plans: 8
+  percent: 100
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-09)
 ## Current Position
 
 Phase: 4 of 6 (Subagent System)
-Plan: 1 of 2 in current phase
-Status: In Progress
-Last activity: 2026-03-09 — Completed 04-01 (subagent definitions, routing, protocol, validation)
+Plan: 2 of 2 in current phase
+Status: Phase Complete
+Last activity: 2026-03-09 — Completed 04-02 (subagent dispatch wiring)
 
-Progress: [█████████░] 88% (7/8 plans complete)
+Progress: [██████████] 100% (8/8 plans complete)
 
 ## Performance Metrics
 
@@ -54,6 +54,7 @@ Progress: [█████████░] 88% (7/8 plans complete)
 *Updated after each plan completion*
 | Phase 03 P02 | 3min | 2 tasks | 13 files |
 | Phase 04 P01 | 3min | 2 tasks | 10 files |
+| Phase 04 P02 | 2min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -89,6 +90,8 @@ Recent decisions affecting current work:
 - [Phase 04]: Agent permissionMode split: dontAsk for read-only, bypassPermissions for write agents
 - [Phase 04]: Planner uses inherit (opus) model; other agents use sonnet
 - [Phase 04]: Sparrow validation uses pattern matching for error strings
+- [Phase 04]: Two-path dispatch: subagent stages use Agent tool, non-subagent stages follow workflow inline
+- [Phase 04]: Subagent Context section is additive -- all existing workflow sections preserved unchanged
 
 ### Pending Todos
 
@@ -108,5 +111,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-09T06:49:39.158Z
-Stopped at: Completed 04-01-PLAN.md
+Stopped at: Completed 04-02-PLAN.md
 Resume file: None
