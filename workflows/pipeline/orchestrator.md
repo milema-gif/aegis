@@ -9,7 +9,7 @@ This orchestrator depends on five foundation libraries. Source them before use:
 
 - **`lib/aegis-state.sh`** -- State machine: init, read, advance, journal, write, recover
 - **`lib/aegis-detect.sh`** -- Integration probes: Engram, Sparrow, Codex detection and announcement
-- **`lib/aegis-memory.sh`** -- Memory interface: save/search (local JSON stub, replaced by Engram in Phase 5)
+- **`lib/aegis-memory.sh`** -- Memory interface: save/search with gate persistence and context retrieval (Engram MCP with local JSON fallback)
 - **`lib/aegis-gates.sh`** -- Gate evaluation: evaluate gates, display banners/checkpoints, track retries
 - **`lib/aegis-git.sh`** -- Git tagging: tag_phase_completion, rollback, compatibility checks
 - **`lib/aegis-validate.sh`** -- Output validation for subagent results
@@ -108,6 +108,24 @@ Integrations:
 
 Ready to proceed.
 ```
+
+## Step 4.5 -- Retrieve Memory Context
+
+After announcing pipeline status (Step 4), retrieve relevant memories before dispatching:
+
+1. Check Engram availability from state integrations.
+2. **If Engram available:**
+   - Call `mem_context` with project="{project_name}" to get recent session context.
+   - Call `mem_search` with query="{current_stage} {project_name}" to find stage-specific memories.
+   - If this is a subagent stage (Step 5 Path A), include retrieved memories in the subagent's Context section.
+   - If this is an inline stage (Step 5 Path B), present memories as "Previous context:" before following the workflow.
+3. **If Engram unavailable:**
+   ```bash
+   source lib/aegis-memory.sh
+   CONTEXT=$(memory_retrieve_context "project" "{current_stage}" 5)
+   ```
+   Include $CONTEXT as additional context for the stage.
+4. If no relevant memories found (empty results), proceed without injecting context -- do not block.
 
 ## Step 5 -- Dispatch to Current Stage
 
@@ -242,8 +260,31 @@ YOLO_MODE=$(read_yolo_mode)
    - `"fail"`: Call `record_gate_attempt "$CURRENT_STAGE" "fail" "Quality gate failed"`. Display retry banner showing attempts remaining. **STOP** -- do not advance.
 
 4. **Advance (gate passed):** If the gate result was `"pass"` or `"auto-approved"`:
+   - Proceed to **Step 5.6** (Persist Gate Memory) before advancing.
    - If the current stage is `advance`: check the roadmap for remaining phases and call `advance_stage "$REMAINING_PHASES"`.
    - Otherwise: call `advance_stage`.
+
+## Step 5.6 -- Persist Gate Memory
+
+After gate passes (Step 5.5 result is "pass" or "auto-approved"), persist a memory of the stage outcome:
+
+1. Read the current stage's output/summary to extract key findings.
+2. Determine memory type from `references/memory-taxonomy.md` stage-to-type mapping table.
+3. Compose a structured summary: **What** (outcome), **Why** (purpose), **Where** (key files), **Learned** (findings).
+4. Check Engram availability from state integrations.
+5. **If Engram available:** Call `mem_save` with:
+   - title: "Gate passed: {stage} -- {project} phase {N}"
+   - type: {from taxonomy mapping}
+   - content: {structured What/Why/Where/Learned summary}
+   - project: "{project_name}"
+   - scope: "project"
+   - topic_key: "pipeline/{stage}-phase-{N}"
+6. **If Engram unavailable:** Use bash fallback:
+   ```bash
+   source lib/aegis-memory.sh
+   memory_save_gate "{stage}" "{phase_number}" "{structured summary}"
+   ```
+7. If memory save fails (Engram error, write error), log a warning but do NOT block the pipeline. Continue to Step 6.
 
 ## Step 6 -- Post-Transition
 
@@ -313,5 +354,7 @@ fi
 | Subagent dispatch | Build structured prompt from invocation protocol, dispatch via Agent tool, validate output |
 | Subagent validation fails | Log error, mark stage failed, stop pipeline |
 | GPT-4 Mini delegation | Stage workflow optionally delegates cheap tasks via Sparrow (see model-routing.md) |
+| Engram memory save | Gate passes: save structured memory via MCP (or fallback). Never blocks pipeline. |
+| Memory context injection | Before stage dispatch: retrieve relevant memories from Engram (or fallback). Empty results = proceed without context. |
 
 ---
