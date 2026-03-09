@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: Pipeline Foundation** - State machine, `/aegis:launch` entry point, 9-stage sequence, integration detection, journaled state persistence, memory interface stub
 - [ ] **Phase 2: Gates and Checkpoints** - Hard gates between stages, progress banners, human approval flow, retry/backoff/timeout policy, explicit gate classification (skippable vs unskippable)
-- [ ] **Phase 3: Stage Workflows** - Complete workflow files for all 9 stages, git tagging, rollback with compatibility checks
+- [x] **Phase 3: Stage Workflows** - Complete workflow files for all 9 stages, git tagging, rollback with compatibility checks (completed 2026-03-09)
 - [ ] **Phase 4: Subagent System** - Agent dispatch via Task tool, model routing rules, autonomous task delegation (built against stable workflow contracts)
 - [ ] **Phase 5: Engram Integration** - Full memory persistence at gates, context retrieval at intake, and duplication detection
 - [ ] **Phase 6: Multi-Model Consultation** - Sparrow/DeepSeek at routine gates, Codex at critical gates (user-explicit only)
@@ -66,7 +66,7 @@ Plans:
   3. User can roll back to any prior phase tag with a single command
   4. Rollback checks and warns if schema/migration state may diverge from rolled-back code
   5. Advance stage loops back to phase-plan when more phases remain
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 03-01-PLAN.md — Git operations library (tagging, rollback, compatibility checks), /aegis:rollback skill, tests
@@ -126,7 +126,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 |-------|----------------|--------|-----------|
 | 1. Pipeline Foundation | 2/2 | Complete | 2026-03-09 |
 | 2. Gates and Checkpoints | 2/2 | Complete | 2026-03-09 |
-| 3. Stage Workflows | 0/2 | Up next | - |
+| 3. Stage Workflows | 2/2 | Complete   | 2026-03-09 |
 | 4. Subagent System | 0/2 | Not started | - |
 | 5. Engram Integration | 0/2 | Not started | - |
 | 6. Multi-Model Consultation | 0/2 | Not started | - |
