@@ -7,7 +7,7 @@
 
 ### Pipeline
 
-- [ ] **PIPE-01**: User can launch full pipeline with `/aegis:launch` command
+- [x] **PIPE-01**: User can launch full pipeline with `/aegis:launch` command
 - [x] **PIPE-02**: Pipeline executes 9 stages in sequence (intake, research, roadmap, phase-plan, execute, verify, test-gate, advance, deploy)
 - [ ] **PIPE-03**: Hard gates between stages prevent advancing without stage completion
 - [ ] **PIPE-04**: User receives clear stage banners and progress summaries at each transition
@@ -87,7 +87,7 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PIPE-01 | Phase 1 | Pending |
+| PIPE-01 | Phase 1 | Complete |
 | PIPE-02 | Phase 1 | Complete |
 | PIPE-07 | Phase 1 | Complete |
 | PORT-01 | Phase 1 | Complete |
