@@ -13,6 +13,7 @@ This orchestrator depends on five foundation libraries. Source them before use:
 - **`lib/aegis-gates.sh`** -- Gate evaluation: evaluate gates, display banners/checkpoints, track retries
 - **`lib/aegis-git.sh`** -- Git tagging: tag_phase_completion, rollback, compatibility checks
 - **`lib/aegis-validate.sh`** -- Output validation for subagent results
+- **`lib/aegis-consult.sh`** -- Consultation: send context to external models (DeepSeek/Codex) at configurable gates
 
 ## Important Rules
 
@@ -35,6 +36,22 @@ Determine the project name for this pipeline run:
 3. If neither is available, ask the user: "What project would you like to launch?"
 
 Store the resolved project name for the remaining steps.
+
+### Codex Opt-In Detection
+
+After resolving the project name, check if the user said "codex" in their launch arguments:
+
+```bash
+source lib/aegis-consult.sh
+
+CODEX_OPTED_IN="false"
+if echo "$ARGUMENTS" | grep -qi "codex"; then
+  CODEX_OPTED_IN="true"
+fi
+set_codex_opt_in "$CODEX_OPTED_IN"
+```
+
+This sets `config.codex_opted_in` in state. It defaults to `false`. Only set to `true` when the user literally includes "codex" in their `/aegis:launch` arguments. This is a hard rule from CLAUDE.md -- Codex is NEVER auto-invoked.
 
 ## Step 2 -- Load or Initialize State
 
@@ -260,9 +277,55 @@ YOLO_MODE=$(read_yolo_mode)
    - `"fail"`: Call `record_gate_attempt "$CURRENT_STAGE" "fail" "Quality gate failed"`. Display retry banner showing attempts remaining. **STOP** -- do not advance.
 
 4. **Advance (gate passed):** If the gate result was `"pass"` or `"auto-approved"`:
-   - Proceed to **Step 5.6** (Persist Gate Memory) before advancing.
+   - Proceed to **Step 5.55** (External Model Consultation), then **Step 5.6** (Persist Gate Memory) before advancing.
    - If the current stage is `advance`: check the roadmap for remaining phases and call `advance_stage "$REMAINING_PHASES"`.
    - Otherwise: call `advance_stage`.
+
+## Step 5.55 -- External Model Consultation
+
+After gate passes (Step 5.5 result is "pass" or "auto-approved"), optionally consult an external model for review feedback. Consultation is ADVISORY -- it never blocks the pipeline.
+
+```bash
+source lib/aegis-consult.sh
+
+CURRENT_STAGE=$(read_current_stage)
+CONSULT_TYPE=$(get_consultation_type "$CURRENT_STAGE")
+
+if [[ "$CONSULT_TYPE" == "none" ]]; then
+  # No consultation for this stage, continue to Step 5.6
+  :
+elif [[ "$CONSULT_TYPE" == "routine" ]]; then
+  CONTEXT=$(build_consultation_context "$CURRENT_STAGE" "$PROJECT_NAME")
+  RESULT=$(consult_sparrow "$CONTEXT" "false" 60)
+  if [[ -n "$RESULT" ]]; then
+    show_consultation_banner "DeepSeek" "$CURRENT_STAGE" "$RESULT"
+  else
+    echo "[consultation] Sparrow unavailable, skipping routine review."
+  fi
+elif [[ "$CONSULT_TYPE" == "critical" ]]; then
+  CODEX_OPT_IN=$(read_codex_opt_in)
+  if [[ "$CODEX_OPT_IN" == "true" ]]; then
+    CONTEXT=$(build_consultation_context "$CURRENT_STAGE" "$PROJECT_NAME")
+    RESULT=$(consult_sparrow "$CONTEXT" "true" 120)
+    if [[ -n "$RESULT" ]]; then
+      show_consultation_banner "GPT Codex" "$CURRENT_STAGE" "$RESULT"
+    else
+      echo "[consultation] Codex unavailable, skipping critical review."
+    fi
+  else
+    # Fall back to DeepSeek for critical stages when codex not opted-in
+    CONTEXT=$(build_consultation_context "$CURRENT_STAGE" "$PROJECT_NAME")
+    RESULT=$(consult_sparrow "$CONTEXT" "false" 60)
+    if [[ -n "$RESULT" ]]; then
+      show_consultation_banner "DeepSeek" "$CURRENT_STAGE" "$RESULT"
+    else
+      echo "[consultation] Sparrow unavailable, skipping review."
+    fi
+  fi
+fi
+
+# Continue to Step 5.6 regardless of consultation outcome
+```
 
 ## Step 5.6 -- Persist Gate Memory
 
@@ -356,5 +419,10 @@ fi
 | GPT-4 Mini delegation | Stage workflow optionally delegates cheap tasks via Sparrow (see model-routing.md) |
 | Engram memory save | Gate passes: save structured memory via MCP (or fallback). Never blocks pipeline. |
 | Memory context injection | Before stage dispatch: retrieve relevant memories from Engram (or fallback). Empty results = proceed without context. |
+| Routine consultation | At configurable gates (research, roadmap, phase-plan), context sent to DeepSeek via Sparrow. Result displayed as banner. |
+| Critical consultation (codex opted-in) | At verify/deploy, context sent to Codex via Sparrow --codex. Result displayed as banner. |
+| Critical consultation (codex not opted-in) | Falls back to DeepSeek. Codex NEVER auto-invoked. |
+| Consultation failure | Sparrow unavailable or timeout: skip review, log warning, continue pipeline. Never blocks. |
+| Codex opt-in detection | Checked at Step 1 from launch arguments. Stored in state config. Default false. |
 
 ---
