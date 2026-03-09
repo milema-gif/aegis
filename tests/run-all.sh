@@ -16,6 +16,7 @@ TESTS=(
   "test-git-operations"
   "test-stage-workflows"
   "test-advance-loop"
+  "test-subagent-dispatch"
 )
 
 PASS_COUNT=0
