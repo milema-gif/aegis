@@ -11,6 +11,8 @@ TESTS=(
   "test-journaled-state"
   "test-integration-detection"
   "test-memory-stub"
+  "test-gate-evaluation"
+  "test-gate-banners"
 )
 
 PASS_COUNT=0
@@ -42,10 +44,9 @@ echo ""
 echo "=== Aegis Test Suite ==="
 
 # Fixed-width output for alignment
-printf "%-30s %s\n" "test-state-transitions:" "${RESULTS[test-state-transitions]}"
-printf "%-30s %s\n" "test-journaled-state:" "${RESULTS[test-journaled-state]}"
-printf "%-30s %s\n" "test-integration-detection:" "${RESULTS[test-integration-detection]}"
-printf "%-30s %s\n" "test-memory-stub:" "${RESULTS[test-memory-stub]}"
+for test_name in "${TESTS[@]}"; do
+  printf "%-30s %s\n" "${test_name}:" "${RESULTS[$test_name]}"
+done
 echo ""
 echo "Result: ${PASS_COUNT}/${TOTAL} passed"
 

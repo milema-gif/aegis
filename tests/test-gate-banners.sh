@@ -98,7 +98,7 @@ test_checkpoint_box_formatting() {
   local output
   output=$(show_checkpoint "Verification Required" "Check deployment")
   # Should contain box characters
-  if echo "$output" | grep -qE "[=]"; then
+  if echo "$output" | grep -q "═"; then
     pass "checkpoint has box formatting"
   else
     fail "checkpoint has box formatting" "output=$output"
