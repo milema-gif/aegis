@@ -96,11 +96,11 @@ Plans:
   2. At stage intake, pipeline retrieves relevant Engram memories and presents them as context
   3. During verify stage, pipeline detects duplicated code and confirms that fixes have propagated (old broken code removed)
   4. If Engram is unavailable, pipeline continues using local JSON fallback (memory stub from Phase 1)
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 05-01: TBD
-- [ ] 05-02: TBD
+- [ ] 05-01-PLAN.md — Memory library upgrade, taxonomy, orchestrator gate persistence (MEM-01) and context retrieval (MEM-02)
+- [ ] 05-02-PLAN.md — Duplication detection and fix propagation in verify stage (MEM-03)
 
 ### Phase 6: Multi-Model Consultation
 **Goal**: Pipeline leverages external models for review at configurable gate points, with cost-aware routing
@@ -111,7 +111,7 @@ Plans:
   2. At critical gates, pipeline sends context to GPT Codex via Sparrow (--codex) ONLY when user has explicitly said "codex"
   3. If Sparrow is unavailable, pipeline skips external consultation and continues (no crash, no blocking)
   4. Consultation results are summarized and presented to the user, not silently consumed
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 06-01: TBD
