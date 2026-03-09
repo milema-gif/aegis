@@ -145,6 +145,69 @@ print('valid')
   teardown
 }
 
+# --- Test: memory_search_bugfixes finds entries with bugfix in key ---
+test_memory_search_bugfixes_finds_entries() {
+  setup
+  memory_save "project" "bugfix-auth-fix" "Fixed direct file write, use atomic write instead"
+  memory_save "project" "bugfix-null-check" "Added null check to prevent crash"
+  local results
+  results=$(memory_search_bugfixes 10)
+  local count
+  count=$(echo "$results" | python3 -c "import json,sys; d=json.load(sys.stdin); print(len(d))")
+  if [[ "$count" -ge 1 ]]; then
+    pass "memory_search_bugfixes finds entries with bugfix in key"
+  else
+    fail "memory_search_bugfixes finds entries" "expected >= 1, got $count"
+  fi
+  teardown
+}
+
+# --- Test: memory_search_bugfixes ignores non-bugfix entries ---
+test_memory_search_bugfixes_ignores_non_bugfix() {
+  setup
+  memory_save "project" "decision-db-choice" "Chose PostgreSQL"
+  memory_save "project" "gate-execute-phase-1" "Completed execution stage"
+  local results
+  results=$(memory_search_bugfixes 10)
+  local count
+  count=$(echo "$results" | python3 -c "import json,sys; d=json.load(sys.stdin); print(len(d))")
+  if [[ "$count" == "0" ]]; then
+    pass "memory_search_bugfixes ignores non-bugfix entries"
+  else
+    fail "memory_search_bugfixes ignores non-bugfix" "expected 0, got $count"
+  fi
+  teardown
+}
+
+# --- Test: memory_search_bugfixes empty when no data ---
+test_memory_search_bugfixes_empty_when_no_data() {
+  setup
+  local results
+  results=$(memory_search_bugfixes 10)
+  if [[ "$results" == "[]" ]]; then
+    pass "memory_search_bugfixes empty when no data"
+  else
+    fail "memory_search_bugfixes empty" "expected [], got $results"
+  fi
+  teardown
+}
+
+# --- Test: gate save then bugfix search integration ---
+test_gate_save_then_bugfix_search_integration() {
+  setup
+  memory_save_gate "verify" "3" "**What**: Fixed auth bypass\n**Learned**: bugfix for CVE check"
+  local results
+  results=$(memory_search_bugfixes 10)
+  local count
+  count=$(echo "$results" | python3 -c "import json,sys; d=json.load(sys.stdin); print(len(d))")
+  if [[ "$count" -ge 1 ]]; then
+    pass "gate save then bugfix search integration"
+  else
+    fail "gate save + bugfix search integration" "expected >= 1, got $count"
+  fi
+  teardown
+}
+
 # --- Run all tests ---
 test_save_gate_key_format
 test_save_gate_content
@@ -152,6 +215,10 @@ test_retrieve_context_matches
 test_retrieve_context_empty
 test_search_bugfixes
 test_regression_existing_functions
+test_memory_search_bugfixes_finds_entries
+test_memory_search_bugfixes_ignores_non_bugfix
+test_memory_search_bugfixes_empty_when_no_data
+test_gate_save_then_bugfix_search_integration
 
 echo ""
 echo "Results: $PASS_COUNT passed, $FAIL_COUNT failed"
