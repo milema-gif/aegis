@@ -1,5 +1,16 @@
 # Stage: Execute
 
+## Subagent Context
+
+This stage is executed by the `aegis-executor` subagent, dispatched by the orchestrator via Agent tool.
+The subagent receives a structured prompt with Objective, Context Files, Constraints, Success Criteria, and Output.
+
+**Agent:** aegis-executor
+**Model:** sonnet
+**Invocation:** Orchestrator builds prompt per `references/invocation-protocol.md`
+
+**GPT-4 Mini delegation:** Sparrow can generate boilerplate or format outputs, but NOT write production logic. Use sparingly.
+
 Delegate plan execution for the current phase to GSD's execution framework.
 
 ## Inputs
@@ -33,3 +44,7 @@ Delegate plan execution for the current phase to GSD's execution framework.
 - All plans in the current phase have corresponding SUMMARY.md files
 - No plan execution reported blocking failures
 - Signal stage complete to orchestrator
+- Return structured completion message to orchestrator:
+  - Files created/modified: [list]
+  - Success criteria met: [yes/no for each]
+  - Issues encountered: [list or none]

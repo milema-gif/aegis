@@ -1,5 +1,16 @@
 # Stage: Phase Plan
 
+## Subagent Context
+
+This stage is executed by the `aegis-planner` subagent, dispatched by the orchestrator via Agent tool.
+The subagent receives a structured prompt with Objective, Context Files, Constraints, Success Criteria, and Output.
+
+**Agent:** aegis-planner
+**Model:** inherit (opus)
+**Invocation:** Orchestrator builds prompt per `references/invocation-protocol.md`
+
+**GPT-4 Mini delegation:** Do NOT delegate planning to Sparrow. Planning requires architecture reasoning. All work stays in this subagent.
+
 Delegate detailed planning for the current phase to GSD's planning framework.
 
 ## Inputs
@@ -30,3 +41,7 @@ Delegate detailed planning for the current phase to GSD's planning framework.
 - At least one PLAN.md exists for the current phase directory
 - Each plan has tasks, verification steps, and success criteria
 - Signal stage complete to orchestrator
+- Return structured completion message to orchestrator:
+  - Files created/modified: [list]
+  - Success criteria met: [yes/no for each]
+  - Issues encountered: [list or none]
