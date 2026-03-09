@@ -31,8 +31,8 @@
 
 - [ ] **MDL-01**: Pipeline consults DeepSeek via Sparrow for routine review at configurable gates
 - [ ] **MDL-02**: Pipeline consults GPT Codex via Sparrow (--codex) at critical gates ONLY when user explicitly says "codex"
-- [ ] **MDL-03**: Pipeline delegates autonomous sub-tasks to GPT-4 Mini for cost efficiency
-- [ ] **MDL-04**: Model selection follows explicit routing rules (Claude orchestrates, others consult)
+- [x] **MDL-03**: Pipeline delegates autonomous sub-tasks to GPT-4 Mini for cost efficiency
+- [x] **MDL-04**: Model selection follows explicit routing rules (Claude orchestrates, others consult)
 
 ### Portability
 
@@ -98,8 +98,8 @@
 | GIT-01 | Phase 3 | Complete |
 | GIT-02 | Phase 3 | Complete |
 | GIT-03 | Phase 3 | Complete |
-| MDL-03 | Phase 4 | Pending |
-| MDL-04 | Phase 4 | Pending |
+| MDL-03 | Phase 4 | Complete |
+| MDL-04 | Phase 4 | Complete |
 | MEM-01 | Phase 5 | Pending |
 | MEM-02 | Phase 5 | Pending |
 | MEM-03 | Phase 5 | Pending |

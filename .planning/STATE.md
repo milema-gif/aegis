@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: completed
-stopped_at: Completed 03-02-PLAN.md
-last_updated: "2026-03-09T06:06:54.109Z"
-last_activity: 2026-03-09 — Completed 03-02 (stage workflows and orchestrator dispatch)
+status: executing
+stopped_at: Completed 04-01-PLAN.md
+last_updated: "2026-03-09T06:49:39.171Z"
+last_activity: 2026-03-09 — Completed 04-01 (subagent definitions, routing, protocol, validation)
 progress:
   total_phases: 6
   completed_phases: 3
-  total_plans: 6
-  completed_plans: 6
-  percent: 100
+  total_plans: 8
+  completed_plans: 7
+  percent: 88
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-09)
 ## Current Position
 
 Phase: 4 of 6 (Subagent System)
-Plan: 0 of ? in current phase
-Status: Phase 3 Complete, Phase 4 Pending
-Last activity: 2026-03-09 — Completed 03-02 (stage workflows and orchestrator dispatch)
+Plan: 1 of 2 in current phase
+Status: In Progress
+Last activity: 2026-03-09 — Completed 04-01 (subagent definitions, routing, protocol, validation)
 
-Progress: [██████████] 100% (Phase 3 complete, 3/6 phases done)
+Progress: [█████████░] 88% (7/8 plans complete)
 
 ## Performance Metrics
 
@@ -53,6 +53,7 @@ Progress: [██████████] 100% (Phase 3 complete, 3/6 phases do
 
 *Updated after each plan completion*
 | Phase 03 P02 | 3min | 2 tasks | 13 files |
+| Phase 04 P01 | 3min | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -85,6 +86,9 @@ Recent decisions affecting current work:
 - [Phase 03]: Stage workflows are lean prompt documents (<100 lines) — Claude follows step-by-step
 - [Phase 03]: 4 stages delegate to GSD commands; 5 are custom (intake, roadmap, test-gate, advance, deploy)
 - [Phase 03]: Orchestrator errors on missing workflow instead of stub fallback — all 9 must exist
+- [Phase 04]: Agent permissionMode split: dontAsk for read-only, bypassPermissions for write agents
+- [Phase 04]: Planner uses inherit (opus) model; other agents use sonnet
+- [Phase 04]: Sparrow validation uses pattern matching for error strings
 
 ### Pending Todos
 
@@ -103,6 +107,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-09T06:04:02.403Z
-Stopped at: Completed 03-02-PLAN.md
+Last session: 2026-03-09T06:49:39.158Z
+Stopped at: Completed 04-01-PLAN.md
 Resume file: None
