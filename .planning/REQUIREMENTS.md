@@ -23,8 +23,8 @@
 
 ### Memory
 
-- [ ] **MEM-01**: Pipeline stores decisions, bugs, and patterns in Engram at each gate
-- [ ] **MEM-02**: Pipeline retrieves relevant Engram context at stage intake
+- [x] **MEM-01**: Pipeline stores decisions, bugs, and patterns in Engram at each gate
+- [x] **MEM-02**: Pipeline retrieves relevant Engram context at stage intake
 - [ ] **MEM-03**: Pipeline detects duplicated code and verifies fixes propagate (old code removed)
 
 ### Multi-Model
@@ -100,8 +100,8 @@
 | GIT-03 | Phase 3 | Complete |
 | MDL-03 | Phase 4 | Complete |
 | MDL-04 | Phase 4 | Complete |
-| MEM-01 | Phase 5 | Pending |
-| MEM-02 | Phase 5 | Pending |
+| MEM-01 | Phase 5 | Complete |
+| MEM-02 | Phase 5 | Complete |
 | MEM-03 | Phase 5 | Pending |
 | MDL-01 | Phase 6 | Pending |
 | MDL-02 | Phase 6 | Pending |
