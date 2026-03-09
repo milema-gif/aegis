@@ -66,11 +66,11 @@ Plans:
   3. User can roll back to any prior phase tag with a single command
   4. Rollback checks and warns if schema/migration state may diverge from rolled-back code
   5. Advance stage loops back to phase-plan when more phases remain
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 03-01: TBD
-- [ ] 03-02: TBD
+- [ ] 03-01-PLAN.md — Git operations library (tagging, rollback, compatibility checks), /aegis:rollback skill, tests
+- [ ] 03-02-PLAN.md — All 9 stage workflow files, orchestrator dispatch update, advance-loop and workflow tests
 
 ### Phase 4: Subagent System
 **Goal**: Orchestrator stays lean by delegating heavy work to specialist subagents with fresh context
