@@ -17,9 +17,9 @@
 
 ### Version Control
 
-- [ ] **GIT-01**: Pipeline creates git tag at each phase completion
-- [ ] **GIT-02**: User can roll back to any phase tag with a single command
-- [ ] **GIT-03**: Rollback checks compatibility (warns if schema/migration state may diverge from code)
+- [x] **GIT-01**: Pipeline creates git tag at each phase completion
+- [x] **GIT-02**: User can roll back to any phase tag with a single command
+- [x] **GIT-03**: Rollback checks compatibility (warns if schema/migration state may diverge from code)
 
 ### Memory
 
@@ -95,9 +95,9 @@
 | PIPE-04 | Phase 2 | Complete |
 | PIPE-05 | Phase 2 | Complete |
 | PIPE-06 | Phase 2 | Complete |
-| GIT-01 | Phase 3 | Pending |
-| GIT-02 | Phase 3 | Pending |
-| GIT-03 | Phase 3 | Pending |
+| GIT-01 | Phase 3 | Complete |
+| GIT-02 | Phase 3 | Complete |
+| GIT-03 | Phase 3 | Complete |
 | MDL-03 | Phase 4 | Pending |
 | MDL-04 | Phase 4 | Pending |
 | MEM-01 | Phase 5 | Pending |
