@@ -29,8 +29,8 @@
 
 ### Multi-Model
 
-- [ ] **MDL-01**: Pipeline consults DeepSeek via Sparrow for routine review at configurable gates
-- [ ] **MDL-02**: Pipeline consults GPT Codex via Sparrow (--codex) at critical gates ONLY when user explicitly says "codex"
+- [x] **MDL-01**: Pipeline consults DeepSeek via Sparrow for routine review at configurable gates
+- [x] **MDL-02**: Pipeline consults GPT Codex via Sparrow (--codex) at critical gates ONLY when user explicitly says "codex"
 - [x] **MDL-03**: Pipeline delegates autonomous sub-tasks to GPT-4 Mini for cost efficiency
 - [x] **MDL-04**: Model selection follows explicit routing rules (Claude orchestrates, others consult)
 
@@ -103,8 +103,8 @@
 | MEM-01 | Phase 5 | Complete |
 | MEM-02 | Phase 5 | Complete |
 | MEM-03 | Phase 5 | Complete |
-| MDL-01 | Phase 6 | Pending |
-| MDL-02 | Phase 6 | Pending |
+| MDL-01 | Phase 6 | Complete |
+| MDL-02 | Phase 6 | Complete |
 
 **Coverage:**
 - v1 requirements: 18 total
