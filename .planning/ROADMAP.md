@@ -114,8 +114,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 06-01: TBD
-- [ ] 06-02: TBD
+- [ ] 06-01-PLAN.md — Consultation library, configuration reference, and unit tests (MDL-01, MDL-02)
+- [ ] 06-02-PLAN.md — Orchestrator integration: Step 5.55 consultation, codex opt-in, state template update
 
 ## Progress
 
