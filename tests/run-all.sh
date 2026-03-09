@@ -11,6 +11,7 @@ TESTS=(
   "test-journaled-state"
   "test-integration-detection"
   "test-memory-stub"
+  "test-memory-engram"
   "test-gate-evaluation"
   "test-gate-banners"
   "test-git-operations"

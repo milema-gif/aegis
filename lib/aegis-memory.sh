@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Aegis Pipeline — Memory interface stub
-# STUB: Replace with Engram in Phase 5
-# Provides local JSON file-based memory for save/search operations.
+# Aegis Pipeline — Memory interface
+# Provides local JSON file-based memory with gate persistence and context retrieval.
+# Engram MCP integration handled at conversation level; these functions are the local JSON fallback.
 set -euo pipefail
 
 MEMORY_DIR="${MEMORY_DIR:-${AEGIS_DIR:-.aegis}/memory}"
@@ -73,4 +73,33 @@ matches = [
 
 print(json.dumps(matches))
 "
+}
+
+# --- memory_save_gate(stage, phase, summary) ---
+# Saves a gate-passage memory entry. Local JSON fallback for MEM-01.
+# Uses key format: gate-{stage}-phase-{phase}
+memory_save_gate() {
+  local stage="${1:?memory_save_gate requires stage}"
+  local phase="${2:?memory_save_gate requires phase}"
+  local summary="${3:?memory_save_gate requires summary}"
+
+  memory_save "project" "gate-${stage}-phase-${phase}" "$summary"
+}
+
+# --- memory_retrieve_context(scope, terms, limit) ---
+# Retrieves context entries matching terms. Local JSON fallback for MEM-02.
+memory_retrieve_context() {
+  local scope="${1:?memory_retrieve_context requires scope}"
+  local terms="${2:?memory_retrieve_context requires terms}"
+  local limit="${3:-5}"
+
+  memory_search "$scope" "$terms" "$limit"
+}
+
+# --- memory_search_bugfixes(limit) ---
+# Searches for bugfix-related entries. Used by MEM-03 (Plan 02).
+memory_search_bugfixes() {
+  local limit="${1:-10}"
+
+  memory_search "project" "bugfix" "$limit"
 }
