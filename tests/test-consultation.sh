@@ -14,6 +14,40 @@ fail() { echo "FAIL: $1 — $2"; FAIL_COUNT=$((FAIL_COUNT + 1)); }
 
 TMP_PREFIX="/tmp/aegis-test-consult-$$"
 
+# Helper: create test policy file in a given directory
+create_test_policy() {
+  local dir="$1"
+  cat > "$dir/aegis-policy.json" << 'POLICY_EOF'
+{
+  "policy_version": "1.0.0",
+  "description": "Test policy config",
+  "gates": {
+    "intake": { "type": "approval", "skippable": true, "max_retries": 0, "backoff": "none", "timeout_seconds": 0 },
+    "research": { "type": "approval", "skippable": true, "max_retries": 0, "backoff": "none", "timeout_seconds": 0 },
+    "roadmap": { "type": "approval", "skippable": true, "max_retries": 0, "backoff": "none", "timeout_seconds": 0 },
+    "phase-plan": { "type": "quality", "skippable": false, "max_retries": 2, "backoff": "fixed-5s", "timeout_seconds": 120 },
+    "execute": { "type": "quality", "skippable": false, "max_retries": 3, "backoff": "fixed-5s", "timeout_seconds": 300 },
+    "verify": { "type": "quality", "skippable": false, "max_retries": 2, "backoff": "fixed-5s", "timeout_seconds": 120 },
+    "test-gate": { "type": "quality", "skippable": false, "max_retries": 3, "backoff": "exp-5s", "timeout_seconds": 180 },
+    "advance": { "type": "none", "skippable": true, "max_retries": 0, "backoff": "none", "timeout_seconds": 0 },
+    "deploy": { "type": "quality,external", "skippable": false, "max_retries": 1, "backoff": "none", "timeout_seconds": 60 }
+  },
+  "consultation": {
+    "intake": { "type": "none", "context_limit": 0 },
+    "research": { "type": "routine", "context_limit": 2000 },
+    "roadmap": { "type": "routine", "context_limit": 2000 },
+    "phase-plan": { "type": "routine", "context_limit": 2000 },
+    "execute": { "type": "none", "context_limit": 0 },
+    "verify": { "type": "critical", "context_limit": 4000 },
+    "test-gate": { "type": "none", "context_limit": 0 },
+    "advance": { "type": "none", "context_limit": 0 },
+    "deploy": { "type": "critical", "context_limit": 4000 }
+  },
+  "gate_rules": { "quality_never_skippable": true, "external_never_skippable": true, "compound_evaluation": "left-to-right-short-circuit" }
+}
+POLICY_EOF
+}
+
 # --- Test 1: Consultation library exists and has valid syntax ---
 test_consult_library_exists() {
   local path="$PROJECT_ROOT/lib/aegis-consult.sh"
@@ -106,9 +140,10 @@ test_get_consultation_type_routine() {
   local tmpdir="${TMP_PREFIX}-t6"
   mkdir -p "$tmpdir"
   echo '{"current_stage":"intake","config":{},"stages":[]}' > "$tmpdir/state.current.json"
+  create_test_policy "$tmpdir"
 
   local result
-  result=$(AEGIS_DIR="$tmpdir" AEGIS_LIB_DIR="$PROJECT_ROOT/lib" bash -c '
+  result=$(AEGIS_DIR="$tmpdir" AEGIS_LIB_DIR="$PROJECT_ROOT/lib" AEGIS_POLICY_FILE="$tmpdir/aegis-policy.json" bash -c '
     source "'"$PROJECT_ROOT/lib/aegis-consult.sh"'"
     get_consultation_type "research"
   ' 2>/dev/null)
@@ -126,9 +161,10 @@ test_get_consultation_type_critical() {
   local tmpdir="${TMP_PREFIX}-t7"
   mkdir -p "$tmpdir"
   echo '{"current_stage":"intake","config":{},"stages":[]}' > "$tmpdir/state.current.json"
+  create_test_policy "$tmpdir"
 
   local result
-  result=$(AEGIS_DIR="$tmpdir" AEGIS_LIB_DIR="$PROJECT_ROOT/lib" bash -c '
+  result=$(AEGIS_DIR="$tmpdir" AEGIS_LIB_DIR="$PROJECT_ROOT/lib" AEGIS_POLICY_FILE="$tmpdir/aegis-policy.json" bash -c '
     source "'"$PROJECT_ROOT/lib/aegis-consult.sh"'"
     get_consultation_type "verify"
   ' 2>/dev/null)
@@ -146,9 +182,10 @@ test_get_consultation_type_none() {
   local tmpdir="${TMP_PREFIX}-t8"
   mkdir -p "$tmpdir"
   echo '{"current_stage":"intake","config":{},"stages":[]}' > "$tmpdir/state.current.json"
+  create_test_policy "$tmpdir"
 
   local result
-  result=$(AEGIS_DIR="$tmpdir" AEGIS_LIB_DIR="$PROJECT_ROOT/lib" bash -c '
+  result=$(AEGIS_DIR="$tmpdir" AEGIS_LIB_DIR="$PROJECT_ROOT/lib" AEGIS_POLICY_FILE="$tmpdir/aegis-policy.json" bash -c '
     source "'"$PROJECT_ROOT/lib/aegis-consult.sh"'"
     get_consultation_type "intake"
   ' 2>/dev/null)
@@ -166,9 +203,10 @@ test_codex_opt_in_default_false() {
   local tmpdir="${TMP_PREFIX}-t9"
   mkdir -p "$tmpdir"
   echo '{"current_stage":"intake","config":{},"stages":[]}' > "$tmpdir/state.current.json"
+  create_test_policy "$tmpdir"
 
   local result
-  result=$(AEGIS_DIR="$tmpdir" AEGIS_LIB_DIR="$PROJECT_ROOT/lib" bash -c '
+  result=$(AEGIS_DIR="$tmpdir" AEGIS_LIB_DIR="$PROJECT_ROOT/lib" AEGIS_POLICY_FILE="$tmpdir/aegis-policy.json" bash -c '
     source "'"$PROJECT_ROOT/lib/aegis-consult.sh"'"
     read_codex_opt_in
   ' 2>/dev/null)
@@ -186,9 +224,10 @@ test_codex_opt_in_reads_true() {
   local tmpdir="${TMP_PREFIX}-t10"
   mkdir -p "$tmpdir"
   echo '{"current_stage":"intake","config":{"codex_opted_in":true},"stages":[]}' > "$tmpdir/state.current.json"
+  create_test_policy "$tmpdir"
 
   local result
-  result=$(AEGIS_DIR="$tmpdir" AEGIS_LIB_DIR="$PROJECT_ROOT/lib" bash -c '
+  result=$(AEGIS_DIR="$tmpdir" AEGIS_LIB_DIR="$PROJECT_ROOT/lib" AEGIS_POLICY_FILE="$tmpdir/aegis-policy.json" bash -c '
     source "'"$PROJECT_ROOT/lib/aegis-consult.sh"'"
     read_codex_opt_in
   ' 2>/dev/null)
@@ -206,10 +245,11 @@ test_consult_sparrow_unavailable() {
   local tmpdir="${TMP_PREFIX}-t11"
   mkdir -p "$tmpdir"
   echo '{"current_stage":"intake","config":{},"stages":[]}' > "$tmpdir/state.current.json"
+  create_test_policy "$tmpdir"
 
   local result
   local exit_code
-  result=$(AEGIS_DIR="$tmpdir" AEGIS_LIB_DIR="$PROJECT_ROOT/lib" AEGIS_SPARROW_PATH="/tmp/nonexistent-sparrow-$$" bash -c '
+  result=$(AEGIS_DIR="$tmpdir" AEGIS_LIB_DIR="$PROJECT_ROOT/lib" AEGIS_POLICY_FILE="$tmpdir/aegis-policy.json" AEGIS_SPARROW_PATH="/tmp/nonexistent-sparrow-$$" bash -c '
     source "'"$PROJECT_ROOT/lib/aegis-consult.sh"'"
     consult_sparrow "test message"
   ' 2>/dev/null)
@@ -252,9 +292,10 @@ test_banner_format() {
   local tmpdir="${TMP_PREFIX}-t13"
   mkdir -p "$tmpdir"
   echo '{"current_stage":"intake","config":{},"stages":[]}' > "$tmpdir/state.current.json"
+  create_test_policy "$tmpdir"
 
   local output
-  output=$(AEGIS_DIR="$tmpdir" AEGIS_LIB_DIR="$PROJECT_ROOT/lib" bash -c '
+  output=$(AEGIS_DIR="$tmpdir" AEGIS_LIB_DIR="$PROJECT_ROOT/lib" AEGIS_POLICY_FILE="$tmpdir/aegis-policy.json" bash -c '
     source "'"$PROJECT_ROOT/lib/aegis-consult.sh"'"
     show_consultation_banner "DeepSeek" "research" "Test result"
   ' 2>/dev/null)

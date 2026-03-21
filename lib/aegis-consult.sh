@@ -7,31 +7,30 @@ set -euo pipefail
 # Source state library for state access
 AEGIS_LIB_DIR="${AEGIS_LIB_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
 source "$AEGIS_LIB_DIR/aegis-state.sh"
+source "$AEGIS_LIB_DIR/aegis-policy.sh"
 
 # Sparrow path — override via environment for testing
 AEGIS_SPARROW_PATH="${AEGIS_SPARROW_PATH:-/home/ai/scripts/sparrow}"
 
 # --- get_consultation_type(stage_name) ---
 # Returns "none", "routine", or "critical" for the given stage.
-# Uses a case statement for speed; references/consultation-config.md is the reference doc.
+# Reads from aegis-policy.json consultation config.
 get_consultation_type() {
   local stage_name="${1:?get_consultation_type requires stage_name}"
 
-  case "$stage_name" in
-    intake)     echo "none" ;;
-    research)   echo "routine" ;;
-    roadmap)    echo "routine" ;;
-    phase-plan) echo "routine" ;;
-    execute)    echo "none" ;;
-    verify)     echo "critical" ;;
-    test-gate)  echo "none" ;;
-    advance)    echo "none" ;;
-    deploy)     echo "critical" ;;
-    *)
-      echo "Error: unknown stage '$stage_name'" >&2
-      echo "none"
-      ;;
-  esac
+  python3 -c "
+import json, sys
+
+with open('${AEGIS_POLICY_FILE}') as f:
+    p = json.load(f)
+
+cfg = p.get('consultation', {}).get('${stage_name}')
+if cfg is None:
+    print('Error: unknown stage \'${stage_name}\'', file=sys.stderr)
+    print('none')
+else:
+    print(cfg.get('type', 'none'))
+"
 }
 
 # --- consult_sparrow(message, use_codex, timeout_secs) ---
@@ -76,21 +75,20 @@ build_consultation_context() {
   local stage="${1:?build_consultation_context requires stage}"
   local project="${2:?build_consultation_context requires project}"
 
-  local consult_type
-  consult_type=$(get_consultation_type "$stage")
-
-  local char_limit=2000
-  if [[ "$consult_type" == "critical" ]]; then
-    char_limit=4000
-  fi
-
   python3 -c "
 import os, json
 
 stage = '${stage}'
 project = '${project}'
-char_limit = ${char_limit}
 aegis_dir = '${AEGIS_DIR}'
+
+# Read context_limit from policy config
+with open('${AEGIS_POLICY_FILE}') as f:
+    policy = json.load(f)
+consult_cfg = policy.get('consultation', {}).get(stage, {})
+char_limit = consult_cfg.get('context_limit', 2000)
+if char_limit == 0:
+    char_limit = 2000  # fallback for 'none' type stages
 
 # Build prompt header
 prompt = f'Review this {stage} output for project {project}:\n\n'

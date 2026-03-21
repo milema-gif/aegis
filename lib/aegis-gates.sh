@@ -7,6 +7,7 @@ set -euo pipefail
 # Source state library for state access
 AEGIS_LIB_DIR="${AEGIS_LIB_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
 source "$AEGIS_LIB_DIR/aegis-state.sh"
+source "$AEGIS_LIB_DIR/aegis-policy.sh"
 
 # --- evaluate_gate(stage_name, yolo_mode) ---
 # Returns: pass | fail | approval-needed | auto-approved
@@ -17,6 +18,18 @@ evaluate_gate() {
   python3 -c "
 import json, sys
 
+# Read gate type/skippable from POLICY config (not state)
+with open('${AEGIS_POLICY_FILE}') as f:
+    policy = json.load(f)
+
+gate_cfg = policy.get('gates', {}).get('${stage_name}')
+if gate_cfg is None:
+    print('error: unknown stage in policy', file=sys.stderr)
+    sys.exit(1)
+
+gate_type = gate_cfg['type']
+
+# Read stage status from runtime STATE (status is runtime, not policy)
 with open('${AEGIS_DIR}/state.current.json') as f:
     d = json.load(f)
 
@@ -27,11 +40,9 @@ for s in d['stages']:
         break
 
 if stage is None:
-    print('error: unknown stage', file=sys.stderr)
+    print('error: unknown stage in state', file=sys.stderr)
     sys.exit(1)
 
-gate = stage['gate']
-gate_type = gate['type']
 yolo = '${yolo_mode}' == 'true'
 
 # Split compound types (e.g., 'quality,external')

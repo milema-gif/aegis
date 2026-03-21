@@ -15,6 +15,36 @@ setup() {
   TEST_DIR=$(mktemp -d)
   export AEGIS_DIR="$TEST_DIR/.aegis"
   export AEGIS_TEMPLATE_DIR="$PROJECT_ROOT/templates"
+  export AEGIS_POLICY_FILE="$TEST_DIR/aegis-policy.json"
+  cat > "$AEGIS_POLICY_FILE" << 'POLICY_EOF'
+{
+  "policy_version": "1.0.0",
+  "description": "Test policy config",
+  "gates": {
+    "intake": { "type": "approval", "skippable": true, "max_retries": 0, "backoff": "none", "timeout_seconds": 0 },
+    "research": { "type": "approval", "skippable": true, "max_retries": 0, "backoff": "none", "timeout_seconds": 0 },
+    "roadmap": { "type": "approval", "skippable": true, "max_retries": 0, "backoff": "none", "timeout_seconds": 0 },
+    "phase-plan": { "type": "quality", "skippable": false, "max_retries": 2, "backoff": "fixed-5s", "timeout_seconds": 120 },
+    "execute": { "type": "quality", "skippable": false, "max_retries": 3, "backoff": "fixed-5s", "timeout_seconds": 300 },
+    "verify": { "type": "quality", "skippable": false, "max_retries": 2, "backoff": "fixed-5s", "timeout_seconds": 120 },
+    "test-gate": { "type": "quality", "skippable": false, "max_retries": 3, "backoff": "exp-5s", "timeout_seconds": 180 },
+    "advance": { "type": "none", "skippable": true, "max_retries": 0, "backoff": "none", "timeout_seconds": 0 },
+    "deploy": { "type": "quality,external", "skippable": false, "max_retries": 1, "backoff": "none", "timeout_seconds": 60 }
+  },
+  "consultation": {
+    "intake": { "type": "none", "context_limit": 0 },
+    "research": { "type": "routine", "context_limit": 2000 },
+    "roadmap": { "type": "routine", "context_limit": 2000 },
+    "phase-plan": { "type": "routine", "context_limit": 2000 },
+    "execute": { "type": "none", "context_limit": 0 },
+    "verify": { "type": "critical", "context_limit": 4000 },
+    "test-gate": { "type": "none", "context_limit": 0 },
+    "advance": { "type": "none", "context_limit": 0 },
+    "deploy": { "type": "critical", "context_limit": 4000 }
+  },
+  "gate_rules": { "quality_never_skippable": true, "external_never_skippable": true, "compound_evaluation": "left-to-right-short-circuit" }
+}
+POLICY_EOF
 }
 
 teardown() {
