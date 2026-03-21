@@ -30,6 +30,7 @@ TESTS=(
   "test-evidence"
   "test-enforcement"
   "test-risk-consultation"
+  "test-regression"
   "test-pipeline-integration"
 )
 
