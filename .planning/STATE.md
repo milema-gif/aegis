@@ -10,8 +10,8 @@ progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 4
-  completed_plans: 3
-  percent: 58
+  completed_plans: 4
+  percent: 67
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 
 ## Current Position
 
-Phase: 12 of 16 (Evidence Artifacts)
-Plan: 1 of 2 in current phase (Plan 01 complete)
+Phase: 13 of 16 (Enforcement Layer)
+Plan: 0 of ? in current phase
 Status: In Progress
-Last activity: 2026-03-21 -- Phase 12 Plan 01 complete (evidence artifact library)
+Last activity: 2026-03-21 -- Phase 12 complete (evidence artifacts — 2 plans done)
 
-Progress: [█████▊....] 58% (v3.0)
+Progress: [██████....] 67% (v3.0)
 
 ## Performance Metrics
 
@@ -48,7 +48,7 @@ Progress: [█████▊....] 58% (v3.0)
 | 09-behavioral-gate | 2 | 6min | 3.0min |
 | 10-deploy-preflight | 2 | 8min | 4.0min |
 | 11-policy-as-code | 2 | 11min | 5.5min |
-| 12-evidence-artifacts | 1 | 3min | 3.0min |
+| 12-evidence-artifacts | 2 | 8min | 4.0min |
 
 ## Accumulated Context
 
@@ -71,6 +71,8 @@ Recent decisions affecting current work:
 - [12-01]: Evidence files at .aegis/evidence/{stage}-phase-{N}.json
 - [12-01]: Atomic tmp+mv write pattern for evidence creation
 - [12-01]: validate_test_requirements operates on raw stdout text
+- [12-02]: Evidence pre-check returns early before gate logic (phase param optional, default 0)
+- [12-02]: [REQ-ID] prefix convention on all test assertions for requirement traceability
 
 ### Pending Todos
 
@@ -83,6 +85,6 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-21
-Stopped at: Completed 12-01-PLAN.md
+Stopped at: Completed 12-02-PLAN.md (Phase 12 complete)
 Resume file: None
-Next step: Phase 12 Plan 02 (evidence wiring into pipeline)
+Next step: Phase 13 (Enforcement Layer) planning
