@@ -69,9 +69,9 @@
 
 ### Deploy Safety
 
-- [ ] **DEPLOY-01**: Deploy preflight guard runs before any deploy action — verifies state position (all 8 prior stages completed), deploy scope matches roadmap, rollback tag exists, working tree is clean
+- [x] **DEPLOY-01**: Deploy preflight guard runs before any deploy action — verifies state position (all 8 prior stages completed), deploy scope matches roadmap, rollback tag exists, working tree is clean
 - [ ] **DEPLOY-02**: Deploy confirmation requires typing "deploy" keyword explicitly (not "approved") — preflight is classified as `external` gate type, never skippable
-- [ ] **DEPLOY-03**: Pre-deploy state snapshot captures running service metadata (Docker container IDs, PM2 process info) for rollback comparison
+- [x] **DEPLOY-03**: Pre-deploy state snapshot captures running service metadata (Docker container IDs, PM2 process info) for rollback comparison
 
 ## v3.0 Requirements (Deferred)
 
@@ -166,9 +166,9 @@
 | AGENT-01 | Phase 9 | Complete |
 | AGENT-02 | Phase 9 | Complete |
 | AGENT-03 | Phase 9 | Pending |
-| DEPLOY-01 | Phase 10 | Pending |
+| DEPLOY-01 | Phase 10 | Complete |
 | DEPLOY-02 | Phase 10 | Pending |
-| DEPLOY-03 | Phase 10 | Pending |
+| DEPLOY-03 | Phase 10 | Complete |
 
 **v1.0 Coverage:** 18/18 mapped, 0 unmapped
 **v2.0 Coverage:** 18/18 mapped, 0 unmapped
