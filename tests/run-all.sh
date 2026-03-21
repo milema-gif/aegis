@@ -28,6 +28,7 @@ TESTS=(
   "test-behavioral-gate"
   "test-preflight"
   "test-evidence"
+  "test-enforcement"
   "test-pipeline-integration"
 )
 
