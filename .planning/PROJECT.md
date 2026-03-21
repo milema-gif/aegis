@@ -23,22 +23,37 @@ Never lose context, direction, or consistency across a project's entire lifecycl
 - ✓ `/aegis:launch` skill command as the single entry point — v1.0
 - ✓ Graceful degradation when Sparrow/Engram unavailable — v1.0
 
+<!-- Shipped in v2.0 Quality Enforcement -->
+
+- ✓ complete_stage() atomic idempotent stage completion — v2.0
+- ✓ Namespace isolation (stage-scoped workspaces) — v2.0
+- ✓ Global aegis command on PATH — v2.0
+- ✓ Memory project-scoping with pollution scan — v2.0
+- ✓ Class-based memory decay (pinned/project/session/ephemeral) — v2.0
+- ✓ Legacy memory migration script — v2.0
+- ✓ Stage-boundary checkpoints (375-word budget, last 3 injected) — v2.0
+- ✓ Behavioral gate (warn-only, BEHAVIORAL_GATE_CHECK marker) — v2.0
+- ✓ Deploy preflight guard (Docker/PM2 snapshot, "deploy" keyword, unskippable) — v2.0
+
 ### Active
 
 <!-- v2.0: Quality Enforcement -->
 
 (Defined in REQUIREMENTS.md)
 
-## Current Milestone: v2.0 Quality Enforcement
+## Current Milestone: v3.0 Evidence-Driven Pipeline
 
-**Goal:** Ensure every agent at every stage does verified, grounded work with persistent memory — not just plausible output. Ship v1.1 debt + quality enforcement in one milestone.
+**Goal:** Move from "good process" to "enforced evidence-driven process" — every stage produces machine-checkable evidence, gates evaluate evidence not prose, and critical actions are blocked without verification.
 
 **Target features:**
-- Subagent behavioral gate (verification before edits)
-- Stage-boundary context checkpoints (prevent context exhaustion)
-- Memory quality control (project scoping, decay, pollution prevention)
-- Deploy preflight guard (read state, verify scope, approve)
-- v1.1 debt: namespace isolation, complete_stage() helper, global install
+- Behavioral gate enforcement (blocking for mutating actions, not just warn)
+- Non-vacuous test evidence requirements (tests must prove something)
+- Risk-scored mandatory consultation (forced review when risk high)
+- Phase regression checks (new phase can't invalidate prior completed criteria)
+- Machine-verifiable evidence artifacts (every stage outputs checkable evidence)
+- Cross-project pattern library (opt-in curated patterns)
+
+**Origin:** Codex review of v2.0 architecture (rated 8.5/10). Gap identified: "enforced evidence-driven process."
 
 ### Out of Scope
 
@@ -78,4 +93,4 @@ Never lose context, direction, or consistency across a project's entire lifecycl
 | Memory project-scoping first, cross-project opt-in | Prevents memory pollution — Project A decisions don't leak into Project B | — Pending |
 
 ---
-*Last updated: 2026-03-21 after v2.0 milestone start*
+*Last updated: 2026-03-21 after v3.0 milestone start*
