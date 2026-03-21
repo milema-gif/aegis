@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Evidence-Driven Pipeline
-status: complete
+status: completed
 stopped_at: Completed 16-02-PLAN.md -- v3.0 milestone complete
-last_updated: "2026-03-21T18:56:00Z"
-last_activity: 2026-03-21 -- Phase 16 Plan 02 complete (advance stage wiring) -- v3.0 COMPLETE
+last_updated: "2026-03-21T19:08:35.979Z"
+last_activity: 2026-03-21 -- Phase 16 Plan 02 complete (advance stage wiring + policy config)
 progress:
   total_phases: 6
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 12
   completed_plans: 12
   percent: 100
