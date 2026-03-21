@@ -201,6 +201,196 @@ with open(file_path, 'w') as f:
   teardown
 }
 
+# --- Test: memory_decay skips pinned entries regardless of age ---
+test_decay_skips_pinned() {
+  setup
+  mkdir -p "$MEMORY_DIR"
+  # Create an old pinned entry (90 days old)
+  local old_date
+  old_date=$(date -u -d "90 days ago" +"%Y-%m-%dT%H:%M:%SZ")
+  python3 -c "
+import json
+entries = [{'id': 1, 'key': 'aegis/arch-decision', 'content': 'pinned content', 'timestamp': '${old_date}', 'decay_class': 'pinned'}]
+with open('${MEMORY_DIR}/aegis-project.json', 'w') as f:
+    json.dump(entries, f)
+"
+  # Remove guard file if exists
+  rm -f "$MEMORY_DIR/.last_decay"
+  memory_decay "aegis" > /dev/null
+  local count
+  count=$(python3 -c "
+import json
+with open('${MEMORY_DIR}/aegis-project.json') as f:
+    print(len(json.load(f)))
+")
+  if [[ "$count" == "1" ]]; then
+    pass "decay skips pinned entries regardless of age"
+  else
+    fail "decay skips pinned" "expected 1 entry, got $count"
+  fi
+  teardown
+}
+
+# --- Test: memory_decay removes ephemeral entries older than 7 days ---
+test_decay_removes_old_ephemeral() {
+  setup
+  mkdir -p "$MEMORY_DIR"
+  local old_date
+  old_date=$(date -u -d "10 days ago" +"%Y-%m-%dT%H:%M:%SZ")
+  python3 -c "
+import json
+entries = [{'id': 1, 'key': 'aegis/tmp-state', 'content': 'ephemeral content', 'timestamp': '${old_date}', 'decay_class': 'ephemeral'}]
+with open('${MEMORY_DIR}/aegis-project.json', 'w') as f:
+    json.dump(entries, f)
+"
+  rm -f "$MEMORY_DIR/.last_decay"
+  memory_decay "aegis" > /dev/null
+  local count
+  count=$(python3 -c "
+import json
+with open('${MEMORY_DIR}/aegis-project.json') as f:
+    print(len(json.load(f)))
+")
+  if [[ "$count" == "0" ]]; then
+    pass "decay removes ephemeral entries older than 7 days"
+  else
+    fail "decay removes old ephemeral" "expected 0 entries, got $count"
+  fi
+  teardown
+}
+
+# --- Test: memory_decay removes session entries older than 30 days ---
+test_decay_removes_old_session() {
+  setup
+  mkdir -p "$MEMORY_DIR"
+  local old_date
+  old_date=$(date -u -d "35 days ago" +"%Y-%m-%dT%H:%M:%SZ")
+  python3 -c "
+import json
+entries = [{'id': 1, 'key': 'aegis/session-ctx', 'content': 'session content', 'timestamp': '${old_date}', 'decay_class': 'session'}]
+with open('${MEMORY_DIR}/aegis-project.json', 'w') as f:
+    json.dump(entries, f)
+"
+  rm -f "$MEMORY_DIR/.last_decay"
+  memory_decay "aegis" > /dev/null
+  local count
+  count=$(python3 -c "
+import json
+with open('${MEMORY_DIR}/aegis-project.json') as f:
+    print(len(json.load(f)))
+")
+  if [[ "$count" == "0" ]]; then
+    pass "decay removes session entries older than 30 days"
+  else
+    fail "decay removes old session" "expected 0 entries, got $count"
+  fi
+  teardown
+}
+
+# --- Test: memory_decay keeps session entries younger than 30 days ---
+test_decay_keeps_young_session() {
+  setup
+  mkdir -p "$MEMORY_DIR"
+  local recent_date
+  recent_date=$(date -u -d "10 days ago" +"%Y-%m-%dT%H:%M:%SZ")
+  python3 -c "
+import json
+entries = [{'id': 1, 'key': 'aegis/session-recent', 'content': 'recent session', 'timestamp': '${recent_date}', 'decay_class': 'session'}]
+with open('${MEMORY_DIR}/aegis-project.json', 'w') as f:
+    json.dump(entries, f)
+"
+  rm -f "$MEMORY_DIR/.last_decay"
+  memory_decay "aegis" > /dev/null
+  local count
+  count=$(python3 -c "
+import json
+with open('${MEMORY_DIR}/aegis-project.json') as f:
+    print(len(json.load(f)))
+")
+  if [[ "$count" == "1" ]]; then
+    pass "decay keeps session entries younger than 30 days"
+  else
+    fail "decay keeps young session" "expected 1 entry, got $count"
+  fi
+  teardown
+}
+
+# --- Test: memory_decay does not run if .last_decay is less than 24h old ---
+test_decay_24h_guard() {
+  setup
+  mkdir -p "$MEMORY_DIR"
+  local old_date
+  old_date=$(date -u -d "10 days ago" +"%Y-%m-%dT%H:%M:%SZ")
+  python3 -c "
+import json
+entries = [{'id': 1, 'key': 'aegis/tmp', 'content': 'should survive', 'timestamp': '${old_date}', 'decay_class': 'ephemeral'}]
+with open('${MEMORY_DIR}/aegis-project.json', 'w') as f:
+    json.dump(entries, f)
+"
+  # Create a recent .last_decay file (should block decay)
+  touch "$MEMORY_DIR/.last_decay"
+  memory_decay "aegis" > /dev/null
+  local count
+  count=$(python3 -c "
+import json
+with open('${MEMORY_DIR}/aegis-project.json') as f:
+    print(len(json.load(f)))
+")
+  if [[ "$count" == "1" ]]; then
+    pass "24h guard prevents decay when .last_decay is recent"
+  else
+    fail "24h guard" "expected 1 entry (no decay), got $count"
+  fi
+  teardown
+}
+
+# --- Test: memory_decay updates .last_decay timestamp after running ---
+test_decay_updates_guard() {
+  setup
+  mkdir -p "$MEMORY_DIR"
+  python3 -c "
+import json
+with open('${MEMORY_DIR}/aegis-project.json', 'w') as f:
+    json.dump([], f)
+"
+  rm -f "$MEMORY_DIR/.last_decay"
+  memory_decay "aegis" > /dev/null
+  if [[ -f "$MEMORY_DIR/.last_decay" ]]; then
+    pass "decay updates .last_decay timestamp after running"
+  else
+    fail "decay updates guard" ".last_decay not found after decay"
+  fi
+  teardown
+}
+
+# --- Test: entries without decay_class default to project (not decayed) ---
+test_decay_default_class_project() {
+  setup
+  mkdir -p "$MEMORY_DIR"
+  local old_date
+  old_date=$(date -u -d "90 days ago" +"%Y-%m-%dT%H:%M:%SZ")
+  python3 -c "
+import json
+entries = [{'id': 1, 'key': 'aegis/no-class', 'content': 'no decay_class set', 'timestamp': '${old_date}'}]
+with open('${MEMORY_DIR}/aegis-project.json', 'w') as f:
+    json.dump(entries, f)
+"
+  rm -f "$MEMORY_DIR/.last_decay"
+  memory_decay "aegis" > /dev/null
+  local count
+  count=$(python3 -c "
+import json
+with open('${MEMORY_DIR}/aegis-project.json') as f:
+    print(len(json.load(f)))
+")
+  if [[ "$count" == "1" ]]; then
+    pass "entries without decay_class default to project (not decayed)"
+  else
+    fail "default class project" "expected 1 entry, got $count"
+  fi
+  teardown
+}
+
 # --- Run all tests ---
 test_save_scoped_succeeds
 test_save_scoped_rejects_empty_project
@@ -211,6 +401,13 @@ test_save_gate_with_project
 test_pollution_scan_detects
 test_pollution_scan_clean
 test_retrieve_context_scoped
+test_decay_skips_pinned
+test_decay_removes_old_ephemeral
+test_decay_removes_old_session
+test_decay_keeps_young_session
+test_decay_24h_guard
+test_decay_updates_guard
+test_decay_default_class_project
 
 echo ""
 echo "Results: $PASS_COUNT passed, $FAIL_COUNT failed"

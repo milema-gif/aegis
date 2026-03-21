@@ -192,6 +192,86 @@ memory_retrieve_context() {
   memory_search "$scope" "$terms" "$limit"
 }
 
+# --- memory_decay(project) ---
+# Class-based memory decay with 24h startup guard.
+# Removes expired entries based on decay_class policy.
+# MEM-07: Prevents unbounded memory growth.
+memory_decay() {
+  local project="${1:?memory_decay requires project}"
+
+  mkdir -p "$MEMORY_DIR"
+
+  # 24h guard: skip if .last_decay was touched less than 1440 minutes ago
+  if [[ -f "$MEMORY_DIR/.last_decay" ]]; then
+    local recent
+    recent=$(find "$MEMORY_DIR/.last_decay" -mmin -1440 2>/dev/null || true)
+    if [[ -n "$recent" ]]; then
+      echo "0"
+      return 0
+    fi
+  fi
+
+  local total_decayed=0
+
+  for file in "$MEMORY_DIR"/${project}-*.json; do
+    [[ -f "$file" ]] || continue
+
+    local decayed
+    decayed=$(python3 -c "
+import json, os
+from datetime import datetime, timedelta, timezone
+
+file_path = '${file}'
+with open(file_path) as f:
+    entries = json.load(f)
+
+now = datetime.now(timezone.utc)
+ttl_map = {
+    'ephemeral': timedelta(days=7),
+    'session': timedelta(days=30),
+}
+
+kept = []
+removed = 0
+for e in entries:
+    dc = e.get('decay_class', 'project')
+    ts_str = e.get('timestamp', '')
+
+    # pinned and project: never decay
+    if dc in ('pinned', 'project'):
+        kept.append(e)
+        continue
+
+    # Parse timestamp
+    try:
+        ts = datetime.fromisoformat(ts_str.replace('Z', '+00:00'))
+    except (ValueError, TypeError):
+        kept.append(e)  # can't parse = keep
+        continue
+
+    ttl = ttl_map.get(dc)
+    if ttl and (now - ts) > ttl:
+        removed += 1
+    else:
+        kept.append(e)
+
+# Atomic rewrite
+tmp_path = file_path + '.tmp.' + str(os.getpid())
+with open(tmp_path, 'w') as f:
+    json.dump(kept, f, indent=2)
+os.rename(tmp_path, file_path)
+
+print(removed)
+")
+    total_decayed=$((total_decayed + decayed))
+  done
+
+  # Update guard file
+  touch "$MEMORY_DIR/.last_decay"
+
+  echo "$total_decayed"
+}
+
 # --- memory_search_bugfixes(limit) ---
 # Searches for bugfix-related entries. Used by MEM-03 (Plan 02).
 memory_search_bugfixes() {
