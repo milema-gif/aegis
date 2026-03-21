@@ -214,8 +214,179 @@ test_warn_stderr_message() {
   fi
 }
 
+# ============================================================
+# ENFC-03: Bypass audit trail tests
+# ============================================================
+
+# Setup for bypass audit tests (isolated temp dir)
+bypass_setup() {
+  BYPASS_TEST_DIR=$(mktemp -d)
+  export AEGIS_DIR="$BYPASS_TEST_DIR/.aegis"
+  mkdir -p "$AEGIS_DIR/evidence"
+  export AEGIS_POLICY_VERSION="1.0.0"
+  source "$PROJECT_ROOT/lib/aegis-evidence.sh"
+}
+
+bypass_teardown() {
+  [[ -n "${BYPASS_TEST_DIR:-}" ]] && rm -rf "$BYPASS_TEST_DIR"
+  # Restore AEGIS_DIR to avoid polluting subsequent tests
+  unset AEGIS_DIR
+}
+
+# --- Test 16: [ENFC-03] write_bypass_audit creates JSON file in .aegis/evidence/ with bypass- prefix ---
+test_bypass_audit_creates_file() {
+  bypass_setup
+  local result
+  result=$(write_bypass_audit "execute" "1" "operator-override" "behavioral gate marker absent" 2>/dev/null) || true
+  if [[ -n "$result" ]] && [[ -f "$result" ]] && [[ "$(basename "$result")" == bypass-* ]]; then
+    pass "[ENFC-03] write_bypass_audit creates JSON file in .aegis/evidence/ with bypass- prefix"
+  else
+    fail "[ENFC-03] write_bypass_audit creates file" "result: $result"
+  fi
+  bypass_teardown
+}
+
+# --- Test 17: [ENFC-03] bypass audit file contains required fields ---
+test_bypass_audit_required_fields() {
+  bypass_setup
+  local result
+  result=$(write_bypass_audit "execute" "1" "operator-override" "gate marker absent" 2>/dev/null) || true
+  if [[ -n "$result" ]] && [[ -f "$result" ]]; then
+    local missing
+    missing=$(python3 -c "
+import json
+with open('$result') as f:
+    data = json.load(f)
+required = ['schema_version','type','stage','phase','policy_version','timestamp','bypass_type','reason','surfaced']
+missing = [k for k in required if k not in data]
+print(','.join(missing) if missing else '')
+" 2>/dev/null) || missing="parse-error"
+    if [[ -z "$missing" ]]; then
+      pass "[ENFC-03] bypass audit file contains all required fields"
+    else
+      fail "[ENFC-03] bypass audit required fields" "missing: $missing"
+    fi
+  else
+    fail "[ENFC-03] bypass audit required fields" "file not created"
+  fi
+  bypass_teardown
+}
+
+# --- Test 18: [ENFC-03] bypass audit file has type=bypass_audit and surfaced=false ---
+test_bypass_audit_type_and_surfaced() {
+  bypass_setup
+  local result
+  result=$(write_bypass_audit "verify" "2" "operator-override" "test reason" 2>/dev/null) || true
+  if [[ -n "$result" ]] && [[ -f "$result" ]]; then
+    local ok
+    ok=$(python3 -c "
+import json
+with open('$result') as f:
+    data = json.load(f)
+if data.get('type') == 'bypass_audit' and data.get('surfaced') == False:
+    print('yes')
+else:
+    print('no')
+" 2>/dev/null) || ok="error"
+    if [[ "$ok" == "yes" ]]; then
+      pass "[ENFC-03] bypass audit file has type=bypass_audit and surfaced=false"
+    else
+      fail "[ENFC-03] bypass audit type/surfaced" "unexpected values"
+    fi
+  else
+    fail "[ENFC-03] bypass audit type/surfaced" "file not created"
+  fi
+  bypass_teardown
+}
+
+# --- Test 19: [ENFC-03] scan_unsurfaced_bypasses finds bypass entries with surfaced=false ---
+test_scan_finds_unsurfaced() {
+  bypass_setup
+  write_bypass_audit "execute" "1" "operator-override" "test" >/dev/null 2>&1
+  local result
+  result=$(scan_unsurfaced_bypasses 2>/dev/null) || true
+  local count
+  count=$(python3 -c "
+import json
+data = json.loads('''$result''')
+print(len(data))
+" 2>/dev/null) || count="0"
+  if [[ "$count" -ge 1 ]]; then
+    pass "[ENFC-03] scan_unsurfaced_bypasses finds bypass entries with surfaced=false"
+  else
+    fail "[ENFC-03] scan_unsurfaced_bypasses" "expected >=1, got: $count (result: $result)"
+  fi
+  bypass_teardown
+}
+
+# --- Test 20: [ENFC-03] scan_unsurfaced_bypasses returns empty JSON array when no bypasses exist ---
+test_scan_empty_when_none() {
+  bypass_setup
+  local result
+  result=$(scan_unsurfaced_bypasses 2>/dev/null) || true
+  if [[ "$result" == "[]" ]]; then
+    pass "[ENFC-03] scan_unsurfaced_bypasses returns empty JSON array when no bypasses exist"
+  else
+    fail "[ENFC-03] scan empty" "expected [], got: $result"
+  fi
+  bypass_teardown
+}
+
+# --- Test 21: [ENFC-03] mark_bypasses_surfaced sets surfaced=true on all bypass entries ---
+test_mark_surfaced() {
+  bypass_setup
+  write_bypass_audit "execute" "1" "operator-override" "test" >/dev/null 2>&1
+  mark_bypasses_surfaced 2>/dev/null
+  # Check the file directly
+  local surfaced_val
+  surfaced_val=$(python3 -c "
+import json, glob, os
+evidence_dir = '$AEGIS_DIR/evidence'
+for path in glob.glob(os.path.join(evidence_dir, 'bypass-*.json')):
+    with open(path) as f:
+        data = json.load(f)
+    print(data.get('surfaced', False))
+" 2>/dev/null) || surfaced_val="error"
+  if [[ "$surfaced_val" == "True" ]]; then
+    pass "[ENFC-03] mark_bypasses_surfaced sets surfaced=true on all bypass entries"
+  else
+    fail "[ENFC-03] mark_bypasses_surfaced" "surfaced=$surfaced_val"
+  fi
+  bypass_teardown
+}
+
+# --- Test 22: [ENFC-03] scan_unsurfaced_bypasses returns empty array after mark_bypasses_surfaced ---
+test_scan_empty_after_mark() {
+  bypass_setup
+  write_bypass_audit "deploy" "3" "operator-override" "test" >/dev/null 2>&1
+  mark_bypasses_surfaced 2>/dev/null
+  local result
+  result=$(scan_unsurfaced_bypasses 2>/dev/null) || true
+  if [[ "$result" == "[]" ]]; then
+    pass "[ENFC-03] scan_unsurfaced_bypasses returns empty array after mark_bypasses_surfaced"
+  else
+    fail "[ENFC-03] scan after mark" "expected [], got: $result"
+  fi
+  bypass_teardown
+}
+
+# --- Test 23: [ENFC-03] write_bypass_audit uses timestamp in filename for multiple-bypass support ---
+test_bypass_timestamp_filename() {
+  bypass_setup
+  local result1 result2
+  result1=$(write_bypass_audit "execute" "1" "operator-override" "first bypass" 2>/dev/null) || true
+  sleep 1
+  result2=$(write_bypass_audit "execute" "1" "operator-override" "second bypass" 2>/dev/null) || true
+  if [[ -n "$result1" ]] && [[ -n "$result2" ]] && [[ "$result1" != "$result2" ]]; then
+    pass "[ENFC-03] write_bypass_audit uses timestamp in filename for multiple-bypass support"
+  else
+    fail "[ENFC-03] timestamp filename" "result1=$result1 result2=$result2"
+  fi
+  bypass_teardown
+}
+
 # --- Run all tests ---
-TOTAL=15
+TOTAL=23
 
 test_block_execute
 test_block_verify
@@ -232,6 +403,14 @@ test_mode_warn_stages
 test_mode_none_stages
 test_blocked_stderr_message
 test_warn_stderr_message
+test_bypass_audit_creates_file
+test_bypass_audit_required_fields
+test_bypass_audit_type_and_surfaced
+test_scan_finds_unsurfaced
+test_scan_empty_when_none
+test_mark_surfaced
+test_scan_empty_after_mark
+test_bypass_timestamp_filename
 
 echo ""
 echo "Result: $PASS_COUNT/$TOTAL passed"

@@ -232,3 +232,104 @@ if not req_ids:
 print(json.dumps(sorted(req_ids)))
 " 2>/dev/null
 }
+
+# --- write_bypass_audit(stage, phase, bypass_type, reason) ---
+# Creates .aegis/evidence/bypass-{stage}-phase-{phase}-{timestamp}.json
+# Records a bypass event with surfaced=false for later surfacing.
+# Returns the file path on stdout.
+write_bypass_audit() {
+  local stage="${1:?write_bypass_audit requires stage}"
+  local phase="${2:?write_bypass_audit requires phase}"
+  local bypass_type="${3:?write_bypass_audit requires bypass_type}"
+  local reason="${4:-unspecified}"
+
+  local evidence_dir="${AEGIS_DIR:-.aegis}/evidence"
+  mkdir -p "$evidence_dir"
+
+  local timestamp
+  timestamp=$(date -u +%Y%m%dT%H%M%SZ)
+  local audit_file="${evidence_dir}/bypass-${stage}-phase-${phase}-${timestamp}.json"
+  local policy_version="${AEGIS_POLICY_VERSION:-unknown}"
+
+  local tmp_file
+  tmp_file=$(mktemp "${evidence_dir}/.tmp.XXXXXX")
+
+  python3 -c "
+import json
+from datetime import datetime, timezone
+
+audit = {
+    'schema_version': '1.0.0',
+    'type': 'bypass_audit',
+    'stage': '${stage}',
+    'phase': int('${phase}'),
+    'policy_version': '${policy_version}',
+    'timestamp': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
+    'bypass_type': '${bypass_type}',
+    'reason': '${reason}',
+    'surfaced': False
+}
+
+with open('${tmp_file}', 'w') as f:
+    json.dump(audit, f, indent=2)
+" || { rm -f "$tmp_file"; return 1; }
+
+  mv "$tmp_file" "$audit_file"
+  echo "$audit_file"
+}
+
+# --- scan_unsurfaced_bypasses() ---
+# Scans .aegis/evidence/bypass-*.json for entries with surfaced=false.
+# Returns JSON array on stdout (empty array [] if none found).
+scan_unsurfaced_bypasses() {
+  local evidence_dir="${AEGIS_DIR:-.aegis}/evidence"
+
+  if [[ ! -d "$evidence_dir" ]]; then
+    echo "[]"
+    return 0
+  fi
+
+  python3 -c "
+import json, glob, os
+
+evidence_dir = '${evidence_dir}'
+unsurfaced = []
+
+for path in sorted(glob.glob(os.path.join(evidence_dir, 'bypass-*.json'))):
+    try:
+        with open(path) as f:
+            data = json.load(f)
+        if data.get('type') == 'bypass_audit' and not data.get('surfaced', True):
+            data['_file'] = os.path.basename(path)
+            unsurfaced.append(data)
+    except (json.JSONDecodeError, IOError):
+        continue
+
+print(json.dumps(unsurfaced))
+" 2>/dev/null || echo "[]"
+}
+
+# --- mark_bypasses_surfaced() ---
+# Sets surfaced=true on all bypass-*.json entries.
+# Uses atomic tmp+mv for each file.
+mark_bypasses_surfaced() {
+  local evidence_dir="${AEGIS_DIR:-.aegis}/evidence"
+
+  python3 -c "
+import json, glob, os
+
+evidence_dir = '${evidence_dir}'
+for path in sorted(glob.glob(os.path.join(evidence_dir, 'bypass-*.json'))):
+    try:
+        with open(path) as f:
+            data = json.load(f)
+        if data.get('type') == 'bypass_audit' and not data.get('surfaced', True):
+            data['surfaced'] = True
+            tmp = path + '.tmp'
+            with open(tmp, 'w') as f:
+                json.dump(data, f, indent=2)
+            os.rename(tmp, path)
+    except (json.JSONDecodeError, IOError):
+        continue
+" 2>/dev/null
+}
