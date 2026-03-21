@@ -35,25 +35,27 @@ Never lose context, direction, or consistency across a project's entire lifecycl
 - ✓ Behavioral gate (warn-only, BEHAVIORAL_GATE_CHECK marker) — v2.0
 - ✓ Deploy preflight guard (Docker/PM2 snapshot, "deploy" keyword, unskippable) — v2.0
 
+<!-- Shipped in v3.0 Evidence-Driven Pipeline -->
+
+- ✓ Policy-as-code gate configuration (aegis-policy.json v1.1.0) — v3.0
+- ✓ Machine-checkable evidence artifacts with SHA-256 hashes — v3.0
+- ✓ Gate evidence pre-check (missing/malformed evidence blocks) — v3.0
+- ✓ [REQ-ID] test traceability (non-vacuous test enforcement) — v3.0
+- ✓ Stage-aware behavioral enforcement (block mutating, warn read-only) — v3.0
+- ✓ Bypass audit trail (persistent JSON, surfaced at startup/advance) — v3.0
+- ✓ Risk-scored consultation with budget tracking — v3.0
+- ✓ Phase regression checks (blocks advance on test failure) — v3.0
+- ✓ Delta reports (files, functions, test count changes) — v3.0
+- ✓ Cross-project pattern library with approval gating — v3.0
+- ✓ Deterministic rollback drill in advance stage — v3.0
+
 ### Active
 
-<!-- v2.0: Quality Enforcement -->
+(No active milestone — next milestone to be defined)
 
-(Defined in REQUIREMENTS.md)
+## Last Milestone: v3.0 Evidence-Driven Pipeline (SHIPPED 2026-03-21)
 
-## Current Milestone: v3.0 Evidence-Driven Pipeline
-
-**Goal:** Move from "good process" to "enforced evidence-driven process" — every stage produces machine-checkable evidence, gates evaluate evidence not prose, and critical actions are blocked without verification.
-
-**Target features:**
-- Behavioral gate enforcement (blocking for mutating actions, not just warn)
-- Non-vacuous test evidence requirements (tests must prove something)
-- Risk-scored mandatory consultation (forced review when risk high)
-- Phase regression checks (new phase can't invalidate prior completed criteria)
-- Machine-verifiable evidence artifacts (every stage outputs checkable evidence)
-- Cross-project pattern library (opt-in curated patterns)
-
-**Origin:** Codex review of v2.0 architecture (rated 8.5/10). Gap identified: "enforced evidence-driven process."
+Codex-designed, 6 phases, 12 plans, 17 requirements. Codex rated 9.4/10 (up from 8.5 on v2.0). Every pipeline action now produces machine-checkable evidence. Gates block without verification. Risk scoring auto-triggers consultation. Regressions block advancement. Rollback capability proven, not assumed.
 
 ### Out of Scope
 
@@ -88,9 +90,12 @@ Never lose context, direction, or consistency across a project's entire lifecycl
 | ai-core-01 primary, open-source secondary | Build tight integration first, add graceful fallbacks for portability | — Pending |
 | Multi-model architecture | Each model plays to its strength: Claude orchestrates, DeepSeek consults free, Codex reviews critical gates, Mini handles cheap autonomous work | — Pending |
 
-| Behavioral gate for subagents | Subagents rush like Claude does — enforcement prevents unverified edits in pipeline | — Pending |
-| Stage checkpoints over full transcript injection | Compact structured summaries prevent context exhaustion without losing decisions | — Pending |
-| Memory project-scoping first, cross-project opt-in | Prevents memory pollution — Project A decisions don't leak into Project B | — Pending |
+| Behavioral gate for subagents | Subagents rush like Claude does — enforcement prevents unverified edits in pipeline | ✓ Good (v2.0 warn, v3.0 block) |
+| Stage checkpoints over full transcript injection | Compact structured summaries prevent context exhaustion without losing decisions | ✓ Good |
+| Memory project-scoping first, cross-project opt-in | Prevents memory pollution — Project A decisions don't leak into Project B | ✓ Good |
+| Policy-as-code for gate config | Versioned JSON config, not hardcoded thresholds | ✓ Good (v3.0) |
+| Orchestrator writes evidence, not subagents | Prevents self-report inflation | ✓ Good (v3.0, Codex-endorsed) |
+| Evidence hash drift = warn, test failure = block | Tests are regression authority, not hashes | ✓ Good (v3.0) |
 
 ---
-*Last updated: 2026-03-21 after v3.0 milestone start*
+*Last updated: 2026-03-21 after v3.0 milestone completion*

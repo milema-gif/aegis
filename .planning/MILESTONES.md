@@ -1,5 +1,14 @@
 # Milestones
 
+## v3.0 Evidence-Driven Pipeline (Shipped: 2026-03-21)
+
+**Phases completed:** 6 phases, 12 plans, 0 tasks
+
+**Key accomplishments:**
+- (none recorded)
+
+---
+
 ## v2.0 — Quality Enforcement (Complete)
 
 **Shipped:** 2026-03-21
