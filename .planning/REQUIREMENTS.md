@@ -77,9 +77,9 @@
 
 ### Evidence (Machine-Verifiable Artifacts)
 
-- [ ] **EVID-01**: Every stage produces a structured evidence artifact (JSON/markdown) with machine-checkable fields — not prose summaries
+- [x] **EVID-01**: Every stage produces a structured evidence artifact (JSON/markdown) with machine-checkable fields — not prose summaries
 - [ ] **EVID-02**: Gate evaluation checks evidence artifacts programmatically (file hashes, schema fields, requirement references) — not self-reported checklists
-- [ ] **EVID-03**: Test-gate requires non-vacuous evidence — each test must reference the specific requirement ID it proves, and empty test suites are rejected
+- [x] **EVID-03**: Test-gate requires non-vacuous evidence — each test must reference the specific requirement ID it proves, and empty test suites are rejected
 
 ### Enforcement (Behavioral Gate Upgrade)
 
@@ -212,9 +212,9 @@
 |-------------|-------|--------|
 | POLC-01 | Phase 11 | Complete |
 | POLC-02 | Phase 11 | Complete |
-| EVID-01 | Phase 12 | Pending |
+| EVID-01 | Phase 12 | Complete |
 | EVID-02 | Phase 12 | Pending |
-| EVID-03 | Phase 12 | Pending |
+| EVID-03 | Phase 12 | Complete |
 | ENFC-01 | Phase 13 | Pending |
 | ENFC-02 | Phase 13 | Pending |
 | ENFC-03 | Phase 13 | Pending |
