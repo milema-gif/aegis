@@ -1,132 +1,100 @@
 # Roadmap: Aegis
 
-## Overview
+## Milestones
 
-Aegis is built in 6 phases following a strict dependency chain: pipeline skeleton first (with state journaling and memory stub), then gates and checkpoints (with retry/timeout policy), then stage workflows with git integration (stable contracts before agents), then the subagent system that keeps it lean, then Engram memory, and finally multi-model consultation via Sparrow/Codex. Each phase delivers a coherent, verifiable capability. The pipeline works end-to-end after Phase 3; Phases 4-6 add the subagent architecture and differentiating integrations.
-
-**Review:** Roadmap reviewed by GPT Codex and DeepSeek (2026-03-09). Consensus changes applied: phases 3/4 swapped, 3 requirements added (PIPE-06, PIPE-07, GIT-03), gate classification and memory stub incorporated.
+- [x] **v1.0 MVP** - Phases 1-6 (shipped 2026-03-09)
+- [ ] **v2.0 Quality Enforcement** - Phases 7-10 (in progress)
 
 ## Phases
 
-**Phase Numbering:**
-- Integer phases (1, 2, 3): Planned milestone work
-- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
-
-Decimal phases appear between their surrounding integers in numeric order.
+<details>
+<summary>v1.0 MVP (Phases 1-6) - SHIPPED 2026-03-09</summary>
 
 - [x] **Phase 1: Pipeline Foundation** - State machine, `/aegis:launch` entry point, 9-stage sequence, integration detection, journaled state persistence, memory interface stub
-- [x] **Phase 2: Gates and Checkpoints** - Hard gates between stages, progress banners, human approval flow, retry/backoff/timeout policy, explicit gate classification (skippable vs unskippable)
-- [x] **Phase 3: Stage Workflows** - Complete workflow files for all 9 stages, git tagging, rollback with compatibility checks (completed 2026-03-09)
-- [x] **Phase 4: Subagent System** - Agent dispatch via Task tool, model routing rules, autonomous task delegation (built against stable workflow contracts) (completed 2026-03-09)
-- [x] **Phase 5: Engram Integration** - Full memory persistence at gates, context retrieval at intake, and duplication detection (completed 2026-03-09)
-- [x] **Phase 6: Multi-Model Consultation** - Sparrow/DeepSeek at routine gates, Codex at critical gates (user-explicit only) (completed 2026-03-09)
+- [x] **Phase 2: Gates and Checkpoints** - Hard gates between stages, progress banners, human approval flow, retry/backoff/timeout policy, explicit gate classification
+- [x] **Phase 3: Stage Workflows** - Complete workflow files for all 9 stages, git tagging, rollback with compatibility checks
+- [x] **Phase 4: Subagent System** - Agent dispatch via Task tool, model routing rules, autonomous task delegation
+- [x] **Phase 5: Engram Integration** - Full memory persistence at gates, context retrieval at intake, duplication detection
+- [x] **Phase 6: Multi-Model Consultation** - Sparrow/DeepSeek at routine gates, Codex at critical gates (user-explicit only)
+
+</details>
+
+### v2.0 Quality Enforcement
+
+**Milestone Goal:** Ensure every agent at every stage does verified, grounded work with persistent, project-scoped memory. Ship v1.1 debt + quality enforcement in one milestone.
+
+**Phase Numbering:**
+- Integer phases (7, 8, 9, 10): Planned milestone work
+- Decimal phases (8.1, 8.2): Urgent insertions (marked with INSERTED)
+
+- [ ] **Phase 7: Foundation** - `complete_stage()` helper, memory project-scoping, legacy migration, namespace isolation, global install
+- [ ] **Phase 8: Stage-Boundary Checkpoints** - Structured context snapshots after each gate pass, context window assembler for subagent dispatch
+- [ ] **Phase 9: Subagent Behavioral Gate** - Read-before-edit enforcement via invocation protocol, behavioral gate validation, batch approval for parallel dispatch
+- [ ] **Phase 10: Deploy Preflight Guard** - Pre-deploy state verification, scope matching, "deploy" keyword confirmation, live state snapshot
 
 ## Phase Details
 
-### Phase 1: Pipeline Foundation
-**Goal**: User can invoke Aegis and see it progress through a defined 9-stage pipeline with robust state tracking
-**Depends on**: Nothing (first phase)
-**Requirements**: PIPE-01, PIPE-02, PIPE-07, PORT-01
+### Phase 7: Foundation
+**Goal**: Pipeline has reliable stage completion signals and project-scoped memory with legacy data migrated
+**Depends on**: Phase 6 (v1.0 complete)
+**Requirements**: FOUND-01, FOUND-02, FOUND-03, MEM-04, MEM-05, MEM-06, MEM-07, MEM-08, MEM-09
 **Success Criteria** (what must be TRUE):
-  1. User can run `/aegis:launch` and the pipeline starts at the intake stage
-  2. Pipeline progresses through all 9 stages in defined order (intake, research, roadmap, phase-plan, execute, verify, test-gate, advance, deploy)
-  3. Pipeline state uses journaled persistence (atomic writes, corruption recovery via state.current.json + state.history.jsonl)
-  4. At startup, pipeline announces which integrations are available (Engram, Sparrow) and which are missing
-  5. Memory interface stub exists (read/write methods that work without Engram, storing to local JSON fallback)
-**Plans:** 2 plans
-
+  1. Calling `complete_stage()` atomically marks a stage as completed with a timestamp, and calling it again is a no-op (idempotent)
+  2. Subagents from different stages cannot read or write each other's working state (namespace isolation verified)
+  3. `aegis` command is available on PATH from any directory without specifying a full path
+  4. Memory writes without a `project_id` are rejected — every `mem_save` enforces project scope
+  5. Pipeline startup runs a pollution scan and warns the operator if cross-project memory entries are detected
+**Plans**: 3 plans
 Plans:
-- [ ] 01-01-PLAN.md — State machine core, journaled persistence, integration detection, memory stub
-- [ ] 01-02-PLAN.md — /aegis:launch entry point, orchestrator workflow, stage stubs, test runner
+- [ ] 07-01-PLAN.md — Foundation infrastructure (complete_stage, namespace isolation, global install)
+- [ ] 07-02-PLAN.md — Memory scoping enforcement (project-id, global guard, key prefix, pollution scan)
+- [ ] 07-03-PLAN.md — Memory decay and legacy migration (class-based decay, 424-observation migration)
 
-### Phase 2: Gates and Checkpoints
-**Goal**: Pipeline enforces quality boundaries between stages and keeps the user informed at every transition
-**Depends on**: Phase 1
-**Requirements**: PIPE-03, PIPE-04, PIPE-05, PIPE-06
+### Phase 8: Stage-Boundary Checkpoints
+**Goal**: Pipeline preserves compact, structured context at every stage transition so late stages and resumed sessions have reliable decision history
+**Depends on**: Phase 7 (`complete_stage()` provides clean gate-pass signal for checkpoint writes)
+**Requirements**: CHKP-01, CHKP-02, CHKP-03
 **Success Criteria** (what must be TRUE):
-  1. Pipeline refuses to advance to the next stage until the current stage is marked complete
-  2. User sees a clear banner with stage name, progress summary, and next-stage preview at each transition
-  3. Pipeline pauses at checkpoint stages and waits for explicit user approval before continuing
-  4. In YOLO mode, approval gates are skipped but quality gates (compilation, tests, state integrity) are always enforced
-  5. Each stage has configurable retry count, backoff strategy, and timeout to prevent deadlocks
-  6. Gates are explicitly classified: quality (unskippable), approval (skippable in YOLO), cost (warn), external (confirm)
-**Plans:** 2 plans
+  1. After each gate pass, a checkpoint file appears at `.aegis/checkpoints/{stage}-phase-{N}.md` containing decisions made, files changed, active constraints, and next-stage context
+  2. Subagent invocations include a "Prior Stage Context" section assembled from the last 3 checkpoints
+  3. Checkpoint write rejects any entry exceeding ~500 tokens — oversized checkpoints fail at write time, not silently truncate
+  4. Checkpoint failure is silent and non-blocking — the pipeline continues with empty context rather than crashing
+**Plans**: TBD
 
-Plans:
-- [ ] 02-01-PLAN.md — Gate engine core: definitions table, state extension, evaluation library, tests
-- [ ] 02-02-PLAN.md — Orchestrator integration: gate step, banners, approval flow, test runner update
-
-### Phase 3: Stage Workflows
-**Goal**: Every pipeline stage has a complete workflow and the project history is tagged for rollback
-**Depends on**: Phase 2
-**Requirements**: GIT-01, GIT-02, GIT-03
+### Phase 9: Subagent Behavioral Gate
+**Goal**: Subagents verify existing code before editing it, with enforcement that does not break parallel dispatch
+**Depends on**: Phase 8 (checkpoint context feeds the behavioral gate preamble)
+**Requirements**: AGENT-01, AGENT-02, AGENT-03
 **Success Criteria** (what must be TRUE):
-  1. Each of the 9 stages has a workflow file that defines inputs, actions, outputs, and completion criteria
-  2. Pipeline creates a git tag at each phase completion with a semantic name (aegis/phase-N-name)
-  3. User can roll back to any prior phase tag with a single command
-  4. Rollback checks and warns if schema/migration state may diverge from rolled-back code
-  5. Advance stage loops back to phase-plan when more phases remain
-**Plans:** 2/2 plans complete
+  1. Every subagent invocation includes a mandatory pre-action checklist block requiring file reads, drift check, scope declaration, and risk assessment before any Edit/Write
+  2. Orchestrator checks subagent returns for the behavioral gate checklist — missing checklist generates a warning in the pipeline log, not a hard failure
+  3. When three subagents are dispatched in parallel, the operator sees one batch approval prompt (not three sequential ones), or approval is automatic when scope matches the declared task
+**Plans**: TBD
 
-Plans:
-- [ ] 03-01-PLAN.md — Git operations library (tagging, rollback, compatibility checks), /aegis:rollback skill, tests
-- [ ] 03-02-PLAN.md — All 9 stage workflow files, orchestrator dispatch update, advance-loop and workflow tests
-
-### Phase 4: Subagent System
-**Goal**: Orchestrator stays lean by delegating heavy work to specialist subagents with fresh context
-**Depends on**: Phase 3 (needs stable workflow contracts)
-**Requirements**: MDL-03, MDL-04
+### Phase 10: Deploy Preflight Guard
+**Goal**: No deploy action fires without a verified preflight that checks state, scope, and gets explicit operator confirmation
+**Depends on**: Phase 7 (`complete_stage()` makes `verify_state_position()` reliable); independent of Phase 9
+**Requirements**: DEPLOY-01, DEPLOY-02, DEPLOY-03
 **Success Criteria** (what must be TRUE):
-  1. Orchestrator dispatches subagents via Task tool with structured invocation (objective, file paths, success criteria)
-  2. Model routing follows explicit rules: Claude orchestrates, subagents execute, GPT-4 Mini handles autonomous sub-tasks
-  3. Subagent output is validated before the orchestrator consumes it
-  4. Invocation protocol is documented and consistent across all stage workflows
-**Plans:** 1/2 plans executed
-
-Plans:
-- [ ] 04-01-PLAN.md — Subagent definitions, model routing table, invocation protocol, validation library, tests
-- [ ] 04-02-PLAN.md — Orchestrator subagent dispatch, stage workflow updates for 4 GSD-delegating stages
-
-### Phase 5: Engram Integration
-**Goal**: Pipeline remembers decisions, bugs, and patterns across sessions and catches duplicated code
-**Depends on**: Phase 4
-**Requirements**: MEM-01, MEM-02, MEM-03
-**Success Criteria** (what must be TRUE):
-  1. At each gate, pipeline stores decisions, bugs, and patterns to Engram with project scope
-  2. At stage intake, pipeline retrieves relevant Engram memories and presents them as context
-  3. During verify stage, pipeline detects duplicated code and confirms that fixes have propagated (old broken code removed)
-  4. If Engram is unavailable, pipeline continues using local JSON fallback (memory stub from Phase 1)
-**Plans**: 2 plans
-
-Plans:
-- [ ] 05-01-PLAN.md — Memory library upgrade, taxonomy, orchestrator gate persistence (MEM-01) and context retrieval (MEM-02)
-- [ ] 05-02-PLAN.md — Duplication detection and fix propagation in verify stage (MEM-03)
-
-### Phase 6: Multi-Model Consultation
-**Goal**: Pipeline leverages external models for review at configurable gate points, with cost-aware routing
-**Depends on**: Phase 5
-**Requirements**: MDL-01, MDL-02
-**Success Criteria** (what must be TRUE):
-  1. At configurable routine gates, pipeline sends context to DeepSeek via Sparrow and incorporates the review feedback
-  2. At critical gates, pipeline sends context to GPT Codex via Sparrow (--codex) ONLY when user has explicitly said "codex"
-  3. If Sparrow is unavailable, pipeline skips external consultation and continues (no crash, no blocking)
-  4. Consultation results are summarized and presented to the user, not silently consumed
-**Plans**: 2 plans
-
-Plans:
-- [ ] 06-01-PLAN.md — Consultation library, configuration reference, and unit tests (MDL-01, MDL-02)
-- [ ] 06-02-PLAN.md — Orchestrator integration: Step 5.55 consultation, codex opt-in, state template update
+  1. Before any deploy action, a preflight check verifies: all 8 prior stages completed, deploy scope matches roadmap target, rollback tag exists, working tree is clean
+  2. Deploy confirmation requires the operator to type "deploy" explicitly — the word "approved" does not satisfy the gate, and the preflight is never skippable (even in YOLO mode)
+  3. Pre-deploy snapshot captures running service state (Docker container IDs, PM2 process metadata) so rollback can restore to the actual pre-deploy state, not just the last git tag
+**Plans**: TBD
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
+Phases 7 through 10 execute in order. Phases 9 and 10 can be parallelized after Phase 8 completes (they share only the Phase 7 dependency).
 
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 1. Pipeline Foundation | 2/2 | Complete | 2026-03-09 |
-| 2. Gates and Checkpoints | 2/2 | Complete | 2026-03-09 |
-| 3. Stage Workflows | 2/2 | Complete   | 2026-03-09 |
-| 4. Subagent System | 2/2 | Complete | 2026-03-09 |
-| 5. Engram Integration | 2/2 | Complete   | 2026-03-09 |
-| 6. Multi-Model Consultation | 2/2 | Complete   | 2026-03-09 |
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 1. Pipeline Foundation | v1.0 | 2/2 | Complete | 2026-03-09 |
+| 2. Gates and Checkpoints | v1.0 | 2/2 | Complete | 2026-03-09 |
+| 3. Stage Workflows | v1.0 | 2/2 | Complete | 2026-03-09 |
+| 4. Subagent System | v1.0 | 2/2 | Complete | 2026-03-09 |
+| 5. Engram Integration | v1.0 | 2/2 | Complete | 2026-03-09 |
+| 6. Multi-Model Consultation | v1.0 | 2/2 | Complete | 2026-03-09 |
+| 7. Foundation | v2.0 | 0/3 | Planning | - |
+| 8. Stage-Boundary Checkpoints | v2.0 | 0/? | Not started | - |
+| 9. Subagent Behavioral Gate | v2.0 | 0/? | Not started | - |
+| 10. Deploy Preflight Guard | v2.0 | 0/? | Not started | - |
