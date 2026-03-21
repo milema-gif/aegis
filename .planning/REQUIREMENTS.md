@@ -95,9 +95,9 @@
 
 ### Regression (Phase Delta Check)
 
-- [ ] **REGR-01**: Advance stage verifies new phase does not invalidate any prior phase's success criteria (phase delta check)
-- [ ] **REGR-02**: Prior phase test suites re-run before advancing — any regression blocks the advance gate
-- [ ] **REGR-03**: Phase delta report summarizes what changed since last phase completion (files modified, functions added/removed, test count delta)
+- [x] **REGR-01**: Advance stage verifies new phase does not invalidate any prior phase's success criteria (phase delta check)
+- [x] **REGR-02**: Prior phase test suites re-run before advancing — any regression blocks the advance gate
+- [x] **REGR-03**: Phase delta report summarizes what changed since last phase completion (files modified, functions added/removed, test count delta)
 
 ### Policy (Gate Configuration)
 
@@ -221,9 +221,9 @@
 | CONS-01 | Phase 14 | Complete |
 | CONS-02 | Phase 14 | Complete |
 | CONS-03 | Phase 14 | Complete |
-| REGR-01 | Phase 15 | Pending |
-| REGR-02 | Phase 15 | Pending |
-| REGR-03 | Phase 15 | Pending |
+| REGR-01 | Phase 15 | Complete |
+| REGR-02 | Phase 15 | Complete |
+| REGR-03 | Phase 15 | Complete |
 | PATN-01 | Phase 16 | Pending |
 | PATN-03 | Phase 16 | Pending |
 | ROLL-01 | Phase 16 | Pending |

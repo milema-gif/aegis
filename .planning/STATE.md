@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Evidence-Driven Pipeline
-status: completed
-stopped_at: Completed 14-02-PLAN.md
-last_updated: "2026-03-21T17:44:05.107Z"
-last_activity: 2026-03-21 -- Phase 14 Plan 02 complete (risk-scored consultation wiring)
+status: executing
+stopped_at: Completed 15-01-PLAN.md
+last_updated: "2026-03-21T18:28:09.792Z"
+last_activity: 2026-03-21 -- Phase 15 Plan 01 complete (regression check library)
 progress:
   total_phases: 6
   completed_phases: 4
-  total_plans: 8
-  completed_plans: 8
-  percent: 93
+  total_plans: 10
+  completed_plans: 9
+  percent: 97
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Never lose context, direction, or consistency across a project's entire lifecycle
-**Current focus:** v3.0 Evidence-Driven Pipeline -- Phase 14 (Risk-Scored Consultation)
+**Current focus:** v3.0 Evidence-Driven Pipeline -- Phase 15 (Phase Regression)
 
 ## Current Position
 
-Phase: 14 of 16 (Risk-Scored Consultation)
-Plan: 2 of 2 in current phase
-Status: Phase Complete
-Last activity: 2026-03-21 -- Phase 14 Plan 02 complete (risk-scored consultation wiring)
+Phase: 15 of 16 (Phase Regression)
+Plan: 1 of 2 in current phase
+Status: In Progress
+Last activity: 2026-03-21 -- Phase 15 Plan 01 complete (regression check library)
 
-Progress: [████████░░] 93% (v3.0)
+Progress: [██████████] 97% (v3.0)
 
 ## Performance Metrics
 
@@ -53,6 +53,7 @@ Progress: [████████░░] 93% (v3.0)
 | Phase 13 P02 | 4min | 2 tasks | 4 files |
 | Phase 14 P01 | 5min | 2 tasks | 6 files |
 | Phase 14 P02 | 7min | 2 tasks | 3 files |
+| Phase 15 P01 | 3min | 1 task | 3 files |
 
 ## Accumulated Context
 
@@ -89,6 +90,11 @@ Recent decisions affecting current work:
 - [14-02]: Risk escalation triggers only for high risk (med does not escalate)
 - [14-02]: Codex requires triple gate: critical+high+opted_in
 - [14-02]: Budget exhaustion skips consultation silently (advisory, never blocks)
+- [15-01]: Hash drift classified separately from missing files (informational vs structural)
+- [15-01]: Full test suite re-run (not selective) since suite runs in seconds
+- [15-01]: Missing baseline tags return graceful JSON error, not exception
+- [15-01]: Function detection via regex — sufficient for bash codebase
+- [Phase 15]: Hash drift classified separately from missing files; full test re-run; graceful missing tag handling
 
 ### Pending Todos
 
@@ -100,7 +106,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-21T17:39:18Z
-Stopped at: Completed 14-02-PLAN.md
+Last session: 2026-03-21T18:28:09.784Z
+Stopped at: Completed 15-01-PLAN.md
 Resume file: None
-Next step: Phase 15 (next phase)
+Next step: Phase 15 Plan 02 (advance stage wiring)
