@@ -63,9 +63,9 @@ test_state_position_all_completed() {
   local result
   result=$(verify_state_position)
   if [[ "$result" == "pass" ]]; then
-    pass "verify_state_position returns pass when all 8 stages completed"
+    pass "[DEPLOY-01] verify_state_position returns pass when all 8 stages completed"
   else
-    fail "verify_state_position returns pass when all 8 stages completed" "got: $result"
+    fail "[DEPLOY-01] verify_state_position returns pass when all 8 stages completed" "got: $result"
   fi
   teardown
 }
@@ -79,9 +79,9 @@ test_state_position_research_incomplete() {
   local result
   result=$(verify_state_position 2>/dev/null) || true
   if [[ "$result" == "fail:research" ]]; then
-    pass "verify_state_position returns fail:research when research incomplete"
+    pass "[DEPLOY-01] verify_state_position returns fail:research when research incomplete"
   else
-    fail "verify_state_position returns fail:research when research incomplete" "got: $result"
+    fail "[DEPLOY-01] verify_state_position returns fail:research when research incomplete" "got: $result"
   fi
   teardown
 }
@@ -94,9 +94,9 @@ test_state_position_intake_incomplete() {
   local result
   result=$(verify_state_position 2>/dev/null) || true
   if [[ "$result" == "fail:intake" ]]; then
-    pass "verify_state_position returns fail:intake when first stage incomplete"
+    pass "[DEPLOY-01] verify_state_position returns fail:intake when first stage incomplete"
   else
-    fail "verify_state_position returns fail:intake when first stage incomplete" "got: $result"
+    fail "[DEPLOY-01] verify_state_position returns fail:intake when first stage incomplete" "got: $result"
   fi
   teardown
 }
@@ -118,9 +118,9 @@ ROADMAP
   local result
   result=$(verify_deploy_scope "$roadmap")
   if [[ "$result" == "pass" ]]; then
-    pass "verify_deploy_scope returns pass when all phases [x]"
+    pass "[DEPLOY-01] verify_deploy_scope returns pass when all phases [x]"
   else
-    fail "verify_deploy_scope returns pass when all phases [x]" "got: $result"
+    fail "[DEPLOY-01] verify_deploy_scope returns pass when all phases [x]" "got: $result"
   fi
   teardown
 }
@@ -138,9 +138,9 @@ ROADMAP
   local result
   result=$(verify_deploy_scope "$roadmap" 2>/dev/null) || true
   if [[ "$result" == fail* ]]; then
-    pass "verify_deploy_scope returns fail when a phase has [ ]"
+    pass "[DEPLOY-01] verify_deploy_scope returns fail when a phase has [ ]"
   else
-    fail "verify_deploy_scope returns fail when a phase has [ ]" "got: $result"
+    fail "[DEPLOY-01] verify_deploy_scope returns fail when a phase has [ ]" "got: $result"
   fi
   teardown
 }
@@ -158,9 +158,9 @@ test_rollback_tag_exists() {
   local result
   result=$(verify_rollback_tag)
   if [[ "$result" == pass:* ]]; then
-    pass "verify_rollback_tag returns pass with tag name when tag exists"
+    pass "[DEPLOY-01] verify_rollback_tag returns pass with tag name when tag exists"
   else
-    fail "verify_rollback_tag returns pass with tag name when tag exists" "got: $result"
+    fail "[DEPLOY-01] verify_rollback_tag returns pass with tag name when tag exists" "got: $result"
   fi
   teardown
 }
@@ -171,9 +171,9 @@ test_rollback_tag_none() {
   local result
   result=$(verify_rollback_tag 2>/dev/null) || true
   if [[ "$result" == "fail:no-tag" ]]; then
-    pass "verify_rollback_tag returns fail:no-tag when no tags exist"
+    pass "[DEPLOY-01] verify_rollback_tag returns fail:no-tag when no tags exist"
   else
-    fail "verify_rollback_tag returns fail:no-tag when no tags exist" "got: $result"
+    fail "[DEPLOY-01] verify_rollback_tag returns fail:no-tag when no tags exist" "got: $result"
   fi
   teardown
 }
@@ -190,9 +190,9 @@ test_clean_tree_pass() {
   local porcelain
   porcelain=$(git status --porcelain)
   if [[ -z "$porcelain" ]]; then
-    pass "clean tree check passes on clean working tree"
+    pass "[DEPLOY-02] clean tree check passes on clean working tree"
   else
-    fail "clean tree check passes on clean working tree" "porcelain not empty: $porcelain"
+    fail "[DEPLOY-02] clean tree check passes on clean working tree" "porcelain not empty: $porcelain"
   fi
   teardown
 }
@@ -206,9 +206,9 @@ test_clean_tree_fail() {
   local porcelain
   porcelain=$(git status --porcelain)
   if [[ -n "$porcelain" ]]; then
-    pass "clean tree check fails on dirty working tree"
+    pass "[DEPLOY-02] clean tree check fails on dirty working tree"
   else
-    fail "clean tree check fails on dirty working tree" "porcelain was empty"
+    fail "[DEPLOY-02] clean tree check fails on dirty working tree" "porcelain was empty"
   fi
   teardown
 }
@@ -225,9 +225,9 @@ test_snapshot_creates_file() {
   local result
   result=$(snapshot_running_state)
   if [[ -f "$result" ]]; then
-    pass "snapshot_running_state creates JSON file in .aegis/snapshots/"
+    pass "[DEPLOY-03] snapshot_running_state creates JSON file in .aegis/snapshots/"
   else
-    fail "snapshot_running_state creates JSON file in .aegis/snapshots/" "file not found: $result"
+    fail "[DEPLOY-03] snapshot_running_state creates JSON file in .aegis/snapshots/" "file not found: $result"
   fi
   teardown
 }
@@ -250,9 +250,9 @@ else:
     print('bad')
 ")
   if [[ "$check" == "ok" ]]; then
-    pass "snapshot JSON contains docker and pm2 arrays"
+    pass "[DEPLOY-03] snapshot JSON contains docker and pm2 arrays"
   else
-    fail "snapshot JSON contains docker and pm2 arrays" "check=$check"
+    fail "[DEPLOY-03] snapshot JSON contains docker and pm2 arrays" "check=$check"
   fi
   teardown
 }
@@ -280,9 +280,9 @@ with open('$snap_path') as f:
 print(len(d.get('docker', 'missing')))
 ")
   if [[ "$docker_len" == "0" ]]; then
-    pass "snapshot handles missing docker gracefully (empty array)"
+    pass "[DEPLOY-03] snapshot handles missing docker gracefully (empty array)"
   else
-    fail "snapshot handles missing docker gracefully (empty array)" "docker_len=$docker_len"
+    fail "[DEPLOY-03] snapshot handles missing docker gracefully (empty array)" "docker_len=$docker_len"
   fi
   teardown
 }
@@ -312,9 +312,9 @@ ROADMAP
   local result
   result=$(run_preflight "test-project" "$roadmap" 2>/dev/null | tail -1)
   if [[ "$result" == "pass" ]]; then
-    pass "run_preflight returns pass when all checks pass"
+    pass "[DEPLOY-01] run_preflight returns pass when all checks pass"
   else
-    fail "run_preflight returns pass when all checks pass" "got: $result"
+    fail "[DEPLOY-01] run_preflight returns pass when all checks pass" "got: $result"
   fi
   teardown
 }
@@ -331,9 +331,9 @@ test_run_preflight_blocked() {
   local result
   result=$(run_preflight "test-project" "$roadmap" 2>/dev/null | tail -1) || true
   if [[ "$result" == blocked:* ]]; then
-    pass "run_preflight returns blocked when state position fails"
+    pass "[DEPLOY-01] run_preflight returns blocked when state position fails"
   else
-    fail "run_preflight returns blocked when state position fails" "got: $result"
+    fail "[DEPLOY-01] run_preflight returns blocked when state position fails" "got: $result"
   fi
   teardown
 }

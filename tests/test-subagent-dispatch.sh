@@ -32,9 +32,9 @@ test_agent_definitions_exist() {
     fi
   done
   if [[ $missing -eq 0 ]]; then
-    pass "All 5 agent definition files exist"
+    pass "[MDL-03] All 5 agent definition files exist"
   else
-    fail "All 5 agent definition files exist" "$missing files missing"
+    fail "[MDL-03] All 5 agent definition files exist" "$missing files missing"
   fi
 }
 
@@ -53,9 +53,9 @@ test_agent_frontmatter_fields() {
     done
   done
   if $all_ok; then
-    pass "All agents have required frontmatter fields"
+    pass "[MDL-03] All agents have required frontmatter fields"
   else
-    fail "All agents have required frontmatter fields" "$details"
+    fail "[MDL-03] All agents have required frontmatter fields" "$details"
   fi
 }
 
@@ -74,9 +74,9 @@ test_agent_names_match_convention() {
     fi
   done
   if $all_ok; then
-    pass "Agent names match aegis-{role} convention"
+    pass "[MDL-03] Agent names match aegis-{role} convention"
   else
-    fail "Agent names match aegis-{role} convention" "$details"
+    fail "[MDL-03] Agent names match aegis-{role} convention" "$details"
   fi
 }
 
@@ -84,7 +84,7 @@ test_agent_names_match_convention() {
 test_model_routing_table_exists() {
   local path="$PROJECT_ROOT/references/model-routing.md"
   if [[ ! -f "$path" ]]; then
-    fail "Model routing table exists" "file not found"
+    fail "[MDL-04] Model routing table exists" "file not found"
     return
   fi
   local all_ok=true
@@ -97,9 +97,9 @@ test_model_routing_table_exists() {
     fi
   done
   if $all_ok; then
-    pass "Model routing table has all 7 agent roles"
+    pass "[MDL-04] Model routing table has all 7 agent roles"
   else
-    fail "Model routing table has all 7 agent roles" "$details"
+    fail "[MDL-04] Model routing table has all 7 agent roles" "$details"
   fi
 }
 
@@ -107,7 +107,7 @@ test_model_routing_table_exists() {
 test_invocation_protocol_sections() {
   local path="$PROJECT_ROOT/references/invocation-protocol.md"
   if [[ ! -f "$path" ]]; then
-    fail "Invocation protocol sections" "file not found"
+    fail "[MDL-04] Invocation protocol sections" "file not found"
     return
   fi
   local all_ok=true
@@ -120,9 +120,9 @@ test_invocation_protocol_sections() {
     fi
   done
   if $all_ok; then
-    pass "Invocation protocol has 5 required sections"
+    pass "[MDL-04] Invocation protocol has 5 required sections"
   else
-    fail "Invocation protocol has 5 required sections" "$details"
+    fail "[MDL-04] Invocation protocol has 5 required sections" "$details"
   fi
 }
 
@@ -130,12 +130,12 @@ test_invocation_protocol_sections() {
 test_validation_library_functions() {
   local path="$PROJECT_ROOT/lib/aegis-validate.sh"
   if [[ ! -f "$path" ]]; then
-    fail "Validation library functions" "file not found"
+    fail "[MDL-03] Validation library functions" "file not found"
     return
   fi
   # Check syntax
   if ! bash -n "$path" 2>/dev/null; then
-    fail "Validation library functions" "syntax error in aegis-validate.sh"
+    fail "[MDL-03] Validation library functions" "syntax error in aegis-validate.sh"
     return
   fi
   local all_ok=true
@@ -149,23 +149,23 @@ test_validation_library_functions() {
     details="$details missing validate_sparrow_result;"
   fi
   if $all_ok; then
-    pass "Validation library is sourceable with required functions"
+    pass "[MDL-03] Validation library is sourceable with required functions"
   else
-    fail "Validation library is sourceable with required functions" "$details"
+    fail "[MDL-03] Validation library is sourceable with required functions" "$details"
   fi
 }
 
 # --- Test 7: Validation file check works correctly ---
 test_validation_file_check() {
   local path="$PROJECT_ROOT/lib/aegis-validate.sh"
-  [[ ! -f "$path" ]] && { fail "Validation file check" "library not found"; return; }
+  [[ ! -f "$path" ]] && { fail "[MDL-03] Validation file check" "library not found"; return; }
 
   # Source the library (disable pipefail exit for testing)
   source "$path"
 
   # Test failure case: non-existent file should return 1
   if validate_subagent_output "test" "/tmp/nonexistent-file-$$" 2>/dev/null; then
-    fail "Validation file check" "should have returned 1 for missing file"
+    fail "[MDL-03] Validation file check" "should have returned 1 for missing file"
     return
   fi
 
@@ -174,10 +174,10 @@ test_validation_file_check() {
   touch "$tmpfile"
   if validate_subagent_output "test" "$tmpfile" 2>/dev/null; then
     rm -f "$tmpfile"
-    pass "Validation file check works correctly"
+    pass "[MDL-03] Validation file check works correctly"
   else
     rm -f "$tmpfile"
-    fail "Validation file check" "should have returned 0 for existing file"
+    fail "[MDL-03] Validation file check" "should have returned 0 for existing file"
   fi
 }
 
@@ -185,7 +185,7 @@ test_validation_file_check() {
 test_sparrow_delegation_pattern() {
   local path="$PROJECT_ROOT/references/model-routing.md"
   if [[ ! -f "$path" ]]; then
-    fail "Sparrow delegation pattern" "file not found"
+    fail "[MDL-04] Sparrow delegation pattern" "file not found"
     return
   fi
   local all_ok=true
@@ -199,9 +199,9 @@ test_sparrow_delegation_pattern() {
     details="$details missing timeout handling;"
   fi
   if $all_ok; then
-    pass "Sparrow delegation pattern documented"
+    pass "[MDL-04] Sparrow delegation pattern documented"
   else
-    fail "Sparrow delegation pattern documented" "$details"
+    fail "[MDL-04] Sparrow delegation pattern documented" "$details"
   fi
 }
 

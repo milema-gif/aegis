@@ -57,9 +57,9 @@ source lib/aegis-state.sh
 init_state "test-project"
 STAGE=$(read_current_stage)
 if [[ "$STAGE" == "intake" ]]; then
-  pass "Pipeline initializes at intake stage"
+  pass "[PIPE-02] Pipeline initializes at intake stage"
 else
-  fail "Expected intake, got $STAGE"
+  fail "[PIPE-02] Expected intake, got $STAGE"
 fi
 
 # Verify state file is valid JSON with all required fields
@@ -72,9 +72,9 @@ missing = [k for k in required if k not in d]
 print('valid' if not missing else 'missing:' + ','.join(missing))
 ")
 if [[ "$VALID" == "valid" ]]; then
-  pass "State file has all required fields"
+  pass "[PIPE-02] State file has all required fields"
 else
-  fail "State file $VALID"
+  fail "[PIPE-02] State file $VALID"
 fi
 
 # Verify all 9 stages exist in state
@@ -85,9 +85,9 @@ with open('.aegis/state.current.json') as f:
 print(len(d['stages']))
 ")
 if [[ "$STAGE_COUNT" == "9" ]]; then
-  pass "State contains all 9 stages"
+  pass "[PIPE-02] State contains all 9 stages"
 else
-  fail "Expected 9 stages, got $STAGE_COUNT"
+  fail "[PIPE-02] Expected 9 stages, got $STAGE_COUNT"
 fi
 
 # ============================================================
@@ -102,15 +102,15 @@ ENGRAM=$(echo "$INTEGRATIONS" | python3 -c "import json,sys; print(json.load(sys
 SPARROW=$(echo "$INTEGRATIONS" | python3 -c "import json,sys; print(json.load(sys.stdin)['sparrow']['available'])")
 
 if [[ "$ENGRAM" == "False" ]]; then
-  pass "Engram correctly detected as unavailable"
+  pass "[PORT-01] Engram correctly detected as unavailable"
 else
-  fail "Engram should be unavailable in test env"
+  fail "[PIPE-02] Engram should be unavailable in test env"
 fi
 
 if [[ "$SPARROW" == "False" ]]; then
-  pass "Sparrow correctly detected as unavailable"
+  pass "[PORT-01] Sparrow correctly detected as unavailable"
 else
-  fail "Sparrow should be unavailable in test env"
+  fail "[PIPE-02] Sparrow should be unavailable in test env"
 fi
 
 # ============================================================
@@ -123,14 +123,14 @@ EXPECTED_ORDER=("intake" "research" "roadmap" "phase-plan" "execute" "verify" "t
 
 CURRENT=$(read_current_stage)
 if [[ "$CURRENT" != "intake" ]]; then
-  fail "Not starting at intake"
+  fail "[PIPE-02] Not starting at intake"
 fi
 
 # Advance through stages 0-6 (intake through test-gate)
 for i in $(seq 0 6); do
   CURRENT=$(read_current_stage)
   if [[ "$CURRENT" != "${EXPECTED_ORDER[$i]}" ]]; then
-    fail "Stage $i: expected ${EXPECTED_ORDER[$i]}, got $CURRENT"
+    fail "[PIPE-02] Stage $i: expected ${EXPECTED_ORDER[$i]}, got $CURRENT"
     continue
   fi
   advance_stage
@@ -138,18 +138,18 @@ done
 
 CURRENT=$(read_current_stage)
 if [[ "$CURRENT" == "advance" ]]; then
-  pass "Reached advance stage after 7 transitions"
+  pass "[PIPE-02] Reached advance stage after 7 transitions"
 else
-  fail "Expected advance stage, got $CURRENT"
+  fail "[PIPE-02] Expected advance stage, got $CURRENT"
 fi
 
 # Test advance with remaining phases (loops back to phase-plan)
 advance_stage 2
 CURRENT=$(read_current_stage)
 if [[ "$CURRENT" == "phase-plan" ]]; then
-  pass "Advance with remaining phases loops to phase-plan"
+  pass "[PIPE-02] Advance with remaining phases loops to phase-plan"
 else
-  fail "Expected phase-plan, got $CURRENT"
+  fail "[PIPE-02] Expected phase-plan, got $CURRENT"
 fi
 
 # Walk back through to advance again
@@ -158,25 +158,25 @@ for stage in "phase-plan" "execute" "verify" "test-gate"; do
 done
 CURRENT=$(read_current_stage)
 if [[ "$CURRENT" == "advance" ]]; then
-  pass "Second advance cycle reached"
+  pass "[PIPE-02] Second advance cycle reached"
 else
-  fail "Expected advance stage on second cycle, got $CURRENT"
+  fail "[PIPE-02] Expected advance stage on second cycle, got $CURRENT"
 fi
 
 # Advance with 0 remaining (goes to deploy)
 advance_stage 0
 CURRENT=$(read_current_stage)
 if [[ "$CURRENT" == "deploy" ]]; then
-  pass "Advance with 0 remaining goes to deploy"
+  pass "[PIPE-02] Advance with 0 remaining goes to deploy"
 else
-  fail "Expected deploy, got $CURRENT"
+  fail "[PIPE-02] Expected deploy, got $CURRENT"
 fi
 
 # Deploy is terminal
 if ! advance_stage 2>/dev/null; then
-  pass "Deploy is terminal (advance fails correctly)"
+  pass "[PIPE-02] Deploy is terminal (advance fails correctly)"
 else
-  fail "Deploy should not allow further advancement"
+  fail "[PIPE-02] Deploy should not allow further advancement"
 fi
 
 # ============================================================
@@ -187,9 +187,9 @@ echo "## 4. State Journal Integrity"
 # Check journal exists and has entries with snapshots
 JOURNAL_ENTRIES=$(wc -l < .aegis/state.history.jsonl)
 if [[ "$JOURNAL_ENTRIES" -gt 10 ]]; then
-  pass "Journal has $JOURNAL_ENTRIES entries (expected >10 for full cycle)"
+  pass "[PIPE-07] Journal has $JOURNAL_ENTRIES entries (expected >10 for full cycle)"
 else
-  fail "Journal only has $JOURNAL_ENTRIES entries"
+  fail "[PIPE-02] Journal only has $JOURNAL_ENTRIES entries"
 fi
 
 # Verify last entry has state_snapshot for recovery
@@ -205,9 +205,9 @@ last = entries[-1] if entries else {}
 print('yes' if 'state_snapshot' in last else 'no')
 ")
 if [[ "$HAS_SNAPSHOT" == "yes" ]]; then
-  pass "Journal entries contain state snapshots for recovery"
+  pass "[PIPE-07] Journal entries contain state snapshots for recovery"
 else
-  fail "Journal missing state snapshots"
+  fail "[PIPE-02] Journal missing state snapshots"
 fi
 
 # Test recovery: corrupt state, recover from journal
@@ -215,9 +215,9 @@ echo "CORRUPT" > .aegis/state.current.json
 recover_state 2>/dev/null
 RECOVERED=$(read_current_stage)
 if [[ "$RECOVERED" == "deploy" ]]; then
-  pass "State recovery from journal works (recovered to deploy)"
+  pass "[PIPE-07] State recovery from journal works (recovered to deploy)"
 else
-  fail "Recovery got $RECOVERED instead of deploy"
+  fail "[PIPE-02] Recovery got $RECOVERED instead of deploy"
 fi
 
 # ============================================================
@@ -235,25 +235,25 @@ STAGE="intake"
 init_gate_state "$STAGE"
 LIMITS=$(check_gate_limits "$STAGE")
 if [[ "$LIMITS" == "ok" ]]; then
-  pass "Gate limits check returns ok on first attempt"
+  pass "[PIPE-02] Gate limits check returns ok on first attempt"
 else
-  fail "Expected ok, got $LIMITS"
+  fail "[PIPE-02] Expected ok, got $LIMITS"
 fi
 
 # Test evaluate_gate (intake has approval gate per gate-definitions.md)
 RESULT=$(evaluate_gate "$STAGE" "false")
 if [[ "$RESULT" == "pass" || "$RESULT" == "approval-needed" ]]; then
-  pass "Gate evaluates correctly for intake ($RESULT)"
+  pass "[PIPE-02] Gate evaluates correctly for intake ($RESULT)"
 else
-  fail "Unexpected gate result: $RESULT"
+  fail "[PIPE-02] Unexpected gate result: $RESULT"
 fi
 
 # Test YOLO mode with approval gate
 YOLO_RESULT=$(evaluate_gate "research" "true")
 if [[ "$YOLO_RESULT" == "auto-approved" || "$YOLO_RESULT" == "pass" ]]; then
-  pass "YOLO mode auto-approves approval gates"
+  pass "[PIPE-02] YOLO mode auto-approves approval gates"
 else
-  fail "Expected auto-approved/pass in YOLO, got $YOLO_RESULT"
+  fail "[PIPE-02] Expected auto-approved/pass in YOLO, got $YOLO_RESULT"
 fi
 
 # ============================================================
@@ -267,69 +267,69 @@ source lib/aegis-consult.sh
 for stage in intake execute test-gate advance; do
   TYPE=$(get_consultation_type "$stage")
   if [[ "$TYPE" == "none" ]]; then
-    pass "$stage → none consultation (correct)"
+    pass "[PIPE-02] $stage → none consultation (correct)"
   else
-    fail "$stage expected none, got $TYPE"
+    fail "[PIPE-02] $stage expected none, got $TYPE"
   fi
 done
 
 for stage in research roadmap phase-plan; do
   TYPE=$(get_consultation_type "$stage")
   if [[ "$TYPE" == "routine" ]]; then
-    pass "$stage → routine consultation (correct)"
+    pass "[PIPE-02] $stage → routine consultation (correct)"
   else
-    fail "$stage expected routine, got $TYPE"
+    fail "[PIPE-02] $stage expected routine, got $TYPE"
   fi
 done
 
 for stage in verify deploy; do
   TYPE=$(get_consultation_type "$stage")
   if [[ "$TYPE" == "critical" ]]; then
-    pass "$stage → critical consultation (correct)"
+    pass "[PIPE-02] $stage → critical consultation (correct)"
   else
-    fail "$stage expected critical, got $TYPE"
+    fail "[PIPE-02] $stage expected critical, got $TYPE"
   fi
 done
 
 # Test codex opt-in defaults to false
 CODEX=$(read_codex_opt_in)
 if [[ "$CODEX" == "false" ]]; then
-  pass "Codex opt-in defaults to false"
+  pass "[PIPE-02] Codex opt-in defaults to false"
 else
-  fail "Codex should default to false, got $CODEX"
+  fail "[PIPE-02] Codex should default to false, got $CODEX"
 fi
 
 # Test codex opt-in toggle
 set_codex_opt_in "true"
 CODEX=$(read_codex_opt_in)
 if [[ "$CODEX" == "true" ]]; then
-  pass "Codex opt-in can be set to true"
+  pass "[PIPE-02] Codex opt-in can be set to true"
 else
-  fail "Failed to set codex opt-in"
+  fail "[PIPE-02] Failed to set codex opt-in"
 fi
 
 set_codex_opt_in "false"
 CODEX=$(read_codex_opt_in)
 if [[ "$CODEX" == "false" ]]; then
-  pass "Codex opt-in can be reset to false"
+  pass "[PIPE-02] Codex opt-in can be reset to false"
 else
-  fail "Failed to reset codex opt-in"
+  fail "[PIPE-02] Failed to reset codex opt-in"
 fi
 
 # Test consult_sparrow with unavailable Sparrow (graceful failure)
 RESULT=$(consult_sparrow "test message" "false" 2)
 if [[ -z "$RESULT" || "$?" -eq 0 ]]; then
-  pass "Sparrow unavailable: returns empty, no crash"
+  pass "[PIPE-02] Sparrow unavailable: returns empty, no crash"
 else
-  fail "Sparrow should gracefully fail"
+  fail "[PIPE-02] Sparrow should gracefully fail"
 fi
 
 # Test consultation context builder
 CONTEXT=$(build_consultation_context "research" "test-project")
 if echo "$CONTEXT" | grep -q "research"; then
-  pass "Consultation context includes stage name"
+  pass "[PIPE-02] Consultation context includes stage name"
 else
-  fail "Context missing stage reference"
+  fail "[PIPE-02] Context missing stage reference"
 fi
 
 # ============================================================
@@ -343,23 +343,23 @@ source lib/aegis-memory.sh
 memory_save_gate "aegis" "intake" "1" "Test gate summary for intake"
 SEARCH=$(memory_search "aegis-project" "intake" 5)
 if echo "$SEARCH" | grep -q "intake"; then
-  pass "Gate memory save + search works in fallback mode"
+  pass "[PIPE-02] Gate memory save + search works in fallback mode"
 else
-  fail "Memory fallback not returning saved data"
+  fail "[PIPE-02] Memory fallback not returning saved data"
 fi
 
 # Test context retrieval (fallback)
 CONTEXT=$(memory_retrieve_context "project" "intake" 5)
 if [[ -n "$CONTEXT" ]]; then
-  pass "Context retrieval returns data in fallback mode"
+  pass "[PIPE-02] Context retrieval returns data in fallback mode"
 else
-  fail "Context retrieval returned empty"
+  fail "[PIPE-02] Context retrieval returned empty"
 fi
 
 # Test bugfix search (empty initially)
 BUGFIXES=$(memory_search_bugfixes 5)
 # Should not crash even with no bugfix data
-pass "Bugfix search works without errors (fallback mode)"
+pass "[PIPE-02] Bugfix search works without errors (fallback mode)"
 
 # ============================================================
 echo ""
@@ -377,9 +377,9 @@ source lib/aegis-git.sh
 tag_phase_completion 1 "pipeline-foundation"
 TAGS=$(list_phase_tags)
 if echo "$TAGS" | grep -q "aegis/phase-1-pipeline-foundation"; then
-  pass "Phase tag created correctly"
+  pass "[PIPE-02] Phase tag created correctly"
 else
-  fail "Phase tag not found"
+  fail "[PIPE-02] Phase tag not found"
 fi
 
 # Second tag
@@ -391,17 +391,17 @@ tag_phase_completion 2 "gates-and-checkpoints"
 TAGS=$(list_phase_tags)
 TAG_COUNT=$(echo "$TAGS" | wc -l)
 if [[ "$TAG_COUNT" -eq 2 ]]; then
-  pass "Multiple phase tags tracked"
+  pass "[PIPE-02] Multiple phase tags tracked"
 else
-  fail "Expected 2 tags, got $TAG_COUNT"
+  fail "[PIPE-02] Expected 2 tags, got $TAG_COUNT"
 fi
 
 # Test rollback compatibility check
 COMPAT=$(check_rollback_compatibility "aegis/phase-1-pipeline-foundation" 2>&1)
 if echo "$COMPAT" | grep -qi "compatible\|warning\|clean"; then
-  pass "Rollback compatibility check runs without error"
+  pass "[PIPE-02] Rollback compatibility check runs without error"
 else
-  fail "Compatibility check failed: $COMPAT"
+  fail "[PIPE-02] Compatibility check failed: $COMPAT"
 fi
 
 # ============================================================
@@ -414,30 +414,30 @@ source lib/aegis-validate.sh
 # Test validation with existing files
 echo "output" > research-output.md
 if validate_subagent_output "research" "research-output.md"; then
-  pass "Subagent output validation passes for existing files"
+  pass "[PIPE-02] Subagent output validation passes for existing files"
 else
-  fail "Validation should pass for existing output"
+  fail "[PIPE-02] Validation should pass for existing output"
 fi
 
 # Test validation with missing files
 if ! validate_subagent_output "verify" "nonexistent.md" 2>/dev/null; then
-  pass "Subagent output validation fails for missing files"
+  pass "[PIPE-02] Subagent output validation fails for missing files"
 else
-  fail "Validation should fail for missing output"
+  fail "[PIPE-02] Validation should fail for missing output"
 fi
 
 # Test Sparrow result validation
 if validate_sparrow_result "This is a valid review response"; then
-  pass "Sparrow result validation accepts valid response"
+  pass "[PIPE-02] Sparrow result validation accepts valid response"
 else
-  fail "Should accept valid response"
+  fail "[PIPE-02] Should accept valid response"
 fi
 
 # Test Sparrow error pattern detection
 if ! validate_sparrow_result "Error: connection refused" 2>/dev/null; then
-  pass "Sparrow result validation rejects error patterns"
+  pass "[PIPE-02] Sparrow result validation rejects error patterns"
 else
-  fail "Should reject error patterns"
+  fail "[PIPE-02] Should reject error patterns"
 fi
 
 # ============================================================
@@ -462,9 +462,9 @@ S3=$(get_consultation_type "intake")
 memory_save "project" "test-key" "test-value"
 
 if [[ "$S1" == "intake" && "$S2" == "ok" && "$S3" == "none" ]]; then
-  pass "All libraries consistent on freshly initialized state"
+  pass "[PIPE-02] All libraries consistent on freshly initialized state"
 else
-  fail "Library disagreement: stage=$S1 gate=$S2 consult=$S3"
+  fail "[PIPE-02] Library disagreement: stage=$S1 gate=$S2 consult=$S3"
 fi
 
 # ============================================================

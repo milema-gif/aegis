@@ -57,9 +57,9 @@ test_tag_creates_correct_name() {
   local tag
   tag=$(git tag -l "aegis/phase-1-pipeline-foundation")
   if [[ "$tag" == "aegis/phase-1-pipeline-foundation" ]]; then
-    pass "tag_phase_completion creates tag with correct name"
+    pass "[GIT-01] tag_phase_completion creates tag with correct name"
   else
-    fail "tag_phase_completion creates tag with correct name" "tag='$tag'"
+    fail "[GIT-01] tag_phase_completion creates tag with correct name" "tag='$tag'"
   fi
   teardown
 }
@@ -74,9 +74,9 @@ test_tag_idempotent() {
   output=$(tag_phase_completion 1 "pipeline-foundation" 2>&1)
   local exit_code=$?
   if [[ $exit_code -eq 0 ]]; then
-    pass "tag_phase_completion is idempotent"
+    pass "[GIT-01] tag_phase_completion is idempotent"
   else
-    fail "tag_phase_completion is idempotent" "exit_code=$exit_code output='$output'"
+    fail "[GIT-01] tag_phase_completion is idempotent" "exit_code=$exit_code output='$output'"
   fi
   teardown
 }
@@ -91,9 +91,9 @@ test_list_phase_tags() {
   output=$(list_phase_tags)
   if echo "$output" | grep -q "aegis/phase-1-pipeline-foundation" && \
      echo "$output" | grep -q "aegis/phase-2-gates-and-checkpoints"; then
-    pass "list_phase_tags shows created tags"
+    pass "[GIT-01] list_phase_tags shows created tags"
   else
-    fail "list_phase_tags shows created tags" "output='$output'"
+    fail "[GIT-01] list_phase_tags shows created tags" "output='$output'"
   fi
   teardown
 }
@@ -114,9 +114,9 @@ test_compatibility_compatible() {
   local result
   result=$(check_rollback_compatibility "aegis/phase-1-pipeline-foundation")
   if [[ "$result" == "compatible" ]]; then
-    pass "check_rollback_compatibility returns compatible (no migrations)"
+    pass "[GIT-02] check_rollback_compatibility returns compatible (no migrations)"
   else
-    fail "check_rollback_compatibility returns compatible (no migrations)" "result='$result'"
+    fail "[GIT-02] check_rollback_compatibility returns compatible (no migrations)" "result='$result'"
   fi
   teardown
 }
@@ -138,9 +138,9 @@ test_compatibility_warn_migrations() {
   local result
   result=$(check_rollback_compatibility "aegis/phase-1-pipeline-foundation" 2>/dev/null)
   if [[ "$result" == "warn-migrations" ]]; then
-    pass "check_rollback_compatibility returns warn-migrations"
+    pass "[GIT-02] check_rollback_compatibility returns warn-migrations"
   else
-    fail "check_rollback_compatibility returns warn-migrations" "result='$result'"
+    fail "[GIT-02] check_rollback_compatibility returns warn-migrations" "result='$result'"
   fi
   teardown
 }
@@ -158,9 +158,9 @@ test_compatibility_dirty_tree() {
   local exit_code=0
   check_rollback_compatibility "aegis/phase-1-pipeline-foundation" >/dev/null 2>&1 || exit_code=$?
   if [[ $exit_code -eq 1 ]]; then
-    pass "check_rollback_compatibility rejects dirty working tree"
+    pass "[GIT-02] check_rollback_compatibility rejects dirty working tree"
   else
-    fail "check_rollback_compatibility rejects dirty working tree" "exit_code=$exit_code"
+    fail "[GIT-02] check_rollback_compatibility rejects dirty working tree" "exit_code=$exit_code"
   fi
   teardown
 }
@@ -186,9 +186,9 @@ test_rollback_creates_branch() {
   local branch
   branch=$(git branch --show-current)
   if [[ "$branch" == rollback/aegis-phase-1-pipeline-foundation-* ]]; then
-    pass "rollback_to_tag creates branch from tag"
+    pass "[GIT-03] rollback_to_tag creates branch from tag"
   else
-    fail "rollback_to_tag creates branch from tag" "branch='$branch'"
+    fail "[GIT-03] rollback_to_tag creates branch from tag" "branch='$branch'"
   fi
   teardown
 }
@@ -201,9 +201,9 @@ test_rollback_nonexistent_tag() {
   local exit_code=0
   rollback_to_tag "aegis/phase-99-nonexistent" >/dev/null 2>&1 || exit_code=$?
   if [[ $exit_code -eq 1 ]]; then
-    pass "rollback_to_tag fails gracefully for nonexistent tag"
+    pass "[GIT-03] rollback_to_tag fails gracefully for nonexistent tag"
   else
-    fail "rollback_to_tag fails gracefully for nonexistent tag" "exit_code=$exit_code"
+    fail "[GIT-03] rollback_to_tag fails gracefully for nonexistent tag" "exit_code=$exit_code"
   fi
   teardown
 }

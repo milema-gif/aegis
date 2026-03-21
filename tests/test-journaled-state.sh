@@ -43,12 +43,12 @@ assert 'timestamp' in d
 print('valid')
 " 2>/dev/null || echo "invalid")
     if [[ "$valid" == "valid" ]]; then
-      pass "journal_transition appends valid JSONL"
+      pass "[PIPE-07] journal_transition appends valid JSONL"
     else
-      fail "journal_transition appends valid JSONL" "invalid JSON: $line"
+      fail "[PIPE-07] journal_transition appends valid JSONL" "invalid JSON: $line"
     fi
   else
-    fail "journal_transition appends valid JSONL" "journal file not created"
+    fail "[PIPE-07] journal_transition appends valid JSONL" "journal file not created"
   fi
   teardown
 }
@@ -69,9 +69,9 @@ test_write_state_atomic() {
   tmp_count=$(find "$AEGIS_DIR" -name "*.tmp.*" 2>/dev/null | wc -l)
 
   if [[ "$stage" == "research" && "$tmp_count" == "0" ]]; then
-    pass "write_state atomic (no .tmp files remain)"
+    pass "[PIPE-07] write_state atomic (no .tmp files remain)"
   else
-    fail "write_state atomic" "stage=$stage tmp_count=$tmp_count"
+    fail "[PIPE-07] write_state atomic" "stage=$stage tmp_count=$tmp_count"
   fi
   teardown
 }
@@ -94,9 +94,9 @@ test_recover_corrupt_state() {
   local stage
   stage=$(python3 -c "import json; d=json.load(open('$AEGIS_DIR/state.current.json')); print(d['current_stage'])" 2>/dev/null || echo "CORRUPT")
   if [[ "$stage" == "research" ]]; then
-    pass "recover_state rebuilds from journal (corrupt state)"
+    pass "[PIPE-07] recover_state rebuilds from journal (corrupt state)"
   else
-    fail "recover_state rebuilds from journal (corrupt state)" "got=$stage"
+    fail "[PIPE-07] recover_state rebuilds from journal (corrupt state)" "got=$stage"
   fi
   teardown
 }
@@ -117,9 +117,9 @@ test_recover_missing_state() {
   local stage
   stage=$(python3 -c "import json; d=json.load(open('$AEGIS_DIR/state.current.json')); print(d['current_stage'])" 2>/dev/null || echo "MISSING")
   if [[ "$stage" == "roadmap" ]]; then
-    pass "recover_state rebuilds from journal (missing state)"
+    pass "[PIPE-07] recover_state rebuilds from journal (missing state)"
   else
-    fail "recover_state rebuilds from journal (missing state)" "got=$stage"
+    fail "[PIPE-07] recover_state rebuilds from journal (missing state)" "got=$stage"
   fi
   teardown
 }
@@ -131,9 +131,9 @@ test_recover_empty_journal() {
 
   # No journal, no state file
   if recover_state 2>/dev/null; then
-    fail "recover_state returns error with empty journal" "should have returned error"
+    fail "[PIPE-07] recover_state returns error with empty journal" "should have returned error"
   else
-    pass "recover_state returns error with empty journal"
+    pass "[PIPE-07] recover_state returns error with empty journal"
   fi
   teardown
 }

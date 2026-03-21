@@ -41,9 +41,9 @@ assert 'available' in d['sparrow']
 print('valid')
 " 2>/dev/null || echo "invalid")
   if [[ "$valid" == "valid" ]]; then
-    pass "detect_integrations returns valid JSON with engram and sparrow"
+    pass "[PORT-01] detect_integrations returns valid JSON with engram and sparrow"
   else
-    fail "detect_integrations returns valid JSON" "got: $result"
+    fail "[PORT-01] detect_integrations returns valid JSON" "got: $result"
   fi
   teardown
 }
@@ -59,9 +59,9 @@ test_detect_engram_available() {
   local avail
   avail=$(echo "$result" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d['engram']['available'])")
   if [[ "$avail" == "True" ]]; then
-    pass "detect marks engram available when marker exists"
+    pass "[PORT-01] detect marks engram available when marker exists"
   else
-    fail "detect marks engram available" "got: $avail"
+    fail "[PORT-01] detect marks engram available" "got: $avail"
   fi
   unset AEGIS_ENGRAM_MARKER
   teardown
@@ -81,9 +81,9 @@ test_detect_engram_unavailable() {
   local fallback
   fallback=$(echo "$result" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d['engram']['fallback'])")
   if [[ "$avail" == "False" && "$fallback" == "local-json" ]]; then
-    pass "detect marks engram unavailable with local-json fallback"
+    pass "[PORT-01] detect marks engram unavailable with local-json fallback"
   else
-    fail "detect marks engram unavailable" "avail=$avail fallback=$fallback"
+    fail "[PORT-01] detect marks engram unavailable" "avail=$avail fallback=$fallback"
   fi
   unset AEGIS_ENGRAM_MARKER AEGIS_ENGRAM_CMD AEGIS_ENGRAM_SOCK
   teardown
@@ -101,9 +101,9 @@ test_detect_sparrow_available() {
   local avail
   avail=$(echo "$result" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d['sparrow']['available'])")
   if [[ "$avail" == "True" ]]; then
-    pass "detect marks sparrow available when script exists"
+    pass "[PORT-01] detect marks sparrow available when script exists"
   else
-    fail "detect marks sparrow available" "got: $avail"
+    fail "[PORT-01] detect marks sparrow available" "got: $avail"
   fi
   unset AEGIS_SPARROW_PATH
   teardown
@@ -120,9 +120,9 @@ test_detect_sparrow_unavailable() {
   local fallback
   fallback=$(echo "$result" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d['sparrow']['fallback'])")
   if [[ "$avail" == "False" && "$fallback" == "claude-only" ]]; then
-    pass "detect marks sparrow unavailable with claude-only fallback"
+    pass "[PORT-01] detect marks sparrow unavailable with claude-only fallback"
   else
-    fail "detect marks sparrow unavailable" "avail=$avail fallback=$fallback"
+    fail "[PORT-01] detect marks sparrow unavailable" "avail=$avail fallback=$fallback"
   fi
   unset AEGIS_SPARROW_PATH
   teardown
@@ -141,9 +141,9 @@ test_format_announcement() {
   has_missing=$(echo "$output" | grep -c "\[MISSING\]" || true)
 
   if [[ "$has_header" -ge 1 && "$has_ok" -ge 1 && "$has_missing" -ge 1 ]]; then
-    pass "format_announcement produces [OK]/[MISSING] formatted output"
+    pass "[PORT-01] format_announcement produces [OK]/[MISSING] formatted output"
   else
-    fail "format_announcement format" "header=$has_header ok=$has_ok missing=$has_missing"
+    fail "[PORT-01] format_announcement format" "header=$has_header ok=$has_ok missing=$has_missing"
   fi
   teardown
 }

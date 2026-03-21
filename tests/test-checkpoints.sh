@@ -35,9 +35,9 @@ None
 None"
   local expected="${AEGIS_DIR}/checkpoints/research-phase-1.md"
   if [[ -f "$expected" ]]; then
-    pass "write_checkpoint creates file at correct path"
+    pass "[CHKP-01] write_checkpoint creates file at correct path"
   else
-    fail "write_checkpoint creates file" "file not found at $expected"
+    fail "[CHKP-01] write_checkpoint creates file" "file not found at $expected"
   fi
   teardown
 }
@@ -63,9 +63,9 @@ Context Y"
     fi
   done
   if $ok; then
-    pass "checkpoint file contains all 4 sections"
+    pass "[CHKP-01] checkpoint file contains all 4 sections"
   else
-    fail "checkpoint 4 sections" "missing section: $section"
+    fail "[CHKP-01] checkpoint 4 sections" "missing section: $section"
   fi
   teardown
 }
@@ -84,9 +84,9 @@ None"
   local content
   content=$(cat "${AEGIS_DIR}/checkpoints/intake-phase-1.md")
   if echo "$content" | grep -qE "^## Checkpoint: intake -- Phase 1 -- [0-9]{4}-[0-9]{2}-[0-9]{2}T"; then
-    pass "checkpoint file contains timestamp header"
+    pass "[CHKP-01] checkpoint file contains timestamp header"
   else
-    fail "checkpoint timestamp" "no matching timestamp header found"
+    fail "[CHKP-01] checkpoint timestamp" "no matching timestamp header found"
   fi
   teardown
 }
@@ -102,9 +102,9 @@ test_write_rejects_over_375_words() {
   local rc=0
   write_checkpoint "research" "1" "$big_content" 2>/dev/null || rc=$?
   if [[ "$rc" -ne 0 ]]; then
-    pass "write_checkpoint rejects content exceeding 375 words"
+    pass "[CHKP-01] write_checkpoint rejects content exceeding 375 words"
   else
-    fail "write rejects >375 words" "expected non-zero exit, got 0"
+    fail "[CHKP-01] write rejects >375 words" "expected non-zero exit, got 0"
   fi
   teardown
 }
@@ -119,9 +119,9 @@ test_write_accepts_375_words() {
   local rc=0
   write_checkpoint "research" "1" "$content" 2>/dev/null || rc=$?
   if [[ "$rc" -eq 0 ]]; then
-    pass "write_checkpoint accepts content at exactly 375 words"
+    pass "[CHKP-01] write_checkpoint accepts content at exactly 375 words"
   else
-    fail "write accepts 375 words" "expected exit 0, got $rc"
+    fail "[CHKP-01] write accepts 375 words" "expected exit 0, got $rc"
   fi
   teardown
 }
@@ -141,9 +141,9 @@ None"
   tmp_files=$(find "${AEGIS_DIR}/checkpoints" -name "*.tmp.*" 2>/dev/null | wc -l)
   local final="${AEGIS_DIR}/checkpoints/roadmap-phase-1.md"
   if [[ -f "$final" ]] && [[ "$tmp_files" -eq 0 ]]; then
-    pass "write_checkpoint uses atomic tmp+mv (no .tmp left)"
+    pass "[CHKP-01] write_checkpoint uses atomic tmp+mv (no .tmp left)"
   else
-    fail "atomic write" "final exists=$([ -f "$final" ] && echo yes || echo no), tmp_files=$tmp_files"
+    fail "[CHKP-01] atomic write" "final exists=$([ -f "$final" ] && echo yes || echo no), tmp_files=$tmp_files"
   fi
   teardown
 }
@@ -162,9 +162,9 @@ None"
   local content
   content=$(read_checkpoint "research" "1")
   if echo "$content" | grep -q "Alpha"; then
-    pass "read_checkpoint returns content of existing checkpoint"
+    pass "[CHKP-02] read_checkpoint returns content of existing checkpoint"
   else
-    fail "read existing" "content missing expected text"
+    fail "[CHKP-01] read existing" "content missing expected text"
   fi
   teardown
 }
@@ -177,9 +177,9 @@ test_read_nonexistent() {
   local rc=0
   content=$(read_checkpoint "nonexistent" "99") || rc=$?
   if [[ "$rc" -eq 0 ]] && [[ -z "$content" ]]; then
-    pass "read_checkpoint returns empty and exits 0 for non-existent"
+    pass "[CHKP-02] read_checkpoint returns empty and exits 0 for non-existent"
   else
-    fail "read nonexistent" "rc=$rc, content='$content'"
+    fail "[CHKP-01] read nonexistent" "rc=$rc, content='$content'"
   fi
   teardown
 }
@@ -211,9 +211,9 @@ None"
   local last
   last=$(echo "$output" | tail -1)
   if echo "$first" | grep -q "intake" && echo "$last" | grep -q "research"; then
-    pass "list_checkpoints returns files sorted by modification time"
+    pass "[CHKP-02] list_checkpoints returns files sorted by modification time"
   else
-    fail "list sorted" "expected intake first, research last. got: $output"
+    fail "[CHKP-01] list sorted" "expected intake first, research last. got: $output"
   fi
   teardown
 }
@@ -225,9 +225,9 @@ test_list_empty() {
   local output
   output=$(list_checkpoints)
   if [[ -z "$output" ]]; then
-    pass "list_checkpoints returns empty for no checkpoints"
+    pass "[CHKP-02] list_checkpoints returns empty for no checkpoints"
   else
-    fail "list empty" "expected empty, got: $output"
+    fail "[CHKP-01] list empty" "expected empty, got: $output"
   fi
   teardown
 }
@@ -255,9 +255,9 @@ None"
   local output
   output=$(assemble_context_window "roadmap" 2)
   if echo "$output" | grep -q "Prior Stage Context" && echo "$output" | grep -q "D1" && echo "$output" | grep -q "D2"; then
-    pass "assemble_context_window returns formatted checkpoints"
+    pass "[CHKP-03] assemble_context_window returns formatted checkpoints"
   else
-    fail "assemble formatted" "missing expected content in output"
+    fail "[CHKP-01] assemble formatted" "missing expected content in output"
   fi
   teardown
 }
@@ -269,9 +269,9 @@ test_assemble_empty() {
   local output
   output=$(assemble_context_window "intake" 3)
   if [[ -z "$output" ]]; then
-    pass "assemble_context_window returns empty when no checkpoints"
+    pass "[CHKP-03] assemble_context_window returns empty when no checkpoints"
   else
-    fail "assemble empty" "expected empty, got: $output"
+    fail "[CHKP-01] assemble empty" "expected empty, got: $output"
   fi
   teardown
 }
@@ -294,9 +294,9 @@ None"
   output=$(assemble_context_window "stage5" 3)
   # Should have stage2, stage3, stage4 (last 3), NOT stage1
   if echo "$output" | grep -q "D2" && echo "$output" | grep -q "D4" && ! echo "$output" | grep -q "D1"; then
-    pass "assemble_context_window with N=3 returns at most 3"
+    pass "[CHKP-03] assemble_context_window with N=3 returns at most 3"
   else
-    fail "assemble max N" "expected 3 checkpoints without D1"
+    fail "[CHKP-01] assemble max N" "expected 3 checkpoints without D1"
   fi
   teardown
 }
@@ -315,9 +315,9 @@ None
 ## Next stage context
 None" 2>/dev/null || rc=$?
   if [[ "$rc" -ne 0 ]]; then
-    pass "write_checkpoint to unwritable directory fails gracefully"
+    pass "[CHKP-01] write_checkpoint to unwritable directory fails gracefully"
   else
-    fail "unwritable dir" "expected non-zero exit, got 0"
+    fail "[CHKP-01] unwritable dir" "expected non-zero exit, got 0"
   fi
   teardown
 }

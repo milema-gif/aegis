@@ -29,9 +29,9 @@ test_save_scoped_succeeds() {
   setup
   memory_save_scoped "aegis" "project" "test-key" "content here"
   if [[ -f "$MEMORY_DIR/aegis-project.json" ]]; then
-    pass "memory_save_scoped creates aegis-project.json"
+    pass "[MEM-04] memory_save_scoped creates aegis-project.json"
   else
-    fail "memory_save_scoped creates file" "aegis-project.json not found"
+    fail "[MEM-04] memory_save_scoped creates file" "aegis-project.json not found"
   fi
   teardown
 }
@@ -41,14 +41,14 @@ test_save_scoped_rejects_empty_project() {
   setup
   local err
   err=$(memory_save_scoped "" "project" "test-key" "content" 2>&1) && {
-    fail "rejects empty project_id" "should have returned exit 1"
+    fail "[MEM-04] rejects empty project_id" "should have returned exit 1"
     teardown
     return
   }
   if echo "$err" | grep -q "MEM-04"; then
-    pass "rejects empty project_id with MEM-04 error"
+    pass "[MEM-04] rejects empty project_id with MEM-04 error"
   else
-    fail "rejects empty project_id" "error missing MEM-04: $err"
+    fail "[MEM-04] rejects empty project_id" "error missing MEM-04: $err"
   fi
   teardown
 }
@@ -58,14 +58,14 @@ test_save_scoped_rejects_global() {
   setup
   local err
   err=$(memory_save_scoped "aegis" "global" "test-key" "content" 2>&1) && {
-    fail "rejects global without flag" "should have returned exit 1"
+    fail "[MEM-04] rejects global without flag" "should have returned exit 1"
     teardown
     return
   }
   if echo "$err" | grep -q "MEM-08"; then
-    pass "rejects global scope without cross_project flag (MEM-08)"
+    pass "[MEM-08] rejects global scope without cross_project flag (MEM-08)"
   else
-    fail "rejects global scope" "error missing MEM-08: $err"
+    fail "[MEM-04] rejects global scope" "error missing MEM-08: $err"
   fi
   teardown
 }
@@ -75,9 +75,9 @@ test_save_scoped_allows_global_with_flag() {
   setup
   memory_save_scoped "aegis" "global" "test-key" "content" "true"
   if [[ -f "$MEMORY_DIR/aegis-global.json" ]]; then
-    pass "allows global scope with cross_project=true"
+    pass "[MEM-08] allows global scope with cross_project=true"
   else
-    fail "global with flag" "aegis-global.json not found"
+    fail "[MEM-04] global with flag" "aegis-global.json not found"
   fi
   teardown
 }
@@ -94,9 +94,9 @@ with open('$MEMORY_DIR/aegis-project.json') as f:
 print(d[0]['key'])
 ")
   if [[ "$stored_key" == "aegis/my-key" ]]; then
-    pass "stores key with project prefix (MEM-09)"
+    pass "[MEM-04] stores key with project prefix (MEM-09)"
   else
-    fail "project prefix in key" "expected aegis/my-key, got $stored_key"
+    fail "[MEM-04] project prefix in key" "expected aegis/my-key, got $stored_key"
   fi
   teardown
 }
@@ -114,12 +114,12 @@ with open('$MEMORY_DIR/aegis-project.json') as f:
 print(d[0]['key'])
 ")
     if [[ "$stored_key" == "aegis/gate-intake-phase-0" ]]; then
-      pass "memory_save_gate uses project prefix in key"
+      pass "[MEM-04] memory_save_gate uses project prefix in key"
     else
-      fail "gate project prefix" "expected aegis/gate-intake-phase-0, got $stored_key"
+      fail "[MEM-04] gate project prefix" "expected aegis/gate-intake-phase-0, got $stored_key"
     fi
   else
-    fail "gate creates project file" "aegis-project.json not found"
+    fail "[MEM-04] gate creates project file" "aegis-project.json not found"
   fi
   teardown
 }
@@ -149,9 +149,9 @@ with open(file_path, 'w') as f:
   local warning
   warning=$(memory_pollution_scan "aegis" 2>&1 >/dev/null)
   if [[ "$count" -ge 1 ]] && echo "$warning" | grep -q "MEM-06"; then
-    pass "pollution scan detects cross-project entries (MEM-06)"
+    pass "[MEM-04] pollution scan detects cross-project entries (MEM-06)"
   else
-    fail "pollution scan" "count=$count, warning=$warning"
+    fail "[MEM-04] pollution scan" "count=$count, warning=$warning"
   fi
   teardown
 }
@@ -163,9 +163,9 @@ test_pollution_scan_clean() {
   local count
   count=$(memory_pollution_scan "aegis" 2>/dev/null)
   if [[ "$count" == "0" ]]; then
-    pass "pollution scan returns 0 when clean"
+    pass "[MEM-04] pollution scan returns 0 when clean"
   else
-    fail "pollution scan clean" "expected 0, got $count"
+    fail "[MEM-04] pollution scan clean" "expected 0, got $count"
   fi
   teardown
 }
@@ -194,9 +194,9 @@ with open(file_path, 'w') as f:
   local count
   count=$(echo "$results" | python3 -c "import json,sys; d=json.load(sys.stdin); print(len(d))")
   if [[ "$count" == "1" ]]; then
-    pass "retrieve_context_scoped filters by project prefix"
+    pass "[MEM-04] retrieve_context_scoped filters by project prefix"
   else
-    fail "retrieve_context_scoped" "expected 1, got $count"
+    fail "[MEM-04] retrieve_context_scoped" "expected 1, got $count"
   fi
   teardown
 }
@@ -224,9 +224,9 @@ with open('${MEMORY_DIR}/aegis-project.json') as f:
     print(len(json.load(f)))
 ")
   if [[ "$count" == "1" ]]; then
-    pass "decay skips pinned entries regardless of age"
+    pass "[MEM-04] decay skips pinned entries regardless of age"
   else
-    fail "decay skips pinned" "expected 1 entry, got $count"
+    fail "[MEM-04] decay skips pinned" "expected 1 entry, got $count"
   fi
   teardown
 }
@@ -252,9 +252,9 @@ with open('${MEMORY_DIR}/aegis-project.json') as f:
     print(len(json.load(f)))
 ")
   if [[ "$count" == "0" ]]; then
-    pass "decay removes ephemeral entries older than 7 days"
+    pass "[MEM-04] decay removes ephemeral entries older than 7 days"
   else
-    fail "decay removes old ephemeral" "expected 0 entries, got $count"
+    fail "[MEM-04] decay removes old ephemeral" "expected 0 entries, got $count"
   fi
   teardown
 }
@@ -280,9 +280,9 @@ with open('${MEMORY_DIR}/aegis-project.json') as f:
     print(len(json.load(f)))
 ")
   if [[ "$count" == "0" ]]; then
-    pass "decay removes session entries older than 30 days"
+    pass "[MEM-04] decay removes session entries older than 30 days"
   else
-    fail "decay removes old session" "expected 0 entries, got $count"
+    fail "[MEM-04] decay removes old session" "expected 0 entries, got $count"
   fi
   teardown
 }
@@ -308,9 +308,9 @@ with open('${MEMORY_DIR}/aegis-project.json') as f:
     print(len(json.load(f)))
 ")
   if [[ "$count" == "1" ]]; then
-    pass "decay keeps session entries younger than 30 days"
+    pass "[MEM-04] decay keeps session entries younger than 30 days"
   else
-    fail "decay keeps young session" "expected 1 entry, got $count"
+    fail "[MEM-04] decay keeps young session" "expected 1 entry, got $count"
   fi
   teardown
 }
@@ -337,9 +337,9 @@ with open('${MEMORY_DIR}/aegis-project.json') as f:
     print(len(json.load(f)))
 ")
   if [[ "$count" == "1" ]]; then
-    pass "24h guard prevents decay when .last_decay is recent"
+    pass "[MEM-04] 24h guard prevents decay when .last_decay is recent"
   else
-    fail "24h guard" "expected 1 entry (no decay), got $count"
+    fail "[MEM-04] 24h guard" "expected 1 entry (no decay), got $count"
   fi
   teardown
 }
@@ -356,9 +356,9 @@ with open('${MEMORY_DIR}/aegis-project.json', 'w') as f:
   rm -f "$MEMORY_DIR/.last_decay"
   memory_decay "aegis" > /dev/null
   if [[ -f "$MEMORY_DIR/.last_decay" ]]; then
-    pass "decay updates .last_decay timestamp after running"
+    pass "[MEM-04] decay updates .last_decay timestamp after running"
   else
-    fail "decay updates guard" ".last_decay not found after decay"
+    fail "[MEM-04] decay updates guard" ".last_decay not found after decay"
   fi
   teardown
 }
@@ -384,9 +384,9 @@ with open('${MEMORY_DIR}/aegis-project.json') as f:
     print(len(json.load(f)))
 ")
   if [[ "$count" == "1" ]]; then
-    pass "entries without decay_class default to project (not decayed)"
+    pass "[MEM-04] entries without decay_class default to project (not decayed)"
   else
-    fail "default class project" "expected 1 entry, got $count"
+    fail "[MEM-04] default class project" "expected 1 entry, got $count"
   fi
   teardown
 }

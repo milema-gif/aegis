@@ -30,12 +30,12 @@ test_workspace_creates() {
   if [[ -d "$ws_path" ]]; then
     local expected="$AEGIS_DIR/workspaces/execute"
     if [[ "$ws_path" == "$expected" ]]; then
-      pass "ensure_stage_workspace creates directory and returns path"
+      pass "[FOUND-02] ensure_stage_workspace creates directory and returns path"
     else
-      fail "workspace path" "expected $expected, got $ws_path"
+      fail "[FOUND-02] workspace path" "expected $expected, got $ws_path"
     fi
   else
-    fail "workspace creates" "directory not created at $ws_path"
+    fail "[FOUND-02] workspace creates" "directory not created at $ws_path"
   fi
   teardown
 }
@@ -47,9 +47,9 @@ test_workspace_idempotent() {
   ws1=$(ensure_stage_workspace "execute")
   ws2=$(ensure_stage_workspace "execute")
   if [[ "$ws1" == "$ws2" ]] && [[ -d "$ws1" ]]; then
-    pass "ensure_stage_workspace is idempotent (same path returned)"
+    pass "[FOUND-02] ensure_stage_workspace is idempotent (same path returned)"
   else
-    fail "workspace idempotent" "paths differ or missing: $ws1 vs $ws2"
+    fail "[FOUND-02] workspace idempotent" "paths differ or missing: $ws1 vs $ws2"
   fi
   teardown
 }
@@ -62,9 +62,9 @@ test_workspace_isolation() {
   ws_b=$(ensure_stage_workspace "execute")
   echo "secret-data" > "$ws_a/notes.txt"
   if [[ ! -f "$ws_b/notes.txt" ]]; then
-    pass "workspace isolation (files in A not visible from B)"
+    pass "[FOUND-02] workspace isolation (files in A not visible from B)"
   else
-    fail "workspace isolation" "file from A found in B"
+    fail "[FOUND-02] workspace isolation" "file from A found in B"
   fi
   teardown
 }

@@ -40,12 +40,12 @@ assert 'timestamp' in d[0]
 print('valid')
 " 2>/dev/null || echo "invalid")
     if [[ "$valid" == "valid" ]]; then
-      pass "memory_save creates project.json with entry"
+      pass "[MEM-01] memory_save creates project.json with entry"
     else
-      fail "memory_save creates file" "invalid JSON structure"
+      fail "[MEM-01] memory_save creates file" "invalid JSON structure"
     fi
   else
-    fail "memory_save creates project.json" "file not created"
+    fail "[MEM-01] memory_save creates project.json" "file not created"
   fi
   teardown
 }
@@ -63,9 +63,9 @@ with open('$MEMORY_DIR/project.json') as f:
 print(len(d))
 ")
   if [[ "$count" == "2" ]]; then
-    pass "memory_save appends to existing entries"
+    pass "[MEM-01] memory_save appends to existing entries"
   else
-    fail "memory_save appends" "expected 2 entries, got $count"
+    fail "[MEM-01] memory_save appends" "expected 2 entries, got $count"
   fi
   teardown
 }
@@ -81,9 +81,9 @@ test_memory_search_matches() {
   local count
   count=$(echo "$results" | python3 -c "import json,sys; d=json.load(sys.stdin); print(len(d))")
   if [[ "$count" == "2" ]]; then
-    pass "memory_search returns matching entries (case-insensitive)"
+    pass "[MEM-01] memory_search returns matching entries (case-insensitive)"
   else
-    fail "memory_search matches" "expected 2, got $count"
+    fail "[MEM-01] memory_search matches" "expected 2, got $count"
   fi
   teardown
 }
@@ -97,9 +97,9 @@ test_memory_search_no_matches() {
   local count
   count=$(echo "$results" | python3 -c "import json,sys; d=json.load(sys.stdin); print(len(d))")
   if [[ "$count" == "0" ]]; then
-    pass "memory_search returns empty array when no matches"
+    pass "[MEM-01] memory_search returns empty array when no matches"
   else
-    fail "memory_search no matches" "expected 0, got $count"
+    fail "[MEM-01] memory_search no matches" "expected 0, got $count"
   fi
   teardown
 }
@@ -110,9 +110,9 @@ test_memory_search_missing_file() {
   local results
   results=$(memory_search "project" "anything")
   if [[ "$results" == "[]" ]]; then
-    pass "memory_search returns empty array when file missing"
+    pass "[MEM-01] memory_search returns empty array when file missing"
   else
-    fail "memory_search missing file" "expected [], got $results"
+    fail "[MEM-01] memory_search missing file" "expected [], got $results"
   fi
   teardown
 }

@@ -72,9 +72,9 @@ with open('.planning/ROADMAP.md') as f:
 print(count)
 ")
   if [[ "$count" -eq 3 ]]; then
-    pass "Counts 3 unchecked phases correctly"
+    pass "[PIPE-02] Counts 3 unchecked phases correctly"
   else
-    fail "Counts 3 unchecked phases correctly" "got $count"
+    fail "[PIPE-02] Counts 3 unchecked phases correctly" "got $count"
   fi
   teardown
 }
@@ -101,9 +101,9 @@ with open('.planning/ROADMAP.md') as f:
 print(count)
 ")
   if [[ "$count" -eq 0 ]]; then
-    pass "Counts 0 unchecked phases when all complete"
+    pass "[PIPE-02] Counts 0 unchecked phases when all complete"
   else
-    fail "Counts 0 unchecked phases when all complete" "got $count"
+    fail "[PIPE-02] Counts 0 unchecked phases when all complete" "got $count"
   fi
   teardown
 }
@@ -132,9 +132,9 @@ with open('.planning/ROADMAP.md') as f:
 print(count)
 ")
   if [[ "$count" -eq 2 ]]; then
-    pass "Counts 2 unchecked in mixed roadmap"
+    pass "[PIPE-02] Counts 2 unchecked in mixed roadmap"
   else
-    fail "Counts 2 unchecked in mixed roadmap" "got $count"
+    fail "[PIPE-02] Counts 2 unchecked in mixed roadmap" "got $count"
   fi
   teardown
 }
@@ -170,9 +170,9 @@ with open('${AEGIS_DIR}/state.current.json', 'w') as f:
   local new_stage
   new_stage=$(read_current_stage)
   if [[ "$new_stage" == "phase-plan" ]]; then
-    pass "advance_stage with remaining>0 routes to phase-plan"
+    pass "[PIPE-02] advance_stage with remaining>0 routes to phase-plan"
   else
-    fail "advance_stage with remaining>0 routes to phase-plan" "got $new_stage"
+    fail "[PIPE-02] advance_stage with remaining>0 routes to phase-plan" "got $new_stage"
   fi
   teardown
 }
@@ -208,9 +208,9 @@ with open('${AEGIS_DIR}/state.current.json', 'w') as f:
   local new_stage
   new_stage=$(read_current_stage)
   if [[ "$new_stage" == "deploy" ]]; then
-    pass "advance_stage with remaining==0 routes to deploy"
+    pass "[PIPE-02] advance_stage with remaining==0 routes to deploy"
   else
-    fail "advance_stage with remaining==0 routes to deploy" "got $new_stage"
+    fail "[PIPE-02] advance_stage with remaining==0 routes to deploy" "got $new_stage"
   fi
   teardown
 }

@@ -30,9 +30,9 @@ test_init_state_creates_file() {
   setup
   init_state "test-project"
   if [[ -f "$AEGIS_DIR/state.current.json" ]]; then
-    pass "init_state creates state.current.json"
+    pass "[PIPE-02] init_state creates state.current.json"
   else
-    fail "init_state creates state.current.json" "file not found"
+    fail "[PIPE-02] init_state creates state.current.json" "file not found"
   fi
   teardown
 }
@@ -46,9 +46,9 @@ test_init_state_intake_and_stages() {
   local count
   count=$(python3 -c "import json; d=json.load(open('$AEGIS_DIR/state.current.json')); print(len(d['stages']))")
   if [[ "$stage" == "intake" && "$count" == "9" ]]; then
-    pass "init_state sets intake with 9 stages"
+    pass "[PIPE-02] init_state sets intake with 9 stages"
   else
-    fail "init_state sets intake with 9 stages" "stage=$stage count=$count"
+    fail "[PIPE-02] init_state sets intake with 9 stages" "stage=$stage count=$count"
   fi
   teardown
 }
@@ -60,9 +60,9 @@ test_read_current_stage() {
   local stage
   stage=$(read_current_stage)
   if [[ "$stage" == "intake" ]]; then
-    pass "read_current_stage returns intake"
+    pass "[PIPE-02] read_current_stage returns intake"
   else
-    fail "read_current_stage returns intake" "got=$stage"
+    fail "[PIPE-02] read_current_stage returns intake" "got=$stage"
   fi
   teardown
 }
@@ -75,9 +75,9 @@ test_advance_intake_to_research() {
   local stage
   stage=$(read_current_stage)
   if [[ "$stage" == "research" ]]; then
-    pass "advance_stage intake -> research"
+    pass "[PIPE-02] advance_stage intake -> research"
   else
-    fail "advance_stage intake -> research" "got=$stage"
+    fail "[PIPE-02] advance_stage intake -> research" "got=$stage"
   fi
   teardown
 }
@@ -105,9 +105,9 @@ with open('$AEGIS_DIR/state.current.json', 'w') as f:
   local stage
   stage=$(read_current_stage)
   if [[ "$stage" == "phase-plan" ]]; then
-    pass "advance_stage loops to phase-plan with remaining phases"
+    pass "[PIPE-02] advance_stage loops to phase-plan with remaining phases"
   else
-    fail "advance_stage loops to phase-plan with remaining phases" "got=$stage"
+    fail "[PIPE-02] advance_stage loops to phase-plan with remaining phases" "got=$stage"
   fi
   teardown
 }
@@ -135,9 +135,9 @@ with open('$AEGIS_DIR/state.current.json', 'w') as f:
   local stage
   stage=$(read_current_stage)
   if [[ "$stage" == "deploy" ]]; then
-    pass "advance_stage goes to deploy with no remaining phases"
+    pass "[PIPE-02] advance_stage goes to deploy with no remaining phases"
   else
-    fail "advance_stage goes to deploy with no remaining phases" "got=$stage"
+    fail "[PIPE-02] advance_stage goes to deploy with no remaining phases" "got=$stage"
   fi
   teardown
 }
@@ -157,9 +157,9 @@ with open('$AEGIS_DIR/state.current.json', 'w') as f:
     json.dump(d, f, indent=2)
 "
   if advance_stage 2>/dev/null; then
-    fail "advance_stage refuses terminal transition" "should have returned error"
+    fail "[PIPE-02] advance_stage refuses terminal transition" "should have returned error"
   else
-    pass "advance_stage refuses terminal transition"
+    pass "[PIPE-02] advance_stage refuses terminal transition"
   fi
   teardown
 }

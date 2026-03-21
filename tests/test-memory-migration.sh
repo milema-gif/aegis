@@ -40,9 +40,9 @@ with open('$MEMORY_DIR/legacy.json', 'w') as f:
   local output
   output=$(bash "$PROJECT_ROOT/scripts/aegis-migrate-memory.sh" --dry-run 2>&1)
   if echo "$output" | grep -q "classified"; then
-    pass "dry-run produces classification report"
+    pass "[MEM-05] dry-run produces classification report"
   else
-    fail "dry-run report" "output did not contain 'classified': $output"
+    fail "[MEM-05] dry-run report" "output did not contain 'classified': $output"
   fi
   teardown
 }
@@ -67,9 +67,9 @@ with open('$MEMORY_DIR/legacy.json', 'w') as f:
   worldmonitor_match=$(echo "$output" | grep -c "worldmonitor" || true)
   radiant_match=$(echo "$output" | grep -c "radiantreport" || true)
   if [[ "$aegis_match" -ge 1 && "$worldmonitor_match" -ge 1 && "$radiant_match" -ge 1 ]]; then
-    pass "auto-classification identifies project keywords"
+    pass "[MEM-05] auto-classification identifies project keywords"
   else
-    fail "auto-classify" "missing project matches in: $output"
+    fail "[MEM-05] auto-classify" "missing project matches in: $output"
   fi
   teardown
 }
@@ -88,9 +88,9 @@ with open('$MEMORY_DIR/legacy.json', 'w') as f:
   local output
   output=$(bash "$PROJECT_ROOT/scripts/aegis-migrate-memory.sh" --dry-run 2>&1)
   if echo "$output" | grep -qi "unclassified"; then
-    pass "unclassified entries tagged as unclassified"
+    pass "[MEM-05] unclassified entries tagged as unclassified"
   else
-    fail "unclassified tagging" "output missing 'unclassified': $output"
+    fail "[MEM-05] unclassified tagging" "output missing 'unclassified': $output"
   fi
   teardown
 }
@@ -110,9 +110,9 @@ with open('$MEMORY_DIR/legacy.json', 'w') as f:
   local after_count
   after_count=$(ls "$MEMORY_DIR" | wc -l)
   if [[ "$before_count" == "$after_count" ]]; then
-    pass "dry-run does not create new files"
+    pass "[MEM-05] dry-run does not create new files"
   else
-    fail "dry-run no writes" "file count changed from $before_count to $after_count"
+    fail "[MEM-05] dry-run no writes" "file count changed from $before_count to $after_count"
   fi
   teardown
 }
@@ -131,9 +131,9 @@ with open('$MEMORY_DIR/legacy.json', 'w') as f:
 "
   bash "$PROJECT_ROOT/scripts/aegis-migrate-memory.sh" --auto > /dev/null 2>&1
   if [[ -f "$MEMORY_DIR/aegis-project.json" && -f "$MEMORY_DIR/worldmonitor-project.json" ]]; then
-    pass "auto mode creates project-scoped files"
+    pass "[MEM-05] auto mode creates project-scoped files"
   else
-    fail "auto mode writes" "expected aegis-project.json and worldmonitor-project.json"
+    fail "[MEM-05] auto mode writes" "expected aegis-project.json and worldmonitor-project.json"
   fi
   teardown
 }

@@ -52,20 +52,20 @@ POLICY_EOF
 test_consult_library_exists() {
   local path="$PROJECT_ROOT/lib/aegis-consult.sh"
   if [[ ! -f "$path" ]]; then
-    fail "Consultation library exists" "file not found"
+    fail "[MDL-01] Consultation library exists" "file not found"
     return
   fi
   if bash -n "$path" 2>/dev/null; then
-    pass "Consultation library exists and passes bash -n"
+    pass "[MDL-01] Consultation library exists and passes bash -n"
   else
-    fail "Consultation library exists" "syntax error"
+    fail "[MDL-01] Consultation library exists" "syntax error"
   fi
 }
 
 # --- Test 2: Library contains all 6 required functions ---
 test_consult_library_functions() {
   local path="$PROJECT_ROOT/lib/aegis-consult.sh"
-  [[ ! -f "$path" ]] && { fail "Library has required functions" "file not found"; return; }
+  [[ ! -f "$path" ]] && { fail "[MDL-01] Library has required functions" "file not found"; return; }
 
   local all_ok=true
   local details=""
@@ -77,9 +77,9 @@ test_consult_library_functions() {
     fi
   done
   if $all_ok; then
-    pass "Library contains all 6 required functions"
+    pass "[MDL-01] Library contains all 6 required functions"
   else
-    fail "Library contains all 6 required functions" "$details"
+    fail "[MDL-01] Library contains all 6 required functions" "$details"
   fi
 }
 
@@ -87,16 +87,16 @@ test_consult_library_functions() {
 test_consultation_config_exists() {
   local path="$PROJECT_ROOT/references/consultation-config.md"
   if [[ -f "$path" ]]; then
-    pass "Consultation config exists"
+    pass "[MDL-01] Consultation config exists"
   else
-    fail "Consultation config exists" "file not found"
+    fail "[MDL-01] Consultation config exists" "file not found"
   fi
 }
 
 # --- Test 4: Config mentions all 9 stage names ---
 test_consultation_config_stages() {
   local path="$PROJECT_ROOT/references/consultation-config.md"
-  [[ ! -f "$path" ]] && { fail "Config has all stages" "file not found"; return; }
+  [[ ! -f "$path" ]] && { fail "[MDL-01] Config has all stages" "file not found"; return; }
 
   local all_ok=true
   local details=""
@@ -108,16 +108,16 @@ test_consultation_config_stages() {
     fi
   done
   if $all_ok; then
-    pass "Config mentions all 9 stage names"
+    pass "[MDL-01] Config mentions all 9 stage names"
   else
-    fail "Config mentions all 9 stage names" "$details"
+    fail "[MDL-01] Config mentions all 9 stage names" "$details"
   fi
 }
 
 # --- Test 5: Config contains all three consultation types ---
 test_consultation_config_types() {
   local path="$PROJECT_ROOT/references/consultation-config.md"
-  [[ ! -f "$path" ]] && { fail "Config has all types" "file not found"; return; }
+  [[ ! -f "$path" ]] && { fail "[MDL-01] Config has all types" "file not found"; return; }
 
   local all_ok=true
   local details=""
@@ -128,9 +128,9 @@ test_consultation_config_types() {
     fi
   done
   if $all_ok; then
-    pass "Config contains routine, critical, and none types"
+    pass "[MDL-01] Config contains routine, critical, and none types"
   else
-    fail "Config contains routine, critical, and none types" "$details"
+    fail "[MDL-01] Config contains routine, critical, and none types" "$details"
   fi
 }
 
@@ -149,9 +149,9 @@ test_get_consultation_type_routine() {
   ' 2>/dev/null)
 
   if [[ "$result" == "routine" ]]; then
-    pass "get_consultation_type returns 'routine' for research"
+    pass "[MDL-01] get_consultation_type returns 'routine' for research"
   else
-    fail "get_consultation_type returns 'routine' for research" "got '$result'"
+    fail "[MDL-01] get_consultation_type returns 'routine' for research" "got '$result'"
   fi
   rm -rf "$tmpdir"
 }
@@ -170,9 +170,9 @@ test_get_consultation_type_critical() {
   ' 2>/dev/null)
 
   if [[ "$result" == "critical" ]]; then
-    pass "get_consultation_type returns 'critical' for verify"
+    pass "[MDL-01] get_consultation_type returns 'critical' for verify"
   else
-    fail "get_consultation_type returns 'critical' for verify" "got '$result'"
+    fail "[MDL-01] get_consultation_type returns 'critical' for verify" "got '$result'"
   fi
   rm -rf "$tmpdir"
 }
@@ -191,9 +191,9 @@ test_get_consultation_type_none() {
   ' 2>/dev/null)
 
   if [[ "$result" == "none" ]]; then
-    pass "get_consultation_type returns 'none' for intake"
+    pass "[MDL-01] get_consultation_type returns 'none' for intake"
   else
-    fail "get_consultation_type returns 'none' for intake" "got '$result'"
+    fail "[MDL-01] get_consultation_type returns 'none' for intake" "got '$result'"
   fi
   rm -rf "$tmpdir"
 }
@@ -212,9 +212,9 @@ test_codex_opt_in_default_false() {
   ' 2>/dev/null)
 
   if [[ "$result" == "false" ]]; then
-    pass "read_codex_opt_in defaults to 'false'"
+    pass "[MDL-02] read_codex_opt_in defaults to 'false'"
   else
-    fail "read_codex_opt_in defaults to 'false'" "got '$result'"
+    fail "[MDL-02] read_codex_opt_in defaults to 'false'" "got '$result'"
   fi
   rm -rf "$tmpdir"
 }
@@ -233,9 +233,9 @@ test_codex_opt_in_reads_true() {
   ' 2>/dev/null)
 
   if [[ "$result" == "true" ]]; then
-    pass "read_codex_opt_in reads 'true' when set"
+    pass "[MDL-02] read_codex_opt_in reads 'true' when set"
   else
-    fail "read_codex_opt_in reads 'true' when set" "got '$result'"
+    fail "[MDL-02] read_codex_opt_in reads 'true' when set" "got '$result'"
   fi
   rm -rf "$tmpdir"
 }
@@ -256,9 +256,9 @@ test_consult_sparrow_unavailable() {
   exit_code=$?
 
   if [[ $exit_code -eq 0 ]]; then
-    pass "consult_sparrow returns exit code 0 when unavailable"
+    pass "[MDL-02] consult_sparrow returns exit code 0 when unavailable"
   else
-    fail "consult_sparrow returns exit code 0 when unavailable" "got exit code $exit_code"
+    fail "[MDL-02] consult_sparrow returns exit code 0 when unavailable" "got exit code $exit_code"
   fi
   rm -rf "$tmpdir"
 }
@@ -266,7 +266,7 @@ test_consult_sparrow_unavailable() {
 # --- Test 12: --codex flag only passed when use_codex is "true" ---
 test_codex_flag_not_in_default() {
   local path="$PROJECT_ROOT/lib/aegis-consult.sh"
-  [[ ! -f "$path" ]] && { fail "Codex flag gating" "file not found"; return; }
+  [[ ! -f "$path" ]] && { fail "[MDL-02] Codex flag gating" "file not found"; return; }
 
   # Extract the consult_sparrow function body and verify --codex is behind a conditional
   # The flag should only appear inside a conditional block checking use_codex
@@ -274,16 +274,16 @@ test_codex_flag_not_in_default() {
   codex_lines=$(grep -n "\-\-codex" "$path" | grep -v "^#" || true)
 
   if [[ -z "$codex_lines" ]]; then
-    fail "Codex flag gating" "--codex not found in file at all"
+    fail "[MDL-02] Codex flag gating" "--codex not found in file at all"
     return
   fi
 
   # Check that every --codex reference is inside an if block checking use_codex
   # The pattern: if [[ "$use_codex" == "true" ]] should precede the --codex line
   if grep -B5 "\-\-codex" "$path" | grep -q 'use_codex.*true'; then
-    pass "Codex flag is conditionally gated behind use_codex check"
+    pass "[MDL-02] Codex flag is conditionally gated behind use_codex check"
   else
-    fail "Codex flag gating" "--codex is not properly gated behind use_codex check"
+    fail "[MDL-02] Codex flag gating" "--codex is not properly gated behind use_codex check"
   fi
 }
 
@@ -318,9 +318,9 @@ test_banner_format() {
   fi
 
   if $all_ok; then
-    pass "Banner format contains expected elements and box-drawing chars"
+    pass "[MDL-01] Banner format contains expected elements and box-drawing chars"
   else
-    fail "Banner format contains expected elements" "$details"
+    fail "[MDL-01] Banner format contains expected elements" "$details"
   fi
   rm -rf "$tmpdir"
 }

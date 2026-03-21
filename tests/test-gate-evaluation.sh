@@ -63,9 +63,9 @@ test_evaluate_gate_approval_no_yolo() {
   local result
   result=$(evaluate_gate "intake" "false")
   if [[ "$result" == "approval-needed" ]]; then
-    pass "evaluate_gate approval (no YOLO) returns approval-needed"
+    pass "[PIPE-03] evaluate_gate approval (no YOLO) returns approval-needed"
   else
-    fail "evaluate_gate approval (no YOLO) returns approval-needed" "got=$result"
+    fail "[PIPE-03] evaluate_gate approval (no YOLO) returns approval-needed" "got=$result"
   fi
   teardown
 }
@@ -76,9 +76,9 @@ test_evaluate_gate_approval_yolo() {
   local result
   result=$(evaluate_gate "intake" "true")
   if [[ "$result" == "auto-approved" ]]; then
-    pass "evaluate_gate approval (YOLO) returns auto-approved"
+    pass "[PIPE-03] evaluate_gate approval (YOLO) returns auto-approved"
   else
-    fail "evaluate_gate approval (YOLO) returns auto-approved" "got=$result"
+    fail "[PIPE-03] evaluate_gate approval (YOLO) returns auto-approved" "got=$result"
   fi
   teardown
 }
@@ -100,9 +100,9 @@ with open('$AEGIS_DIR/state.current.json', 'w') as f:
   local result
   result=$(evaluate_gate "test-gate" "false")
   if [[ "$result" == "pass" ]]; then
-    pass "evaluate_gate quality (completed) returns pass"
+    pass "[PIPE-03] evaluate_gate quality (completed) returns pass"
   else
-    fail "evaluate_gate quality (completed) returns pass" "got=$result"
+    fail "[PIPE-03] evaluate_gate quality (completed) returns pass" "got=$result"
   fi
   teardown
 }
@@ -124,9 +124,9 @@ with open('$AEGIS_DIR/state.current.json', 'w') as f:
   local result
   result=$(evaluate_gate "test-gate" "false")
   if [[ "$result" == "fail" ]]; then
-    pass "evaluate_gate quality (active) returns fail"
+    pass "[PIPE-03] evaluate_gate quality (active) returns fail"
   else
-    fail "evaluate_gate quality (active) returns fail" "got=$result"
+    fail "[PIPE-03] evaluate_gate quality (active) returns fail" "got=$result"
   fi
   teardown
 }
@@ -148,9 +148,9 @@ with open('$AEGIS_DIR/state.current.json', 'w') as f:
   local result
   result=$(evaluate_gate "test-gate" "true")
   if [[ "$result" == "fail" ]]; then
-    pass "evaluate_gate quality (YOLO) still returns fail (not skippable)"
+    pass "[PIPE-03] evaluate_gate quality (YOLO) still returns fail (not skippable)"
   else
-    fail "evaluate_gate quality (YOLO) still returns fail (not skippable)" "got=$result"
+    fail "[PIPE-03] evaluate_gate quality (YOLO) still returns fail (not skippable)" "got=$result"
   fi
   teardown
 }
@@ -172,9 +172,9 @@ with open('$AEGIS_DIR/state.current.json', 'w') as f:
   local result
   result=$(evaluate_gate "deploy" "true")
   if [[ "$result" == "approval-needed" ]]; then
-    pass "evaluate_gate external (YOLO) returns approval-needed (never skippable)"
+    pass "[PIPE-03] evaluate_gate external (YOLO) returns approval-needed (never skippable)"
   else
-    fail "evaluate_gate external (YOLO) returns approval-needed (never skippable)" "got=$result"
+    fail "[PIPE-03] evaluate_gate external (YOLO) returns approval-needed (never skippable)" "got=$result"
   fi
   teardown
 }
@@ -185,9 +185,9 @@ test_evaluate_gate_none() {
   local result
   result=$(evaluate_gate "advance" "false")
   if [[ "$result" == "pass" ]]; then
-    pass "evaluate_gate none returns pass"
+    pass "[PIPE-03] evaluate_gate none returns pass"
   else
-    fail "evaluate_gate none returns pass" "got=$result"
+    fail "[PIPE-03] evaluate_gate none returns pass" "got=$result"
   fi
   teardown
 }
@@ -209,9 +209,9 @@ with open('$AEGIS_DIR/state.current.json', 'w') as f:
   local result
   result=$(evaluate_gate "deploy" "false")
   if [[ "$result" == "fail" ]]; then
-    pass "evaluate_gate compound (quality fails) returns fail"
+    pass "[PIPE-03] evaluate_gate compound (quality fails) returns fail"
   else
-    fail "evaluate_gate compound (quality fails) returns fail" "got=$result"
+    fail "[PIPE-03] evaluate_gate compound (quality fails) returns fail" "got=$result"
   fi
   teardown
 }
@@ -224,9 +224,9 @@ test_check_gate_limits_ok() {
   local result
   result=$(check_gate_limits "test-gate")
   if [[ "$result" == "ok" ]]; then
-    pass "check_gate_limits returns ok when no attempts"
+    pass "[PIPE-06] check_gate_limits returns ok when no attempts"
   else
-    fail "check_gate_limits returns ok when no attempts" "got=$result"
+    fail "[PIPE-06] check_gate_limits returns ok when no attempts" "got=$result"
   fi
   teardown
 }
@@ -248,9 +248,9 @@ with open('$AEGIS_DIR/state.current.json', 'w') as f:
   local result
   result=$(check_gate_limits "test-gate")
   if [[ "$result" == "retries-exhausted" ]]; then
-    pass "check_gate_limits returns retries-exhausted when attempts >= max_retries"
+    pass "[PIPE-06] check_gate_limits returns retries-exhausted when attempts >= max_retries"
   else
-    fail "check_gate_limits returns retries-exhausted when attempts >= max_retries" "got=$result"
+    fail "[PIPE-06] check_gate_limits returns retries-exhausted when attempts >= max_retries" "got=$result"
   fi
   teardown
 }
@@ -273,9 +273,9 @@ with open('$AEGIS_DIR/state.current.json', 'w') as f:
   local result
   result=$(check_gate_limits "test-gate")
   if [[ "$result" == "timed-out" ]]; then
-    pass "check_gate_limits returns timed-out when elapsed > timeout"
+    pass "[PIPE-06] check_gate_limits returns timed-out when elapsed > timeout"
   else
-    fail "check_gate_limits returns timed-out when elapsed > timeout" "got=$result"
+    fail "[PIPE-06] check_gate_limits returns timed-out when elapsed > timeout" "got=$result"
   fi
   teardown
 }
@@ -312,9 +312,9 @@ for s in d['stages']:
         print(s['gate']['last_error'])
 ")
   if [[ "$attempts" == "1" && "$last_result" == "fail" && "$last_error" == "3 tests failed" ]]; then
-    pass "record_gate_attempt increments attempts and writes result/error"
+    pass "[PIPE-06] record_gate_attempt increments attempts and writes result/error"
   else
-    fail "record_gate_attempt increments attempts and writes result/error" "attempts=$attempts result=$last_result error=$last_error"
+    fail "[PIPE-06] record_gate_attempt increments attempts and writes result/error" "attempts=$attempts result=$last_result error=$last_error"
   fi
   teardown
 }
@@ -335,9 +335,9 @@ for s in d['stages']:
         print(s['gate']['first_attempt_at'])
 ")
   if [[ "$first_at" != "None" && -n "$first_at" ]]; then
-    pass "init_gate_state sets first_attempt_at"
+    pass "[PIPE-06] init_gate_state sets first_attempt_at"
   else
-    fail "init_gate_state sets first_attempt_at" "got=$first_at"
+    fail "[PIPE-06] init_gate_state sets first_attempt_at" "got=$first_at"
   fi
   teardown
 }
@@ -367,9 +367,9 @@ for s in d['stages']:
         print(s['gate']['first_attempt_at'])
 ")
   if [[ "$first_at" == "2025-01-01T00:00:00Z" ]]; then
-    pass "init_gate_state does not overwrite existing first_attempt_at"
+    pass "[PIPE-06] init_gate_state does not overwrite existing first_attempt_at"
   else
-    fail "init_gate_state does not overwrite existing first_attempt_at" "got=$first_at"
+    fail "[PIPE-06] init_gate_state does not overwrite existing first_attempt_at" "got=$first_at"
   fi
   teardown
 }

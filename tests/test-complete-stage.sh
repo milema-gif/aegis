@@ -41,12 +41,12 @@ for s in d['stages']:
         break
 ")
     if [[ "$has_timestamp" == "yes" ]]; then
-      pass "complete_stage sets status=completed and completed_at"
+      pass "[FOUND-01] complete_stage sets status=completed and completed_at"
     else
-      fail "complete_stage sets completed_at" "no timestamp found"
+      fail "[FOUND-01] complete_stage sets completed_at" "no timestamp found"
     fi
   else
-    fail "complete_stage sets status=completed" "got status=$status"
+    fail "[FOUND-01] complete_stage sets status=completed" "got status=$status"
   fi
   teardown
 }
@@ -70,7 +70,7 @@ for s in d['stages']:
   local rc=0
   complete_stage "research" || rc=$?
   if [[ "$rc" -ne 0 ]]; then
-    fail "complete_stage idempotent" "second call returned non-zero ($rc)"
+    fail "[FOUND-01] complete_stage idempotent" "second call returned non-zero ($rc)"
     teardown
     return
   fi
@@ -85,9 +85,9 @@ for s in d['stages']:
         break
 ")
   if [[ "$first_ts" == "$second_ts" ]]; then
-    pass "complete_stage is idempotent (timestamp unchanged)"
+    pass "[FOUND-01] complete_stage is idempotent (timestamp unchanged)"
   else
-    fail "complete_stage idempotent" "timestamps differ: $first_ts vs $second_ts"
+    fail "[FOUND-01] complete_stage idempotent" "timestamps differ: $first_ts vs $second_ts"
   fi
   teardown
 }
@@ -99,9 +99,9 @@ test_complete_stage_unknown() {
   local rc=0
   complete_stage "nonexistent-stage" 2>/dev/null || rc=$?
   if [[ "$rc" -eq 1 ]]; then
-    pass "complete_stage rejects unknown stage with exit 1"
+    pass "[FOUND-01] complete_stage rejects unknown stage with exit 1"
   else
-    fail "complete_stage unknown stage" "expected exit 1, got $rc"
+    fail "[FOUND-01] complete_stage unknown stage" "expected exit 1, got $rc"
   fi
   teardown
 }
@@ -113,9 +113,9 @@ test_complete_stage_no_arg() {
   local rc=0
   ( complete_stage ) 2>/dev/null || rc=$?
   if [[ "$rc" -ne 0 ]]; then
-    pass "complete_stage with no argument fails"
+    pass "[FOUND-01] complete_stage with no argument fails"
   else
-    fail "complete_stage no arg" "expected non-zero exit, got 0"
+    fail "[FOUND-01] complete_stage no arg" "expected non-zero exit, got 0"
   fi
   teardown
 }

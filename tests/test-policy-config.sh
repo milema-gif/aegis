@@ -32,17 +32,17 @@ teardown() {
 
 test_policy_file_exists() {
   if [[ -f "$PROJECT_ROOT/aegis-policy.json" ]]; then
-    pass "aegis-policy.json exists"
+    pass "[POLC-01] aegis-policy.json exists"
   else
-    fail "aegis-policy.json exists" "file not found"
+    fail "[POLC-01] aegis-policy.json exists" "file not found"
   fi
 }
 
 test_policy_file_valid_json() {
   if python3 -c "import json; json.load(open('$PROJECT_ROOT/aegis-policy.json'))" 2>/dev/null; then
-    pass "aegis-policy.json is valid JSON"
+    pass "[POLC-01] aegis-policy.json is valid JSON"
   else
-    fail "aegis-policy.json is valid JSON" "invalid JSON"
+    fail "[POLC-01] aegis-policy.json is valid JSON" "invalid JSON"
   fi
 }
 
@@ -50,9 +50,9 @@ test_policy_has_version() {
   local version
   version=$(python3 -c "import json; print(json.load(open('$PROJECT_ROOT/aegis-policy.json')).get('policy_version',''))" 2>/dev/null)
   if [[ -n "$version" && "$version" != "None" ]]; then
-    pass "aegis-policy.json has policy_version field"
+    pass "[POLC-01] aegis-policy.json has policy_version field"
   else
-    fail "aegis-policy.json has policy_version field" "missing or empty"
+    fail "[POLC-01] aegis-policy.json has policy_version field" "missing or empty"
   fi
 }
 
@@ -66,9 +66,9 @@ present = [s for s in stages if s in p.get('gates', {})]
 print(len(present))
 " 2>/dev/null)
   if [[ "$count" == "9" ]]; then
-    pass "aegis-policy.json has gate config for all 9 stages"
+    pass "[POLC-01] aegis-policy.json has gate config for all 9 stages"
   else
-    fail "aegis-policy.json has gate config for all 9 stages" "found=$count"
+    fail "[POLC-01] aegis-policy.json has gate config for all 9 stages" "found=$count"
   fi
 }
 
@@ -86,9 +86,9 @@ for stage, cfg in p.get('gates', {}).items():
 print(','.join(missing) if missing else '')
 " 2>/dev/null)
   if [[ -z "$missing" ]]; then
-    pass "each gate config has required fields"
+    pass "[POLC-01] each gate config has required fields"
   else
-    fail "each gate config has required fields" "missing=$missing"
+    fail "[POLC-01] each gate config has required fields" "missing=$missing"
   fi
 }
 
@@ -102,9 +102,9 @@ present = [s for s in stages if s in p.get('consultation', {})]
 print(len(present))
 " 2>/dev/null)
   if [[ "$count" == "9" ]]; then
-    pass "aegis-policy.json has consultation config for all 9 stages"
+    pass "[POLC-01] aegis-policy.json has consultation config for all 9 stages"
   else
-    fail "aegis-policy.json has consultation config for all 9 stages" "found=$count"
+    fail "[POLC-01] aegis-policy.json has consultation config for all 9 stages" "found=$count"
   fi
 }
 
@@ -122,9 +122,9 @@ for stage, cfg in p.get('consultation', {}).items():
 print(','.join(missing) if missing else '')
 " 2>/dev/null)
   if [[ -z "$missing" ]]; then
-    pass "each consultation config has type and context_limit fields"
+    pass "[POLC-01] each consultation config has type and context_limit fields"
   else
-    fail "each consultation config has type and context_limit fields" "missing=$missing"
+    fail "[POLC-01] each consultation config has type and context_limit fields" "missing=$missing"
   fi
 }
 
@@ -136,9 +136,9 @@ p = json.load(open('$PROJECT_ROOT/aegis-policy.json'))
 print('yes' if 'gate_rules' in p else 'no')
 " 2>/dev/null)
   if [[ "$has_rules" == "yes" ]]; then
-    pass "aegis-policy.json has gate_rules section"
+    pass "[POLC-01] aegis-policy.json has gate_rules section"
   else
-    fail "aegis-policy.json has gate_rules section" "missing"
+    fail "[POLC-01] aegis-policy.json has gate_rules section" "missing"
   fi
 }
 
@@ -157,9 +157,9 @@ for stage, cfg in p.get('gates', {}).items():
 print(','.join(bad) if bad else '')
 " 2>/dev/null)
   if [[ -z "$invalid" ]]; then
-    pass "gate types are valid"
+    pass "[POLC-01] gate types are valid"
   else
-    fail "gate types are valid" "invalid=$invalid"
+    fail "[POLC-01] gate types are valid" "invalid=$invalid"
   fi
 }
 
@@ -176,9 +176,9 @@ for stage, cfg in p.get('gates', {}).items():
 print(','.join(bad) if bad else '')
 " 2>/dev/null)
   if [[ -z "$invalid" ]]; then
-    pass "backoff values are valid"
+    pass "[POLC-01] backoff values are valid"
   else
-    fail "backoff values are valid" "invalid=$invalid"
+    fail "[POLC-01] backoff values are valid" "invalid=$invalid"
   fi
 }
 
@@ -193,9 +193,9 @@ with open('$PROJECT_ROOT/templates/aegis-policy.default.json') as f:
 print('yes' if policy == default else 'no')
 " 2>/dev/null)
   if [[ "$match" == "yes" ]]; then
-    pass "default template matches aegis-policy.json content"
+    pass "[POLC-01] default template matches aegis-policy.json content"
   else
-    fail "default template matches aegis-policy.json content" "content differs"
+    fail "[POLC-01] default template matches aegis-policy.json content" "content differs"
   fi
 }
 
@@ -212,37 +212,37 @@ fi
 
 test_load_policy_succeeds() {
   if [[ "$LOADER_EXISTS" != "true" ]]; then
-    fail "load_policy succeeds with valid config" "lib/aegis-policy.sh not found"
+    fail "[POLC-02] load_policy succeeds with valid config" "lib/aegis-policy.sh not found"
     return
   fi
   setup
   if load_policy 2>/dev/null; then
-    pass "load_policy succeeds with valid config"
+    pass "[POLC-02] load_policy succeeds with valid config"
   else
-    fail "load_policy succeeds with valid config" "returned non-zero"
+    fail "[POLC-02] load_policy succeeds with valid config" "returned non-zero"
   fi
   teardown
 }
 
 test_load_policy_fails_missing_file() {
   if [[ "$LOADER_EXISTS" != "true" ]]; then
-    fail "load_policy fails when policy file missing" "lib/aegis-policy.sh not found"
+    fail "[POLC-02] load_policy fails when policy file missing" "lib/aegis-policy.sh not found"
     return
   fi
   setup
   rm -f "$TEST_DIR/aegis-policy.json"
   export AEGIS_POLICY_FILE="$TEST_DIR/nonexistent.json"
   if load_policy 2>/dev/null; then
-    fail "load_policy fails when policy file missing" "should have returned non-zero"
+    fail "[POLC-02] load_policy fails when policy file missing" "should have returned non-zero"
   else
-    pass "load_policy fails when policy file missing"
+    pass "[POLC-02] load_policy fails when policy file missing"
   fi
   teardown
 }
 
 test_load_policy_fails_missing_version() {
   if [[ "$LOADER_EXISTS" != "true" ]]; then
-    fail "load_policy fails when policy_version missing" "lib/aegis-policy.sh not found"
+    fail "[POLC-01] load_policy fails when policy_version missing" "lib/aegis-policy.sh not found"
     return
   fi
   setup
@@ -255,16 +255,16 @@ with open('$TEST_DIR/aegis-policy.json', 'w') as f:
     json.dump(p, f, indent=2)
 "
   if load_policy 2>/dev/null; then
-    fail "load_policy fails when policy_version missing" "should have returned non-zero"
+    fail "[POLC-01] load_policy fails when policy_version missing" "should have returned non-zero"
   else
-    pass "load_policy fails when policy_version missing"
+    pass "[POLC-01] load_policy fails when policy_version missing"
   fi
   teardown
 }
 
 test_load_policy_fails_missing_stage() {
   if [[ "$LOADER_EXISTS" != "true" ]]; then
-    fail "load_policy fails when required stage missing from gates" "lib/aegis-policy.sh not found"
+    fail "[POLC-02] load_policy fails when required stage missing from gates" "lib/aegis-policy.sh not found"
     return
   fi
   setup
@@ -277,16 +277,16 @@ with open('$TEST_DIR/aegis-policy.json', 'w') as f:
     json.dump(p, f, indent=2)
 "
   if load_policy 2>/dev/null; then
-    fail "load_policy fails when required stage missing from gates" "should have returned non-zero"
+    fail "[POLC-02] load_policy fails when required stage missing from gates" "should have returned non-zero"
   else
-    pass "load_policy fails when required stage missing from gates"
+    pass "[POLC-02] load_policy fails when required stage missing from gates"
   fi
   teardown
 }
 
 test_load_policy_fails_missing_gate_field() {
   if [[ "$LOADER_EXISTS" != "true" ]]; then
-    fail "load_policy fails when required gate field missing" "lib/aegis-policy.sh not found"
+    fail "[POLC-02] load_policy fails when required gate field missing" "lib/aegis-policy.sh not found"
     return
   fi
   setup
@@ -299,16 +299,16 @@ with open('$TEST_DIR/aegis-policy.json', 'w') as f:
     json.dump(p, f, indent=2)
 "
   if load_policy 2>/dev/null; then
-    fail "load_policy fails when required gate field missing" "should have returned non-zero"
+    fail "[POLC-02] load_policy fails when required gate field missing" "should have returned non-zero"
   else
-    pass "load_policy fails when required gate field missing"
+    pass "[POLC-02] load_policy fails when required gate field missing"
   fi
   teardown
 }
 
 test_load_policy_fails_invalid_gate_type() {
   if [[ "$LOADER_EXISTS" != "true" ]]; then
-    fail "load_policy fails when gate type is invalid" "lib/aegis-policy.sh not found"
+    fail "[POLC-02] load_policy fails when gate type is invalid" "lib/aegis-policy.sh not found"
     return
   fi
   setup
@@ -321,16 +321,16 @@ with open('$TEST_DIR/aegis-policy.json', 'w') as f:
     json.dump(p, f, indent=2)
 "
   if load_policy 2>/dev/null; then
-    fail "load_policy fails when gate type is invalid" "should have returned non-zero"
+    fail "[POLC-02] load_policy fails when gate type is invalid" "should have returned non-zero"
   else
-    pass "load_policy fails when gate type is invalid"
+    pass "[POLC-02] load_policy fails when gate type is invalid"
   fi
   teardown
 }
 
 test_load_policy_fails_invalid_backoff() {
   if [[ "$LOADER_EXISTS" != "true" ]]; then
-    fail "load_policy fails when backoff value is invalid" "lib/aegis-policy.sh not found"
+    fail "[POLC-01] load_policy fails when backoff value is invalid" "lib/aegis-policy.sh not found"
     return
   fi
   setup
@@ -343,16 +343,16 @@ with open('$TEST_DIR/aegis-policy.json', 'w') as f:
     json.dump(p, f, indent=2)
 "
   if load_policy 2>/dev/null; then
-    fail "load_policy fails when backoff value is invalid" "should have returned non-zero"
+    fail "[POLC-01] load_policy fails when backoff value is invalid" "should have returned non-zero"
   else
-    pass "load_policy fails when backoff value is invalid"
+    pass "[POLC-01] load_policy fails when backoff value is invalid"
   fi
   teardown
 }
 
 test_get_policy_version() {
   if [[ "$LOADER_EXISTS" != "true" ]]; then
-    fail "get_policy_version returns version after load" "lib/aegis-policy.sh not found"
+    fail "[POLC-01] get_policy_version returns version after load" "lib/aegis-policy.sh not found"
     return
   fi
   setup
@@ -360,16 +360,16 @@ test_get_policy_version() {
   local version
   version=$(get_policy_version)
   if [[ "$version" == "1.0.0" ]]; then
-    pass "get_policy_version returns version after load"
+    pass "[POLC-01] get_policy_version returns version after load"
   else
-    fail "get_policy_version returns version after load" "got=$version"
+    fail "[POLC-01] get_policy_version returns version after load" "got=$version"
   fi
   teardown
 }
 
 test_get_gate_config() {
   if [[ "$LOADER_EXISTS" != "true" ]]; then
-    fail "get_gate_config returns correct JSON for stage" "lib/aegis-policy.sh not found"
+    fail "[POLC-02] get_gate_config returns correct JSON for stage" "lib/aegis-policy.sh not found"
     return
   fi
   setup
@@ -377,16 +377,16 @@ test_get_gate_config() {
   local gate_type
   gate_type=$(get_gate_config "intake" | python3 -c "import json,sys; print(json.load(sys.stdin)['type'])")
   if [[ "$gate_type" == "approval" ]]; then
-    pass "get_gate_config returns correct JSON for stage"
+    pass "[POLC-02] get_gate_config returns correct JSON for stage"
   else
-    fail "get_gate_config returns correct JSON for stage" "intake type=$gate_type"
+    fail "[POLC-02] get_gate_config returns correct JSON for stage" "intake type=$gate_type"
   fi
   teardown
 }
 
 test_get_consultation_config() {
   if [[ "$LOADER_EXISTS" != "true" ]]; then
-    fail "get_consultation_config returns correct JSON for stage" "lib/aegis-policy.sh not found"
+    fail "[POLC-02] get_consultation_config returns correct JSON for stage" "lib/aegis-policy.sh not found"
     return
   fi
   setup
@@ -394,16 +394,16 @@ test_get_consultation_config() {
   local consult_type
   consult_type=$(get_consultation_config "verify" | python3 -c "import json,sys; print(json.load(sys.stdin)['type'])")
   if [[ "$consult_type" == "critical" ]]; then
-    pass "get_consultation_config returns correct JSON for stage"
+    pass "[POLC-02] get_consultation_config returns correct JSON for stage"
   else
-    fail "get_consultation_config returns correct JSON for stage" "verify type=$consult_type"
+    fail "[POLC-02] get_consultation_config returns correct JSON for stage" "verify type=$consult_type"
   fi
   teardown
 }
 
 test_stamp_policy_version() {
   if [[ "$LOADER_EXISTS" != "true" ]]; then
-    fail "stamp_policy_version adds policy_version to JSON file" "lib/aegis-policy.sh not found"
+    fail "[POLC-01] stamp_policy_version adds policy_version to JSON file" "lib/aegis-policy.sh not found"
     return
   fi
   setup
@@ -414,16 +414,16 @@ test_stamp_policy_version() {
   local stamped_version
   stamped_version=$(python3 -c "import json; print(json.load(open('$test_file')).get('policy_version',''))")
   if [[ "$stamped_version" == "1.0.0" ]]; then
-    pass "stamp_policy_version adds policy_version to JSON file"
+    pass "[POLC-01] stamp_policy_version adds policy_version to JSON file"
   else
-    fail "stamp_policy_version adds policy_version to JSON file" "got=$stamped_version"
+    fail "[POLC-01] stamp_policy_version adds policy_version to JSON file" "got=$stamped_version"
   fi
   teardown
 }
 
 test_validate_policy_returns_errors() {
   if [[ "$LOADER_EXISTS" != "true" ]]; then
-    fail "validate_policy returns errors for malformed config" "lib/aegis-policy.sh not found"
+    fail "[POLC-02] validate_policy returns errors for malformed config" "lib/aegis-policy.sh not found"
     return
   fi
   setup
@@ -433,9 +433,9 @@ test_validate_policy_returns_errors() {
   local rc=0
   validate_policy 2>/dev/null || rc=$?
   if [[ $rc -ne 0 ]]; then
-    pass "validate_policy returns errors for malformed config"
+    pass "[POLC-02] validate_policy returns errors for malformed config"
   else
-    fail "validate_policy returns errors for malformed config" "returned 0 for bad config"
+    fail "[POLC-02] validate_policy returns errors for malformed config" "returned 0 for bad config"
   fi
   teardown
 }

@@ -38,12 +38,12 @@ assert d[0]['key'] == 'aegis/gate-execute-phase-3'
 print('valid')
 " 2>/dev/null || echo "invalid")
     if [[ "$key_valid" == "valid" ]]; then
-      pass "memory_save_gate creates entry with correct key format"
+      pass "[MEM-01] memory_save_gate creates entry with correct key format"
     else
-      fail "memory_save_gate key format" "key does not match aegis/gate-execute-phase-3"
+      fail "[MEM-01] memory_save_gate key format" "key does not match aegis/gate-execute-phase-3"
     fi
   else
-    fail "memory_save_gate key format" "aegis-project.json not created"
+    fail "[MEM-01] memory_save_gate key format" "aegis-project.json not created"
   fi
   teardown
 }
@@ -63,9 +63,9 @@ assert 'timestamp' in d[0]
 print('valid')
 " 2>/dev/null || echo "invalid")
   if [[ "$content_valid" == "valid" ]]; then
-    pass "memory_save_gate content is stored correctly"
+    pass "[MEM-01] memory_save_gate content is stored correctly"
   else
-    fail "memory_save_gate content" "content not stored correctly"
+    fail "[MEM-01] memory_save_gate content" "content not stored correctly"
   fi
   teardown
 }
@@ -81,9 +81,9 @@ test_retrieve_context_matches() {
   local count
   count=$(echo "$results" | python3 -c "import json,sys; d=json.load(sys.stdin); print(len(d))")
   if [[ "$count" == "2" ]]; then
-    pass "memory_retrieve_context returns matching entries"
+    pass "[MEM-01] memory_retrieve_context returns matching entries"
   else
-    fail "memory_retrieve_context matches" "expected 2, got $count"
+    fail "[MEM-01] memory_retrieve_context matches" "expected 2, got $count"
   fi
   teardown
 }
@@ -97,9 +97,9 @@ test_retrieve_context_empty() {
   local count
   count=$(echo "$results" | python3 -c "import json,sys; d=json.load(sys.stdin); print(len(d))")
   if [[ "$count" == "0" ]]; then
-    pass "memory_retrieve_context returns empty array when no matches"
+    pass "[MEM-01] memory_retrieve_context returns empty array when no matches"
   else
-    fail "memory_retrieve_context empty" "expected 0, got $count"
+    fail "[MEM-01] memory_retrieve_context empty" "expected 0, got $count"
   fi
   teardown
 }
@@ -115,9 +115,9 @@ test_search_bugfixes() {
   local count
   count=$(echo "$results" | python3 -c "import json,sys; d=json.load(sys.stdin); print(len(d))")
   if [[ "$count" == "2" ]]; then
-    pass "memory_search_bugfixes returns bugfix entries"
+    pass "[MEM-02] memory_search_bugfixes returns bugfix entries"
   else
-    fail "memory_search_bugfixes" "expected 2, got $count"
+    fail "[MEM-02] memory_search_bugfixes" "expected 2, got $count"
   fi
   teardown
 }
@@ -138,9 +138,9 @@ assert d[0]['content'] == 'regression test content'
 print('valid')
 " 2>/dev/null || echo "invalid")
   if [[ "$valid" == "valid" ]]; then
-    pass "existing memory_save/memory_search still work (regression)"
+    pass "[MEM-01] existing memory_save/memory_search still work (regression)"
   else
-    fail "regression existing functions" "save/search behavior changed"
+    fail "[MEM-01] regression existing functions" "save/search behavior changed"
   fi
   teardown
 }
@@ -155,9 +155,9 @@ test_memory_search_bugfixes_finds_entries() {
   local count
   count=$(echo "$results" | python3 -c "import json,sys; d=json.load(sys.stdin); print(len(d))")
   if [[ "$count" -ge 1 ]]; then
-    pass "memory_search_bugfixes finds entries with bugfix in key"
+    pass "[MEM-02] memory_search_bugfixes finds entries with bugfix in key"
   else
-    fail "memory_search_bugfixes finds entries" "expected >= 1, got $count"
+    fail "[MEM-02] memory_search_bugfixes finds entries" "expected >= 1, got $count"
   fi
   teardown
 }
@@ -172,9 +172,9 @@ test_memory_search_bugfixes_ignores_non_bugfix() {
   local count
   count=$(echo "$results" | python3 -c "import json,sys; d=json.load(sys.stdin); print(len(d))")
   if [[ "$count" == "0" ]]; then
-    pass "memory_search_bugfixes ignores non-bugfix entries"
+    pass "[MEM-02] memory_search_bugfixes ignores non-bugfix entries"
   else
-    fail "memory_search_bugfixes ignores non-bugfix" "expected 0, got $count"
+    fail "[MEM-02] memory_search_bugfixes ignores non-bugfix" "expected 0, got $count"
   fi
   teardown
 }
@@ -185,9 +185,9 @@ test_memory_search_bugfixes_empty_when_no_data() {
   local results
   results=$(memory_search_bugfixes 10)
   if [[ "$results" == "[]" ]]; then
-    pass "memory_search_bugfixes empty when no data"
+    pass "[MEM-02] memory_search_bugfixes empty when no data"
   else
-    fail "memory_search_bugfixes empty" "expected [], got $results"
+    fail "[MEM-02] memory_search_bugfixes empty" "expected [], got $results"
   fi
   teardown
 }
@@ -201,9 +201,9 @@ test_gate_save_then_bugfix_search_integration() {
   local count
   count=$(echo "$results" | python3 -c "import json,sys; d=json.load(sys.stdin); print(len(d))")
   if [[ "$count" -ge 1 ]]; then
-    pass "gate save then bugfix search integration"
+    pass "[MEM-02] gate save then bugfix search integration"
   else
-    fail "gate save + bugfix search integration" "expected >= 1, got $count"
+    fail "[MEM-01] gate save + bugfix search integration" "expected >= 1, got $count"
   fi
   teardown
 }

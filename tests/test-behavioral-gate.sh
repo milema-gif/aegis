@@ -18,9 +18,9 @@ PROTOCOL_FILE="$PROJECT_ROOT/references/invocation-protocol.md"
 # --- Test 1: invocation-protocol.md contains "## Behavioral Gate" section ---
 test_protocol_has_section() {
   if grep -q "## Behavioral Gate" "$PROTOCOL_FILE"; then
-    pass "invocation-protocol.md contains Behavioral Gate section"
+    pass "[AGENT-01] invocation-protocol.md contains Behavioral Gate section"
   else
-    fail "Behavioral Gate section" "not found in invocation-protocol.md"
+    fail "[AGENT-01] Behavioral Gate section" "not found in invocation-protocol.md"
   fi
 }
 
@@ -30,9 +30,9 @@ test_gate_before_objective() {
   gate_line=$(grep -n "## Behavioral Gate" "$PROTOCOL_FILE" | head -1 | cut -d: -f1)
   objective_line=$(grep -n "## Objective" "$PROTOCOL_FILE" | head -1 | cut -d: -f1)
   if [[ -n "$gate_line" ]] && [[ -n "$objective_line" ]] && [[ "$gate_line" -lt "$objective_line" ]]; then
-    pass "Behavioral Gate appears before Objective"
+    pass "[AGENT-01] Behavioral Gate appears before Objective"
   else
-    fail "Gate before Objective" "gate_line=${gate_line:-missing}, objective_line=${objective_line:-missing}"
+    fail "[AGENT-01] Gate before Objective" "gate_line=${gate_line:-missing}, objective_line=${objective_line:-missing}"
   fi
 }
 
@@ -47,18 +47,18 @@ test_gate_has_4_fields() {
     fi
   done
   if $ok; then
-    pass "Behavioral Gate contains all 4 checklist fields"
+    pass "[AGENT-01] Behavioral Gate contains all 4 checklist fields"
   else
-    fail "4 checklist fields" "missing:$missing"
+    fail "[AGENT-01] 4 checklist fields" "missing:$missing"
   fi
 }
 
 # --- Test 4: Template includes BEHAVIORAL_GATE_CHECK marker ---
 test_marker_in_template() {
   if grep -q "BEHAVIORAL_GATE_CHECK" "$PROTOCOL_FILE"; then
-    pass "Template includes BEHAVIORAL_GATE_CHECK marker"
+    pass "[AGENT-01] Template includes BEHAVIORAL_GATE_CHECK marker"
   else
-    fail "BEHAVIORAL_GATE_CHECK marker" "not found in invocation-protocol.md"
+    fail "[AGENT-01] BEHAVIORAL_GATE_CHECK marker" "not found in invocation-protocol.md"
   fi
 }
 
@@ -73,9 +73,9 @@ BEHAVIORAL_GATE_CHECK
   local rc=0
   validate_behavioral_gate "$input" || rc=$?
   if [[ "$rc" -eq 0 ]]; then
-    pass "validate_behavioral_gate returns 0 when marker present"
+    pass "[AGENT-02] validate_behavioral_gate returns 0 when marker present"
   else
-    fail "validate with marker" "expected 0, got $rc"
+    fail "[AGENT-01] validate with marker" "expected 0, got $rc"
   fi
 }
 
@@ -85,9 +85,9 @@ test_validate_without_marker() {
   local rc=0
   validate_behavioral_gate "$input" 2>/dev/null || rc=$?
   if [[ "$rc" -eq 0 ]]; then
-    pass "validate_behavioral_gate returns 0 when marker absent"
+    pass "[AGENT-02] validate_behavioral_gate returns 0 when marker absent"
   else
-    fail "validate without marker" "expected 0, got $rc"
+    fail "[AGENT-01] validate without marker" "expected 0, got $rc"
   fi
 }
 
@@ -97,9 +97,9 @@ test_validate_warns_on_missing() {
   local stderr_output
   stderr_output=$(validate_behavioral_gate "$input" 2>&1 1>/dev/null)
   if echo "$stderr_output" | grep -q "BEHAVIORAL GATE WARNING"; then
-    pass "validate_behavioral_gate warns on stderr when marker absent"
+    pass "[AGENT-02] validate_behavioral_gate warns on stderr when marker absent"
   else
-    fail "warn on missing" "no warning found in stderr: '$stderr_output'"
+    fail "[AGENT-01] warn on missing" "no warning found in stderr: '$stderr_output'"
   fi
 }
 
@@ -113,9 +113,9 @@ test_validate_no_stderr_when_present() {
   local stderr_output
   stderr_output=$(validate_behavioral_gate "$input" 2>&1 1>/dev/null)
   if [[ -z "$stderr_output" ]]; then
-    pass "validate_behavioral_gate produces no stderr when marker present"
+    pass "[AGENT-01] validate_behavioral_gate produces no stderr when marker present"
   else
-    fail "no stderr when present" "unexpected stderr: '$stderr_output'"
+    fail "[AGENT-02] no stderr when present" "unexpected stderr: '$stderr_output'"
   fi
 }
 
@@ -126,9 +126,9 @@ test_validate_empty_string() {
   stderr_output=$(validate_behavioral_gate "" 2>&1 1>/dev/null)
   validate_behavioral_gate "" 2>/dev/null || rc=$?
   if [[ "$rc" -eq 0 ]] && echo "$stderr_output" | grep -q "BEHAVIORAL GATE WARNING"; then
-    pass "validate_behavioral_gate handles empty string (returns 0, warns)"
+    pass "[AGENT-02] validate_behavioral_gate handles empty string (returns 0, warns)"
   else
-    fail "empty string" "rc=$rc, stderr='$stderr_output'"
+    fail "[AGENT-02] empty string" "rc=$rc, stderr='$stderr_output'"
   fi
 }
 
@@ -148,9 +148,9 @@ Line after the checklist"
   stderr_output=$(validate_behavioral_gate "$input" 2>&1 1>/dev/null)
   validate_behavioral_gate "$input" 2>/dev/null || rc=$?
   if [[ "$rc" -eq 0 ]] && [[ -z "$stderr_output" ]]; then
-    pass "validate_behavioral_gate handles multiline with embedded marker"
+    pass "[AGENT-02] validate_behavioral_gate handles multiline with embedded marker"
   else
-    fail "multiline with marker" "rc=$rc, stderr='$stderr_output'"
+    fail "[AGENT-02] multiline with marker" "rc=$rc, stderr='$stderr_output'"
   fi
 }
 

@@ -33,9 +33,9 @@ test_banner_shows_stage_name_uppercase() {
   local output
   output=$(show_transition_banner "research" 1)
   if echo "$output" | grep -q "RESEARCH"; then
-    pass "banner shows stage name in uppercase"
+    pass "[PIPE-04] banner shows stage name in uppercase"
   else
-    fail "banner shows stage name in uppercase" "output=$output"
+    fail "[PIPE-04] banner shows stage name in uppercase" "output=$output"
   fi
   teardown
 }
@@ -46,9 +46,9 @@ test_banner_shows_correct_index() {
   local output
   output=$(show_transition_banner "research" 1)
   if echo "$output" | grep -q "2/9"; then
-    pass "banner shows correct index (2/9)"
+    pass "[PIPE-04] banner shows correct index (2/9)"
   else
-    fail "banner shows correct index (2/9)" "output=$output"
+    fail "[PIPE-04] banner shows correct index (2/9)" "output=$output"
   fi
   teardown
 }
@@ -60,9 +60,9 @@ test_banner_shows_progress_bar() {
   output=$(show_transition_banner "execute" 4)
   # Should have some filled blocks for ~55%
   if echo "$output" | grep -qE "[^[:space:]]"; then
-    pass "banner shows progress bar"
+    pass "[PIPE-04] banner shows progress bar"
   else
-    fail "banner shows progress bar" "output=$output"
+    fail "[PIPE-04] banner shows progress bar" "output=$output"
   fi
   teardown
 }
@@ -74,9 +74,9 @@ test_checkpoint_shows_type() {
   local output
   output=$(show_checkpoint "Approval Required" "Pipeline ready for review")
   if echo "$output" | grep -q "Approval Required"; then
-    pass "checkpoint shows type"
+    pass "[PIPE-04] checkpoint shows type"
   else
-    fail "checkpoint shows type" "output=$output"
+    fail "[PIPE-04] checkpoint shows type" "output=$output"
   fi
   teardown
 }
@@ -86,9 +86,9 @@ test_checkpoint_shows_summary() {
   local output
   output=$(show_checkpoint "Approval Required" "Pipeline ready for review")
   if echo "$output" | grep -q "Pipeline ready for review"; then
-    pass "checkpoint shows summary content"
+    pass "[PIPE-04] checkpoint shows summary content"
   else
-    fail "checkpoint shows summary content" "output=$output"
+    fail "[PIPE-04] checkpoint shows summary content" "output=$output"
   fi
   teardown
 }
@@ -99,9 +99,9 @@ test_checkpoint_box_formatting() {
   output=$(show_checkpoint "Verification Required" "Check deployment")
   # Should contain box characters
   if echo "$output" | grep -q "═"; then
-    pass "checkpoint has box formatting"
+    pass "[PIPE-04] checkpoint has box formatting"
   else
-    fail "checkpoint has box formatting" "output=$output"
+    fail "[PIPE-04] checkpoint has box formatting" "output=$output"
   fi
   teardown
 }
@@ -113,9 +113,9 @@ test_yolo_banner_shows_stage() {
   local output
   output=$(show_yolo_banner "intake")
   if echo "$output" | grep -q "intake"; then
-    pass "yolo banner shows stage name"
+    pass "[PIPE-04] yolo banner shows stage name"
   else
-    fail "yolo banner shows stage name" "output=$output"
+    fail "[PIPE-04] yolo banner shows stage name" "output=$output"
   fi
   teardown
 }
@@ -125,9 +125,9 @@ test_yolo_banner_shows_auto_approved() {
   local output
   output=$(show_yolo_banner "intake")
   if echo "$output" | grep -qi "auto-approved\|auto.approved"; then
-    pass "yolo banner shows auto-approved indicator"
+    pass "[PIPE-04] yolo banner shows auto-approved indicator"
   else
-    fail "yolo banner shows auto-approved indicator" "output=$output"
+    fail "[PIPE-04] yolo banner shows auto-approved indicator" "output=$output"
   fi
   teardown
 }

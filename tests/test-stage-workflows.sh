@@ -37,9 +37,9 @@ test_all_files_exist() {
     fi
   done
   if [[ $missing -eq 0 ]]; then
-    pass "All 9 workflow files exist"
+    pass "[PIPE-02] All 9 workflow files exist"
   else
-    fail "All 9 workflow files exist" "$missing files missing"
+    fail "[PIPE-02] All 9 workflow files exist" "$missing files missing"
   fi
 }
 
@@ -58,9 +58,9 @@ test_required_sections() {
     done
   done
   if $all_ok; then
-    pass "All workflows have 4 required sections"
+    pass "[PIPE-02] All workflows have 4 required sections"
   else
-    fail "All workflows have 4 required sections" "$details"
+    fail "[PIPE-02] All workflows have 4 required sections" "$details"
   fi
 }
 
@@ -79,9 +79,9 @@ test_under_100_lines() {
     fi
   done
   if $all_ok; then
-    pass "All workflows are under 100 lines"
+    pass "[PIPE-02] All workflows are under 100 lines"
   else
-    fail "All workflows are under 100 lines" "$details"
+    fail "[PIPE-02] All workflows are under 100 lines" "$details"
   fi
 }
 
@@ -89,9 +89,9 @@ test_under_100_lines() {
 test_advance_has_tagging() {
   local path="$PROJECT_ROOT/workflows/stages/08-advance.md"
   if [[ -f "$path" ]] && grep -q "tag_phase_completion" "$path"; then
-    pass "08-advance.md contains tag_phase_completion"
+    pass "[PIPE-02] 08-advance.md contains tag_phase_completion"
   else
-    fail "08-advance.md contains tag_phase_completion" "not found"
+    fail "[PIPE-02] 08-advance.md contains tag_phase_completion" "not found"
   fi
 }
 
@@ -116,9 +116,9 @@ test_gsd_commands() {
     fi
   done
   if $all_ok; then
-    pass "GSD-delegating stages reference correct commands"
+    pass "[PIPE-02] GSD-delegating stages reference correct commands"
   else
-    fail "GSD-delegating stages reference correct commands" "$details"
+    fail "[PIPE-02] GSD-delegating stages reference correct commands" "$details"
   fi
 }
 
@@ -134,9 +134,9 @@ test_orchestrator_dispatch() {
     fi
   done
   if $all_ok; then
-    pass "Orchestrator dispatch table references all 9 workflows"
+    pass "[PIPE-02] Orchestrator dispatch table references all 9 workflows"
   else
-    fail "Orchestrator dispatch table references all 9 workflows" "$details"
+    fail "[PIPE-02] Orchestrator dispatch table references all 9 workflows" "$details"
   fi
 }
 
@@ -144,9 +144,9 @@ test_orchestrator_dispatch() {
 test_no_stub_fallback() {
   local orch="$PROJECT_ROOT/workflows/pipeline/orchestrator.md"
   if grep -q "stub.md" "$orch"; then
-    fail "Orchestrator has no stub.md fallback" "stub.md still referenced"
+    fail "[PIPE-02] Orchestrator has no stub.md fallback" "stub.md still referenced"
   else
-    pass "Orchestrator has no stub.md fallback"
+    pass "[PIPE-02] Orchestrator has no stub.md fallback"
   fi
 }
 
