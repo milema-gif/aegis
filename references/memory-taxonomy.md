@@ -20,16 +20,20 @@ Memory type mapping, scoping conventions, and key format for Aegis pipeline memo
 
 - Use `scope: "project"` for all pipeline memories (both Engram and local JSON).
 - Use `project: "{project_name}"` for Engram MCP scoping.
-- Global scope is reserved for cross-project patterns (future use).
+- Global scope requires `cross_project: true` flag (MEM-08) -- prevents accidental cross-project writes.
+- `memory_save_scoped()` is the required entry point for all pipeline memory writes.
+- File naming convention: `{project}-{scope}.json` (e.g., `aegis-project.json`, `aegis-global.json`).
 
 ## topic_key Convention
 
-Format: `pipeline/{stage}-phase-{N}`
+Format: `{project}/gate-{stage}-phase-{N}`
 
 Examples:
-- `pipeline/intake-phase-0`
-- `pipeline/execute-phase-3`
-- `pipeline/verify-phase-3`
+- `aegis/gate-intake-phase-0`
+- `aegis/gate-execute-phase-3`
+- `aegis/gate-verify-phase-3`
+
+The `{project}/` prefix replaces the old `pipeline/` prefix, enabling project-scoped memory isolation (MEM-09).
 
 The topic_key enables **upsert on retry** -- if a stage is re-executed, the same topic_key overwrites the previous entry rather than creating duplicates.
 
@@ -51,3 +55,15 @@ Structured summary for gate memories:
 3. **Prefer curated summary over raw output** -- the memory should be a human-readable distillation, not a dump of logs or file contents.
 4. **Never block pipeline on memory failure** -- if Engram is down or local write fails, log a warning and continue.
 5. **Empty context is normal** -- first stages won't have prior memories. Proceed without injecting context when results are empty.
+6. **Always use `memory_save_scoped()`** -- direct calls to `memory_save()` bypass project enforcement and are only for internal use.
+
+## Decay Classes
+
+| Class | TTL | Policy |
+|-------|-----|--------|
+| pinned | never | Architectural decisions, conventions -- never expire |
+| project | on archive | Active project memories -- decay when project archived |
+| session | 30 days | Session-specific context -- auto-decay after 30d |
+| ephemeral | 7 days | Temporary working state -- auto-decay after 7d |
+
+Default class: `project`. Set via `decay_class` field on memory entries.
