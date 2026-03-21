@@ -73,42 +73,75 @@
 - [x] **DEPLOY-02**: Deploy confirmation requires typing "deploy" keyword explicitly (not "approved") — preflight is classified as `external` gate type, never skippable
 - [x] **DEPLOY-03**: Pre-deploy state snapshot captures running service metadata (Docker container IDs, PM2 process info) for rollback comparison
 
-## v3.0 Requirements (Deferred)
+## v3.0 Requirements (Evidence-Driven Pipeline)
+
+### Evidence (Machine-Verifiable Artifacts)
+
+- [ ] **EVID-01**: Every stage produces a structured evidence artifact (JSON/markdown) with machine-checkable fields — not prose summaries
+- [ ] **EVID-02**: Gate evaluation checks evidence artifacts programmatically (file hashes, schema fields, requirement references) — not self-reported checklists
+- [ ] **EVID-03**: Test-gate requires non-vacuous evidence — each test must reference the specific requirement ID it proves, and empty test suites are rejected
+
+### Enforcement (Behavioral Gate Upgrade)
+
+- [ ] **ENFC-01**: Behavioral gate blocks all mutating actions (Edit, Write, mutating Bash, git commit/tag/push, deploy) for subagents at execute/verify/deploy stages when BEHAVIORAL_GATE_CHECK is missing
+- [ ] **ENFC-02**: Behavioral gate remains warn-only for non-mutating stages (research, phase-plan) — read-only operations are not blocked
+- [ ] **ENFC-03**: Any gate bypass generates a mandatory audit log entry that is surfaced in the next session summary and advance-stage report
+
+### Consultation (Risk-Scored)
+
+- [ ] **CONS-01**: Each stage computes a risk score (low/med/high) based on file count, complexity heuristics, and mutation scope
+- [ ] **CONS-02**: High-risk stages trigger mandatory consultation (DeepSeek first; Codex only for critical+high-risk if opted-in) with per-run budget cap and per-stage max consultation count
+- [ ] **CONS-03**: Consultation results are persisted as structured evidence artifacts in `.aegis/evidence/` — not just logged to stdout
+
+### Regression (Phase Delta Check)
+
+- [ ] **REGR-01**: Advance stage verifies new phase does not invalidate any prior phase's success criteria (phase delta check)
+- [ ] **REGR-02**: Prior phase test suites re-run before advancing — any regression blocks the advance gate
+- [ ] **REGR-03**: Phase delta report summarizes what changed since last phase completion (files modified, functions added/removed, test count delta)
+
+### Policy (Gate Configuration)
+
+- [ ] **POLC-01**: Gate policies (which gates block, retry limits, risk thresholds, consultation triggers) are defined in a versioned config file — not hardcoded in library logic
+- [ ] **POLC-02**: Policy changes are auditable — config diffs tracked in git, policy version stamped in evidence artifacts
+
+### Patterns (Cross-Project — Minimal)
+
+- [ ] **PATN-01**: Opt-in pattern library stores curated patterns from completed projects (operator-approved only)
+- [ ] **PATN-03**: Pattern writes require explicit operator approval — no automatic cross-project memory sharing
+
+### Rollback (Deterministic Drill)
+
+- [ ] **ROLL-01**: Deterministic rollback drill validates recovery capability — "can recover" is part of phase completion criteria, not optional
+
+## v4.0+ Requirements (Deferred)
+
+### Patterns (Advanced Retrieval)
+
+- **PATN-02**: Pattern retrieval at research/phase-plan stages suggests relevant patterns from other projects (deferred: cross-project retrieval adds noise — Codex recommendation)
 
 ### Memory (Advanced)
 
 - **MEM-10**: Cross-project memory — learn from project A, apply to project B
 - **MEM-11**: Cross-stack consistency enforcement — shared contracts + audit gate for backend/frontend naming
-- **MEM-12**: Memory decay / staleness detection with conflict resolution (requires v2.0 scoping maturity)
 
 ### Deployment (Advanced)
 
 - **DEPLOY-04**: Service-level rollback — Docker restart with previous version, PM2 rollback
 - **DEPLOY-05**: Post-deploy smoke test runner
-- **DEPLOY-06**: Pre-deploy scope verification report (structured document for informed consent)
 
 ### Templates
 
 - **TMPL-01**: Pipeline-as-workflow templates (API service, static site, Discord bot presets)
 - **TMPL-02**: Project type auto-detection from file structure
 
-### Cost Management
-
-- **COST-01**: Budget tracking for Codex usage ($30/mo cap with warnings)
-
-### Portability (Advanced)
-
-- **PORT-02**: Full graceful degradation — pipeline works without Engram/Sparrow for open-source users
-
 ### Observability
 
 - **OBS-01**: Telemetry events per stage/gate (duration, fail causes, token usage)
-- **OBS-02**: Behavioral gate audit trail with file-read verification logs
 - **OBS-03**: Context budget tracking per stage (token consumption warnings)
 
-### Safety
+### Portability
 
-- **SAFE-01**: External-action confirmation policy — classify gates as quality/safety/cost/external
+- **PORT-02**: Full graceful degradation — pipeline works without Engram/Sparrow for open-source users
 
 ## Out of Scope
 
@@ -173,6 +206,31 @@
 **v1.0 Coverage:** 18/18 mapped, 0 unmapped
 **v2.0 Coverage:** 18/18 mapped, 0 unmapped
 
+### v3.0 (Evidence-Driven Pipeline)
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| EVID-01 | TBD | Pending |
+| EVID-02 | TBD | Pending |
+| EVID-03 | TBD | Pending |
+| ENFC-01 | TBD | Pending |
+| ENFC-02 | TBD | Pending |
+| ENFC-03 | TBD | Pending |
+| CONS-01 | TBD | Pending |
+| CONS-02 | TBD | Pending |
+| CONS-03 | TBD | Pending |
+| REGR-01 | TBD | Pending |
+| REGR-02 | TBD | Pending |
+| REGR-03 | TBD | Pending |
+| POLC-01 | TBD | Pending |
+| POLC-02 | TBD | Pending |
+| PATN-01 | TBD | Pending |
+| PATN-03 | TBD | Pending |
+| ROLL-01 | TBD | Pending |
+
+**v3.0 Coverage:** 17 total, 0 mapped (pending roadmap)
+
 ---
 *Requirements defined: 2026-03-09*
 *v2.0 requirements added: 2026-03-21 from research synthesis*
+*v3.0 requirements added: 2026-03-21 from Codex review (2 rounds)*
