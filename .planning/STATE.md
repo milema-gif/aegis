@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Evidence-Driven Pipeline
-status: completed
-stopped_at: Completed 15-02-PLAN.md
-last_updated: "2026-03-21T18:34:58.667Z"
-last_activity: 2026-03-21 -- Phase 15 Plan 02 complete (advance stage wiring)
+status: in_progress
+stopped_at: Completed 16-01-PLAN.md
+last_updated: "2026-03-21T18:49:07Z"
+last_activity: 2026-03-21 -- Phase 16 Plan 01 complete (pattern library + rollback drill)
 progress:
   total_phases: 6
   completed_phases: 5
-  total_plans: 10
-  completed_plans: 10
-  percent: 100
+  total_plans: 12
+  completed_plans: 11
+  percent: 97
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Never lose context, direction, or consistency across a project's entire lifecycle
-**Current focus:** v3.0 Evidence-Driven Pipeline -- Phase 15 (Phase Regression)
+**Current focus:** v3.0 Evidence-Driven Pipeline -- Phase 16 (Patterns and Rollback)
 
 ## Current Position
 
-Phase: 15 of 16 (Phase Regression)
-Plan: 2 of 2 in current phase (COMPLETE)
-Status: Phase Complete
-Last activity: 2026-03-21 -- Phase 15 Plan 02 complete (advance stage wiring)
+Phase: 16 of 16 (Patterns and Rollback)
+Plan: 1 of 2 in current phase
+Status: In Progress
+Last activity: 2026-03-21 -- Phase 16 Plan 01 complete (pattern library + rollback drill)
 
-Progress: [██████████] 100% (v3.0)
+Progress: [██████████] 97% (v3.0)
 
 ## Performance Metrics
 
@@ -55,6 +55,7 @@ Progress: [██████████] 100% (v3.0)
 | Phase 14 P02 | 7min | 2 tasks | 3 files |
 | Phase 15 P01 | 3min | 1 task | 3 files |
 | Phase 15 P02 | 2min | 2 tasks | 1 files |
+| Phase 16 P01 | 4min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -97,6 +98,9 @@ Recent decisions affecting current work:
 - [15-01]: Function detection via regex — sufficient for bash codebase
 - [Phase 15]: Hash drift classified separately from missing files; full test re-run; graceful missing tag handling
 - [Phase 15]: Task 2 already done in Plan 01 -- test-regression added to run-all.sh during library creation
+- [16-01]: sys.argv for python3 args — prevents injection issues in pattern text
+- [16-01]: get_pattern returns error JSON with exit 0 — consistent pipeline consumption
+- [16-01]: Rollback drill writes evidence directly (not via write_evidence) — different schema
 
 ### Pending Todos
 
@@ -108,7 +112,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-21T18:31:37.023Z
-Stopped at: Completed 15-02-PLAN.md
+Last session: 2026-03-21T18:49:07Z
+Stopped at: Completed 16-01-PLAN.md
 Resume file: None
-Next step: Phase 15 Plan 02 (advance stage wiring)
+Next step: Phase 16 Plan 02 (advance stage wiring)

@@ -106,12 +106,12 @@
 
 ### Patterns (Cross-Project — Minimal)
 
-- [ ] **PATN-01**: Opt-in pattern library stores curated patterns from completed projects (operator-approved only)
-- [ ] **PATN-03**: Pattern writes require explicit operator approval — no automatic cross-project memory sharing
+- [x] **PATN-01**: Opt-in pattern library stores curated patterns from completed projects (operator-approved only)
+- [x] **PATN-03**: Pattern writes require explicit operator approval — no automatic cross-project memory sharing
 
 ### Rollback (Deterministic Drill)
 
-- [ ] **ROLL-01**: Deterministic rollback drill validates recovery capability — "can recover" is part of phase completion criteria, not optional
+- [x] **ROLL-01**: Deterministic rollback drill validates recovery capability — "can recover" is part of phase completion criteria, not optional
 
 ## v4.0+ Requirements (Deferred)
 
@@ -224,9 +224,9 @@
 | REGR-01 | Phase 15 | Complete |
 | REGR-02 | Phase 15 | Complete |
 | REGR-03 | Phase 15 | Complete |
-| PATN-01 | Phase 16 | Pending |
-| PATN-03 | Phase 16 | Pending |
-| ROLL-01 | Phase 16 | Pending |
+| PATN-01 | Phase 16 | Complete |
+| PATN-03 | Phase 16 | Complete |
+| ROLL-01 | Phase 16 | Complete |
 
 **v3.0 Coverage:** 17/17 mapped, 0 unmapped
 
