@@ -14,7 +14,12 @@ BEHAVIORAL_GATE_CHECK
 - risk: [low/med/high -- med+ means flag to orchestrator]
 ```
 
-This checklist is mandatory but non-blocking. Missing it generates a warning, not a pipeline failure. The orchestrator uses `validate_behavioral_gate()` to detect compliance -- it always returns 0 but writes a warning to stderr when the marker is absent.
+**Enforcement is stage-aware:**
+- At **execute/verify/deploy** (mutating stages): missing the checklist **BLOCKS** the pipeline. The subagent must verify before making any mutations. The orchestrator offers bypass (generates an audit trail entry) or re-run.
+- At **research/phase-plan** (read-only stages): missing the checklist generates a **WARNING** only. Read-only stages are not blocked.
+- At **intake/roadmap/test-gate/advance** (inline stages): no enforcement (these are Path B, not subagent-dispatched).
+
+Any bypass of a blocked gate generates a persistent audit entry via `write_bypass_audit()` in `.aegis/evidence/`. These entries are surfaced at pipeline startup and in advance-stage reports.
 
 ## Structured Prompt Template
 

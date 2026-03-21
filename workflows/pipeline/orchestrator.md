@@ -89,6 +89,20 @@ init_state "$PROJECT_NAME"
 rm -rf "${AEGIS_DIR}/checkpoints"
 ```
 
+### Bypass Surfacing at Pipeline Start
+
+After loading or initializing state, scan for unsurfaced gate bypasses from previous sessions:
+
+```bash
+source lib/aegis-evidence.sh
+UNSURFACED=$(scan_unsurfaced_bypasses)
+if [[ "$UNSURFACED" != "[]" ]]; then
+  echo "WARNING: Unsurfaced gate bypasses detected:"
+  echo "$UNSURFACED" | python3 -c "import json,sys; [print(f'  - {b[\"stage\"]} (phase {b[\"phase\"]}): {b[\"reason\"]}') for b in json.load(sys.stdin)]"
+  mark_bypasses_surfaced
+fi
+```
+
 ## Step 3 -- Detect Integrations
 
 Run integration detection on **every invocation** (never cache):
@@ -208,13 +222,20 @@ These stages are dispatched to a subagent via the Agent tool. The orchestrator d
    - **Output:** from the stage workflow's `## Outputs`
 5. **Dispatch via Agent tool** with the constructed prompt.
 6. **On return:** source `lib/aegis-validate.sh` and call `validate_subagent_output "$CURRENT_STAGE" {expected_files}` using the file list from the workflow's `## Outputs`.
-6.5. **Validate behavioral gate:** Call `validate_behavioral_gate "$SUBAGENT_RETURN_TEXT"`. This is warn-only -- if the subagent did not output the BEHAVIORAL_GATE_CHECK block, a warning is logged to stderr but the pipeline continues normally. If the warning fires, the orchestrator notes it in the stage's gate memory (Step 5.6) as `"behavioral_gate": "missing"` for audit trail.
+6.5. **Enforce behavioral gate:** Call `validate_behavioral_gate "$SUBAGENT_RETURN_TEXT" "$CURRENT_STAGE"`.
+   - If returns 0: continue normally (marker present, or stage is warn/none mode). If the warning fires (warn-mode stages), the orchestrator notes it in the stage's gate memory (Step 5.6) as `"behavioral_gate": "missing"` for audit trail.
+   - If returns 1 (blocked):
+     a. Display: "BLOCKED: Subagent at {stage} did not complete behavioral gate verification."
+     b. Offer bypass: "Type 'bypass' to override (generates audit entry), or 're-run' to retry the stage."
+     c. If 'bypass': call `write_bypass_audit "$CURRENT_STAGE" "$PHASE_NUM" "operator-override" "behavioral gate marker absent"`. Continue to Step 5.5.
+     d. If 're-run' or rejection: mark stage failed, STOP.
 7. **If validation passes:** fall through to Step 5.5 (gate evaluation).
 8. **If validation fails:** log the failure, mark the stage as failed in state, **STOP**.
 
 ```bash
 source lib/aegis-state.sh
 source lib/aegis-validate.sh
+source lib/aegis-evidence.sh
 
 CURRENT_STAGE=$(read_current_stage)
 
@@ -256,8 +277,11 @@ if [[ -n "${STAGE_AGENTS[$CURRENT_STAGE]+_}" ]]; then
   # 4. Dispatch via Agent tool
   # 5. Validate output:
   #    validate_subagent_output "$CURRENT_STAGE" {expected_output_files}
-  #    validate_behavioral_gate "$SUBAGENT_RETURN_TEXT"  # warn-only, never fails
-  # 6. If validation fails: mark stage failed, STOP
+  # 6. Enforce behavioral gate (stage-aware):
+  #    validate_behavioral_gate "$SUBAGENT_RETURN_TEXT" "$CURRENT_STAGE"
+  #    Returns 0 for pass/warn, returns 1 for block-mode stages when marker absent.
+  #    If blocked: offer bypass (write_bypass_audit) or re-run.
+  # 7. If validation fails: mark stage failed, STOP
 
   echo "Dispatching to subagent: $AGENT_NAME (workflow: $STAGE_FILE)"
 else
@@ -276,6 +300,8 @@ These stages are executed inline by the orchestrator. Follow the stage workflow 
 2. Follow the workflow. The stage workflow controls its own execution and signals completion.
 3. After the stage signals completion, control falls through to **Step 5.5** for gate evaluation. Do NOT call `advance_stage()` here.
 
+**Note:** Before advancing (at the `advance` stage), check `scan_unsurfaced_bypasses()` and include any unsurfaced bypasses in the advance report. Mark them surfaced after display. This ensures bypass audit entries cannot persist silently across phase boundaries.
+
 ### Parallel Subagent Dispatch
 
 When the orchestrator dispatches multiple subagents in the same execution wave (e.g., during the execute stage with parallel plans):
@@ -284,7 +310,7 @@ When the orchestrator dispatches multiple subagents in the same execution wave (
 1. Each subagent receives the full behavioral gate preamble independently.
 2. Each subagent outputs its own BEHAVIORAL_GATE_CHECK block.
 3. The orchestrator collects all checklist outputs after all subagents return.
-4. `validate_behavioral_gate()` is called for each subagent's return text individually.
+4. `validate_behavioral_gate()` is called for each subagent's return text individually, passing `$CURRENT_STAGE` as the second argument. For block-mode stages (execute/verify/deploy), any subagent missing the marker triggers the bypass/re-run flow.
 
 **Batch Approval:**
 When multiple subagents complete in the same wave, the orchestrator presents all scope declarations together as a single batch review, not N sequential approval prompts. The operator sees one summary of all scopes and approves or rejects the batch.
@@ -497,7 +523,9 @@ fi
 | Checkpoint clear at init | Pipeline start clears .aegis/checkpoints/ to prevent stale context injection. |
 | Checkpoint context for subagent | assemble_context_window injects last 3 checkpoints into Prior Stage Context section. |
 | Behavioral gate in subagent prompt | Every Agent dispatch includes Behavioral Gate preamble from invocation-protocol.md |
-| Behavioral gate validation | validate_behavioral_gate() warns on missing checklist, never fails pipeline |
+| Behavioral gate enforcement | validate_behavioral_gate() blocks at mutating stages (execute/verify/deploy), warns at read-only stages (research/phase-plan). Blocked gates offer bypass (generates audit entry) or re-run. |
 | Parallel dispatch batch approval | Multiple subagents in same wave get batch approval; auto-approve when scope matches |
+| Bypass audit trail | Blocked gate bypass writes evidence via write_bypass_audit(); surfaced at pipeline start (Step 2) and advance stage |
+| Unsurfaced bypasses at startup | scan_unsurfaced_bypasses() checks at Step 2; announces and marks surfaced before proceeding |
 
 ---
