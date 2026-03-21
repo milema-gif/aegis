@@ -1,452 +1,634 @@
-# Architecture Research
+# Architecture Research — v2.0 Quality Enforcement Integration
 
-**Domain:** CLI-based agentic project orchestrator
-**Researched:** 2026-03-09
-**Confidence:** HIGH
+**Domain:** CLI-based agentic project orchestrator — quality enforcement layer
+**Researched:** 2026-03-21
+**Confidence:** HIGH (based on direct inspection of all v1.0 source files)
 
-## Standard Architecture
+---
 
-### System Overview
+## Context: What v1.0 Built
+
+This document answers a specific question: **how do the v2.0 quality enforcement features integrate into the existing Aegis architecture?** It does not re-research the general architecture (see the original ARCHITECTURE.md and SUMMARY.md from 2026-03-09). It maps new components onto existing ones.
+
+**Existing system (all shipped, smoke-tested):**
 
 ```
-+-----------------------------------------------------------------------+
-|                         USER INTERFACE LAYER                          |
-|  /aegis:launch (skill entry point)                                    |
-|  User approval gates, progress display, error surfaces                |
-+-----------------------------------------------------------------------+
-        |                                                    ^
-        v (commands, approvals)                              | (status, gates)
-+-----------------------------------------------------------------------+
-|                      ORCHESTRATOR CORE                                |
-|  +------------------+  +-----------------+  +----------------------+  |
-|  | State Machine    |  | Gate Engine     |  | Model Router         |  |
-|  | (9-stage FSM)    |  | (approval,      |  | (Claude/DeepSeek/    |  |
-|  |                  |  |  quality, auto)  |  |  Codex/Mini)         |  |
-|  +--------+---------+  +--------+--------+  +-----------+----------+  |
-|           |                     |                        |            |
-|  +--------+---------+  +--------+--------+  +----------+----------+  |
-|  | Context Budget   |  | Rollback Mgr   |  | Agent Spawner       |  |
-|  | Manager (~15%)   |  | (git tags)     |  | (Task() dispatch)   |  |
-|  +------------------+  +----------------+  +---------------------+  |
-+-----------------------------------------------------------------------+
-        |                         |                        |
-        v (spawn)                 v (persist)              v (query/store)
-+-----------------------------------------------------------------------+
-|                      SPECIALIST AGENTS                                |
-|  +----------+  +----------+  +----------+  +----------+  +--------+  |
-|  | Research  |  | Planner  |  | Executor |  | Verifier |  | Deploy |  |
-|  | Agent(s)  |  | Agent    |  | Agent(s) |  | Agent    |  | Agent  |  |
-|  +----------+  +----------+  +----------+  +----------+  +--------+  |
-|  Each gets 100% fresh context. Cannot spawn sub-subagents.           |
-+-----------------------------------------------------------------------+
-        |                         |                        |
-        v (read/write)            v (read/write)           v (read/write)
-+-----------------------------------------------------------------------+
-|                      PERSISTENCE LAYER                                |
-|  +-------------------+  +------------------+  +-------------------+   |
-|  | File System       |  | Engram (SQLite)  |  | Git History       |   |
-|  | .planning/ dir    |  | MCP Plugin       |  | Tags + Commits    |   |
-|  | STATE.md           |  | Cross-project    |  | Rollback points   |   |
-|  | ROADMAP.md         |  | memory           |  |                   |   |
-|  +-------------------+  +------------------+  +-------------------+   |
-+-----------------------------------------------------------------------+
-        |                                          |
-        v (optional)                               v (optional)
-+-----------------------------------------------------------------------+
-|                      CONSULTATION LAYER                               |
-|  +------------------------+  +-----------------------------------+    |
-|  | Sparrow Bridge         |  | Codex Bridge                      |    |
-|  | (DeepSeek, free)       |  | (GPT-5.3, $30/mo budget, gated)  |    |
-|  | General consultation   |  | Critical gate review only         |    |
-|  +------------------------+  +-----------------------------------+    |
-+-----------------------------------------------------------------------+
+skills/aegis-launch.md              → entry point, dispatches to orchestrator
+workflows/pipeline/orchestrator.md  → 7-step execution loop (prompt document)
+lib/aegis-state.sh                  → state machine (JSON read/write, journaling)
+lib/aegis-gates.sh                  → gate evaluation, banners, approval flow
+lib/aegis-memory.sh                 → local JSON memory (Engram MCP fallback)
+lib/aegis-detect.sh                 → integration probes (Engram, Sparrow, Codex)
+lib/aegis-consult.sh                → Sparrow/Codex consultation at gates
+lib/aegis-validate.sh               → subagent output file validation
+lib/aegis-git.sh                    → phase tagging, rollback, migration checks
+workflows/stages/0{1-9}*.md         → 9 stage workflow files
+references/invocation-protocol.md  → structured subagent prompt template
+references/memory-taxonomy.md       → Engram key hierarchy and stage-to-type map
 ```
 
-### Component Responsibilities
+**State file:** `.aegis/state.current.json` (+ `state.history.jsonl` JSONL journal)
 
-| Component | Responsibility | Typical Implementation |
-|-----------|----------------|------------------------|
-| State Machine | Track pipeline position, enforce stage ordering, manage transitions | Finite state machine with 9 states, transition table, guards |
-| Gate Engine | Evaluate pass/fail conditions at stage boundaries, pause for user approval | Predicate functions per gate type (quality, approval, auto-pass) |
-| Model Router | Select correct LLM for each agent task based on profile + overrides | Lookup table (agent -> model) with budget-aware fallbacks |
-| Context Budget Manager | Keep orchestrator lean (~15% context), delegate heavy work to subagents | Subagent spawning with file path references instead of content |
-| Rollback Manager | Create recovery points, enable reverting to any previous stage | Git tags at stage completion, restore from tagged state |
-| Agent Spawner | Dispatch subagents with correct context, model, and skill injection | Claude Code Task() with subagent_type, model, skills fields |
-| Specialist Agents | Execute domain-specific work (research, plan, code, verify, deploy) | Fresh-context subagents following structured prompts |
-| File System Persistence | Store all pipeline state as readable files | Markdown files in .planning/ directory |
-| Engram Memory | Cross-project and cross-session knowledge persistence | SQLite via MCP plugin, hierarchical topic keys |
-| Sparrow/Codex Bridges | Multi-model consultation for second opinions | Shell script bridge to external APIs |
+---
 
-## Recommended Project Structure
+## What v2.0 Adds
+
+Four capabilities identified in PROJECT.md:
+
+| Capability | What It Enforces |
+|------------|-----------------|
+| Subagent behavioral gate | Subagents must verify (Read files) before editing them |
+| Stage-boundary context checkpoints | Structured summaries written at each gate passage to prevent context exhaustion |
+| Memory quality control | Project-scoped memory, decay/pruning, pollution prevention |
+| Deploy preflight guard | Read state, verify scope, get explicit approval before any deploy action |
+
+Plus v1.1 debt: namespace isolation, `complete_stage()` helper, global install.
+
+---
+
+## System Overview: v1.0 + v2.0 Layers
+
+```
++------------------------------------------------------------------------+
+|                         USER INTERFACE LAYER                           |
+|  /aegis:launch  /aegis:rollback  (future: /aegis:status)              |
++------------------------------------------------------------------------+
+           |                                              ^
+           v (commands)                                   | (banners, gates)
++------------------------------------------------------------------------+
+|                       ORCHESTRATOR CORE (prompt doc)                  |
+|                                                                        |
+|  Steps 1-6 in orchestrator.md                                         |
+|  +------------------+  +------------------+  +---------------------+  |
+|  | State Machine    |  | Gate Engine      |  | Model Router        |  |
+|  | aegis-state.sh   |  | aegis-gates.sh   |  | model-routing.md    |  |
+|  +------------------+  +------------------+  +---------------------+  |
+|  +------------------+  +------------------+  +---------------------+  |
+|  | Context Budget   |  | Rollback Mgr     |  | Agent Spawner       |  |
+|  | (lean orch rule) |  | aegis-git.sh     |  | Task() dispatch     |  |
+|  +------------------+  +------------------+  +---------------------+  |
+|                                                                        |
+|  NEW v2.0 COMPONENTS (integrate here):                                |
+|  +------------------+  +------------------+  +---------------------+  |
+|  | Stage Checkpoint |  | Deploy Preflight |  | Memory Quality Ctrl |  |
+|  | (context export) |  | Guard            |  | (scope + decay)     |  |
+|  +------------------+  +------------------+  +---------------------+  |
++------------------------------------------------------------------------+
+           |                   |                           |
+           v (spawn)           v (persist)                 v (query/store)
++------------------------------------------------------------------------+
+|                        SPECIALIST AGENTS                               |
+|  researcher | planner | executor | verifier | deployer               |
+|                                                                        |
+|  NEW v2.0 ENFORCEMENT (injected into invocation-protocol.md):         |
+|  +-----------------------------------------------------------+        |
+|  | Behavioral Gate Preamble: "Read all files first.          |        |
+|  | Fill pre-action checklist. Show plan. Await greenlight."  |        |
+|  +-----------------------------------------------------------+        |
++------------------------------------------------------------------------+
+           |                   |                           |
+           v (read/write)      v (read/write)              v (read/write)
++------------------------------------------------------------------------+
+|                       PERSISTENCE LAYER                                |
+|  .aegis/state.current.json    Engram (SQLite MCP)    Git tags         |
+|  .aegis/state.history.jsonl   .aegis/memory/         rollback points  |
+|                                                                        |
+|  NEW v2.0 FILES:                                                      |
+|  .aegis/checkpoints/{stage}-{phase}.md  ← context snapshots          |
+|  .aegis/memory/project.json (scoped)    ← existing, quality-gated    |
++------------------------------------------------------------------------+
+```
+
+---
+
+## Component Map: New vs Modified vs Unchanged
+
+### New Components (must be built from scratch)
+
+| Component | Location | Description |
+|-----------|----------|-------------|
+| `aegis-checkpoint.sh` | `lib/` | Write and read structured stage-boundary context summaries |
+| `aegis-preflight.sh` | `lib/` | Deploy preflight: read state, verify scope, display preflight gate |
+| `aegis-memory-gc.sh` | `lib/` | Memory garbage collection: decay old entries, enforce project scoping, detect pollution |
+| Behavioral gate preamble | `references/invocation-protocol.md` (new section) | Mandatory pre-action checklist block injected into every subagent invocation |
+
+### Modified Components (existing files that change)
+
+| Component | Location | Change Required |
+|-----------|----------|-----------------|
+| `orchestrator.md` | `workflows/pipeline/` | Add Step 4.75 (write checkpoint after gate pass), add deploy preflight hook at Step 5 deploy dispatch, pass behavioral gate preamble in Path A subagent prompts |
+| `aegis-memory.sh` | `lib/` | Add `memory_project_scope_check()`, `memory_decay()`, `memory_pollution_scan()` functions |
+| `aegis-state.sh` | `lib/` | Add `complete_stage()` helper (v1.1 debt) |
+| `09-deploy.md` | `workflows/stages/` | Add preflight section that must pass before any deploy action fires |
+| `references/invocation-protocol.md` | `references/` | Add "Behavioral Gate Requirements" section with pre-action checklist template |
+| `references/memory-taxonomy.md` | `references/` | Add decay policy, pollution rules, cross-project opt-in rules |
+| `templates/pipeline-state.json` | `templates/` | Add `checkpoints` array field to state schema |
+
+### Unchanged Components (confirmed: no changes needed)
+
+| Component | Reason Unchanged |
+|-----------|-----------------|
+| `aegis-gates.sh` | Gate types are correct. v2.0 adds enforcement of subagent behavior, not pipeline-level gate types. |
+| `aegis-detect.sh` | Integration detection is already correct. No new integrations in v2.0. |
+| `aegis-consult.sh` | Consultation behavior is already correct. No changes to consultation routing. |
+| `aegis-git.sh` | Git operations are already correct. Rollback and tagging unchanged. |
+| `aegis-validate.sh` | Output file validation unchanged. v2.0 adds behavioral validation, not file validation. |
+| Stage workflows 01-08 | The behavioral gate preamble is injected via `invocation-protocol.md`, not directly into stage files. No per-stage edits needed. |
+
+---
+
+## Integration Points: Where Each v2.0 Feature Connects
+
+### 1. Subagent Behavioral Gate
+
+**The problem:** Subagents follow the same rush reflex Claude does — they skip reading existing code and produce plausible-but-wrong edits. The invocation-protocol.md already defines structured prompts but does not mandate a verification pass before edits.
+
+**Integration point:** `references/invocation-protocol.md` (new section) + `orchestrator.md` Step 5 Path A.
+
+**How it works:**
+
+The invocation protocol gets a new mandatory section at the top of every generated prompt:
+
+```
+## Behavioral Gate (MANDATORY — do before any Edit or Write)
+
+1. Read every file listed in Context Files using the Read tool.
+2. Fill this checklist silently:
+   - Files read: {list}
+   - Memory vs code drift: {any differences from what was expected}
+   - Scope: {exactly what I will change and why}
+   - Risk: {low/med/high}
+3. Output the filled checklist to the orchestrator.
+4. Do NOT proceed to edits until the checklist is output.
+```
+
+This is injected as a block at the top of every Agent tool invocation, before the Objective section. The orchestrator already builds this prompt in Step 5 Path A — it adds the preamble block before the rest of the template.
+
+**What validates it:** The orchestrator already calls `validate_subagent_output()` on return. A new companion check — `validate_behavioral_gate()` — can scan the subagent's return message for the checklist marker. If absent, the orchestrator treats the output as unverified (warning, not hard fail — subagents that produce correct output without the checklist should not break the pipeline).
+
+**Confidence:** HIGH. The invocation protocol is the single injection point already used for all subagent context. Adding a preamble section is a non-breaking addition.
+
+---
+
+### 2. Stage-Boundary Context Checkpoints
+
+**The problem:** The orchestrator accumulates context across all stages. By stage 6-7, it is operating on degraded context. There is no structured mechanism to export what was decided at each stage boundary so that later stages — and resumed sessions — have compact, reliable context.
+
+**Integration point:** `orchestrator.md` between Step 5.5 (gate evaluation) and Step 5.6 (persist gate memory). New step: Step 5.55-A (write checkpoint).
+
+**How it works:**
+
+A new `aegis-checkpoint.sh` library:
+
+```bash
+# write_checkpoint(stage, phase, content)
+# Writes a structured markdown summary to .aegis/checkpoints/{stage}-phase-{N}.md
+write_checkpoint() { ... }
+
+# read_checkpoint(stage, phase)
+# Returns the checkpoint file content
+read_checkpoint() { ... }
+
+# list_checkpoints()
+# Lists all checkpoint files with timestamps
+list_checkpoints() { ... }
+
+# assemble_context_window(current_stage)
+# Returns the last N checkpoints as a compact context block
+# for injection into subagent invocations
+assemble_context_window() { ... }
+```
+
+**What a checkpoint contains:**
+
+```markdown
+## Checkpoint: {stage} — Phase {N} — {timestamp}
+
+**What was decided:** {1-3 bullet points}
+**Files created/modified:** {paths}
+**Active constraints:** {naming decisions, API contracts, scope limits}
+**Next stage should know:** {critical context for the next agent}
+```
+
+**Insertion in orchestrator flow:**
+
+Step 4.5 already retrieves memory context. The checkpoint assembler augments this: before dispatching a subagent, `assemble_context_window()` is called to prepend the last 3 checkpoints to the Context Files section of the subagent invocation. This is compact (each checkpoint is ~200 words), project-specific, and does not require Engram.
+
+Checkpoints are written at Step 5.6 (after gate passes, before memory save). They write to `.aegis/checkpoints/` regardless of Engram availability — pure filesystem, no dependency.
+
+**Confidence:** HIGH. The `.aegis/` directory is already the canonical state store. Checkpoint files are additive — they do not change existing state structure, only add files alongside `state.current.json`.
+
+---
+
+### 3. Memory Quality Control
+
+**The problem:** The existing `aegis-memory.sh` saves everything to `project.json` with no scoping enforcement, no decay, and no deduplication. Over multiple projects, cross-project memories can bleed into each other. Memory retrieval quality degrades as the store grows unbounded.
+
+**Integration point:** `aegis-memory.sh` (new functions) + `references/memory-taxonomy.md` (new decay rules).
+
+**How it works:**
+
+Three new functions added to `aegis-memory.sh`:
+
+```bash
+# memory_project_scope_check(scope, project_name)
+# Verifies that a memory entry is being written to the correct project scope.
+# Prevents "project A writes to project B's memory" bugs.
+# Returns: "ok" | "scope-mismatch"
+memory_project_scope_check() { ... }
+
+# memory_decay(scope, max_age_days, max_entries)
+# Removes entries older than max_age_days or beyond max_entries (LRU).
+# Called at pipeline start if last_gc timestamp > 24h ago.
+# Never called mid-pipeline (only at startup to avoid blocking gates).
+memory_decay() { ... }
+
+# memory_pollution_scan(scope)
+# Scans memory for entries that appear to belong to a different project.
+# Heuristic: checks 'key' field for project_name prefix.
+# Returns: count of suspect entries.
+# Used during startup to warn operator (never auto-deletes).
+memory_pollution_scan() { ... }
+```
+
+**Decay policy (added to memory-taxonomy.md):**
+
+- Gate memories: retain 30 days or last 50 entries per project, whichever is less
+- Pattern memories: retain 90 days (slower decay — these are cross-project learnings)
+- Bugfix memories: retain 60 days
+- Discovery memories: retain 14 days (most ephemeral)
+- Cross-project memories (global scope): retain 180 days, cap 200 entries total
+
+**Pollution prevention rule:**
+
+A new rule in memory-taxonomy.md: memory saves MUST include `project: "{name}"` in the key prefix. The `memory_save_gate()` function already uses `gate-{stage}-phase-{N}` as the key. It is amended to prefix: `{project_name}/gate-{stage}-phase-{N}`.
+
+**Cross-project opt-in rule:**
+
+Global scope writes (cross-project learnings) are opt-in only. `memory_save()` rejects `scope: "global"` unless the caller passes `cross_project: "true"` explicitly. Default is always `scope: "project"`.
+
+**Confidence:** HIGH. The memory library is self-contained. The functions above are additive — no changes to the calling contract in the orchestrator. The GC is triggered once at startup (Step 1 or Step 2) with a timestamp guard.
+
+---
+
+### 4. Deploy Preflight Guard
+
+**The problem:** The deploy stage is the highest-risk action. The existing `09-deploy.md` workflow does have a `quality,external` gate but no structured preflight that verifies: (a) state is in the correct position, (b) scope matches what was planned, (c) operator explicitly approves the specific deploy action before it fires.
+
+**Integration point:** `workflows/stages/09-deploy.md` (new preflight section) + new `aegis-preflight.sh` library.
+
+**How it works:**
+
+A new `aegis-preflight.sh` library:
+
+```bash
+# run_preflight(project, deploy_target, state_file)
+# Runs the deploy preflight checklist.
+# Returns: "pass" | "fail:{reason}"
+# On pass: prints a formatted PREFLIGHT APPROVED banner.
+# On fail: prints a formatted PREFLIGHT BLOCKED banner with the reason.
+run_preflight() { ... }
+
+# verify_deploy_scope(state_file, roadmap_file)
+# Checks that the deploy target matches what was planned in the roadmap.
+# Returns: "ok" | "scope-mismatch:{details}"
+verify_deploy_scope() { ... }
+
+# verify_state_position(state_file)
+# Verifies current_stage is "deploy" and all prior stages are "completed".
+# Returns: "ok" | "state-violation:{details}"
+verify_state_position() { ... }
+```
+
+**Preflight checklist (displayed before any deploy action):**
+
+```
+DEPLOY PREFLIGHT CHECK
+======================
+[ ] State position:    All 8 prior stages completed     → {ok | FAIL}
+[ ] Deploy scope:      Matches planned roadmap target   → {ok | FAIL}
+[ ] Rollback tagged:   Last phase git tag exists        → {ok | FAIL}
+[ ] No dirty tree:     Working directory is clean       → {ok | FAIL}
+
+If all checks pass:
+→ "Type 'deploy' to confirm, or describe what looks wrong"
+
+If any check fails:
+→ Pipeline blocked. Fix the listed issues and re-run /aegis:launch.
+```
+
+**Insertion in deploy stage:**
+
+`09-deploy.md` gets a new Step 0 section at the very top, before any deployment commands:
+
+```
+## Step 0 — Preflight Gate (MANDATORY)
+
+source lib/aegis-preflight.sh
+PREFLIGHT=$(run_preflight "$PROJECT_NAME" "$DEPLOY_TARGET" "$AEGIS_DIR/state.current.json")
+
+if [[ "$PREFLIGHT" != "pass" ]]; then
+  echo "$PREFLIGHT"
+  exit 1  # Hard stop. Never deploy on preflight failure.
+fi
+
+# Explicit operator confirmation before any deploy action
+show_checkpoint "DEPLOY PREFLIGHT" \
+  "All preflight checks passed for $PROJECT_NAME." \
+  "Type 'deploy' to confirm deployment, or describe concerns"
+
+# Wait for 'deploy' keyword explicitly — not just 'approved'
+```
+
+The distinction from the existing external gate is important: the external gate asks "did the deploy work?" (post-deploy verification). The preflight guard asks "should we deploy?" (pre-deploy scope verification). They serve different purposes and both should exist.
+
+**Confidence:** HIGH. The existing `09-deploy.md` already has the external gate structure. Adding Step 0 before Step 1 is a clean insertion that does not break anything.
+
+---
+
+### 5. v1.1 Debt: `complete_stage()` Helper
+
+**The problem:** Stage workflows currently signal completion by side effects (writing files, printing banners) without a standardized function call that marks the stage as completed in state. This means the orchestrator must infer completion from gate evaluation results rather than an explicit signal.
+
+**Integration point:** `aegis-state.sh` (new function).
+
+```bash
+# complete_stage(stage_name)
+# Sets stage status to "completed" and completed_at timestamp.
+# Atomic write via tmp + mv pattern.
+# Idempotent: no-op if already completed.
+complete_stage() {
+  local stage_name="${1:?complete_stage requires stage_name}"
+  # python3 to update state JSON
+  # sets stages[name].status = "completed"
+  # sets stages[name].completed_at = now
+}
+```
+
+**How it integrates:** Each stage workflow's final step calls `complete_stage()` before returning control to the orchestrator. The orchestrator's gate evaluation (`evaluate_gate()`) already checks `stage.status == "completed"` for quality gates. Making this explicit removes the current implicit reliance on inferring completion from gate evaluation success.
+
+---
+
+## Data Flow: v2.0 Additions
+
+### Subagent Dispatch (with Behavioral Gate)
+
+```
+Orchestrator (Step 5 Path A)
+    |
+    |-- assemble_context_window()       ← NEW: last 3 checkpoints
+    |-- build behavioral gate preamble  ← NEW: pre-action checklist block
+    |-- build invocation prompt         ← existing
+    |
+    v (Agent tool dispatch)
+Subagent
+    |-- reads Context Files              ← existing
+    |-- fills behavioral gate checklist  ← NEW: mandatory verification
+    |-- outputs checklist to orchestrator ← NEW: before any Edit/Write
+    |-- does work
+    |-- writes output files
+    |-- returns "## Completion" message
+    |
+    v (back to orchestrator)
+    |-- validate_subagent_output()       ← existing
+    |-- validate_behavioral_gate()       ← NEW: checks for checklist marker
+```
+
+### Gate Pass Flow (with Checkpoint)
+
+```
+Stage completes
+    |
+    v
+Step 5.5: evaluate_gate()               ← existing
+    |
+    | gate = "pass" or "auto-approved"
+    v
+Step 5.55-A: write_checkpoint()         ← NEW: write .aegis/checkpoints/{stage}.md
+    |
+    v
+Step 5.55: consult_sparrow() (optional) ← existing
+    |
+    v
+Step 5.6: memory_save_gate()            ← existing (with project-scoping enforcement)
+    |
+    v
+Step 6: advance_stage()                 ← existing
+```
+
+### Memory Save Flow (with Quality Control)
+
+```
+memory_save_gate() called
+    |
+    |-- memory_project_scope_check()  ← NEW: verify correct project scope
+    |-- enforce project prefix in key ← NEW: {project}/gate-{stage}-phase-{N}
+    |
+    v
+Write to .aegis/memory/project.json    ← existing path
+    |
+    v
+[at startup only]
+memory_decay()                         ← NEW: called at Step 2 if GC timestamp > 24h
+```
+
+### Deploy Flow (with Preflight)
+
+```
+orchestrator Step 5 dispatches to 09-deploy.md
+    |
+    v
+09-deploy.md Step 0: run_preflight()   ← NEW: verify state, scope, rollback tag
+    |
+    | preflight = "fail:{reason}"
+    v (hard stop — never deploy)
+PREFLIGHT BLOCKED banner, pipeline stops
+
+    | preflight = "pass"
+    v
+show_checkpoint "DEPLOY PREFLIGHT"
+    |
+    | operator types "deploy"
+    v
+existing deploy steps (Docker/PM2/static)
+    |
+    v
+existing external gate (post-deploy verification)  ← unchanged
+```
+
+---
+
+## File System Layout: New Files Added
 
 ```
 aegis/
-+-- skills/
-|   +-- aegis-launch.md           # Entry point skill (/aegis:launch)
-|   +-- aegis-resume.md           # Resume interrupted pipeline
-|   +-- aegis-status.md           # Pipeline status query
-+-- workflows/
-|   +-- stages/
-|   |   +-- 01-intake.md          # Stage 1: Project intake
-|   |   +-- 02-research.md        # Stage 2: Domain research
-|   |   +-- 03-roadmap.md         # Stage 3: Roadmap creation
-|   |   +-- 04-phase-plan.md      # Stage 4: Phase planning
-|   |   +-- 05-execute.md         # Stage 5: Code execution
-|   |   +-- 06-verify.md          # Stage 6: Verification
-|   |   +-- 07-test-gate.md       # Stage 7: Test gate
-|   |   +-- 08-advance.md         # Stage 8: Phase advancement
-|   |   +-- 09-deploy.md          # Stage 9: Deployment
-|   +-- gates/
-|   |   +-- approval-gate.md      # User approval logic
-|   |   +-- quality-gate.md       # Automated quality checks
-|   |   +-- auto-gate.md          # Auto-pass for YOLO mode
-|   +-- agents/
-|       +-- researcher.md         # Research agent definition
-|       +-- planner.md            # Planning agent definition
-|       +-- executor.md           # Execution agent definition
-|       +-- verifier.md           # Verification agent definition
-|       +-- deployer.md           # Deploy agent definition
-+-- templates/
-|   +-- project.md                # PROJECT.md template
-|   +-- requirements.md           # REQUIREMENTS.md template
-|   +-- pipeline-state.md         # Pipeline state template
-+-- references/
-|   +-- state-transitions.md      # Valid state transitions table
-|   +-- gate-definitions.md       # Gate predicates per stage
-|   +-- model-routing.md          # Model selection rules
-|   +-- memory-keys.md            # Engram key hierarchy
-|   +-- error-prevention.md       # Drift detection, consistency checks
-+-- tests/
-    +-- state-machine.test.md     # State transition validation
-    +-- gate-logic.test.md        # Gate predicate tests
-    +-- rollback.test.md          # Rollback scenario tests
+├── lib/
+│   ├── aegis-state.sh         ← MODIFIED: add complete_stage()
+│   ├── aegis-memory.sh        ← MODIFIED: add scoping, decay, pollution scan
+│   ├── aegis-checkpoint.sh    ← NEW: write/read/assemble context checkpoints
+│   └── aegis-preflight.sh     ← NEW: deploy preflight verification
+├── workflows/
+│   ├── pipeline/
+│   │   └── orchestrator.md    ← MODIFIED: Step 5.55-A checkpoint, behavioral gate
+│   └── stages/
+│       └── 09-deploy.md       ← MODIFIED: Step 0 preflight gate
+├── references/
+│   ├── invocation-protocol.md ← MODIFIED: behavioral gate preamble section
+│   └── memory-taxonomy.md     ← MODIFIED: decay policy, pollution rules
+└── .aegis/ (runtime, per-project)
+    ├── state.current.json      ← existing
+    ├── state.history.jsonl     ← existing
+    ├── memory/
+    │   └── project.json        ← existing (quality-gated by new functions)
+    └── checkpoints/            ← NEW directory
+        ├── intake-phase-0.md
+        ├── research-phase-0.md
+        └── {stage}-phase-{N}.md
 ```
 
-### Structure Rationale
+---
 
-- **skills/:** Entry points only -- thin wrappers that load state and dispatch to workflows. Users interact through these.
-- **workflows/stages/:** One file per pipeline stage. Each stage is self-contained with its own gate definition. The orchestrator reads the current stage file and executes it.
-- **workflows/gates/:** Reusable gate logic separated from stages. Gates are composable (a stage might use approval + quality gates together).
-- **workflows/agents/:** Subagent definitions with prompt templates, skill injection lists, and expected return formats. These are templates, not running processes.
-- **references/:** Static reference docs injected into orchestrator context. Keeps the orchestrator lean by externalizing lookup tables and rules.
+## Build Order and Dependencies
 
-## Architectural Patterns
+The v2.0 features have a clear dependency chain. Build in this order:
 
-### Pattern 1: Finite State Machine with Persistent State File
+### Phase 1: Foundation — `complete_stage()` + Memory Quality Control
 
-**What:** The pipeline is a strict FSM where the current state is persisted to a file (STATE.md or equivalent). On every invocation, the orchestrator reads STATE.md to determine where it is, validates the transition, and writes the new state back after completion.
+**Build first because:** Every other v2.0 feature touches either state or memory. The `complete_stage()` helper and memory project-scoping are the lowest-level changes — no other feature depends on them, but they unblock clean integration for everything above.
 
-**When to use:** Always. This is the core architectural pattern for Aegis. Pipeline orchestrators that keep state in memory lose context on crashes, context window resets, or conversation restarts.
+**What to build:**
+1. `complete_stage()` in `aegis-state.sh`
+2. `memory_project_scope_check()`, `memory_decay()`, `memory_pollution_scan()` in `aegis-memory.sh`
+3. Updated key prefix convention (`{project}/gate-...`) in taxonomy
+4. Startup GC trigger in `orchestrator.md` Step 2
 
-**Trade-offs:**
-- PRO: Survives context compaction, crashes, and conversation boundaries
-- PRO: Human-readable state (Markdown, not binary)
-- PRO: Git-trackable (state changes appear in diffs)
-- CON: File I/O on every transition (negligible cost for CLI tool)
-- CON: Concurrent access requires care (single-operator tool, so not a real issue)
+**Dependencies:** None. Pure additions to existing libs.
+**Risk:** LOW. All changes are additive. No existing function signatures change.
 
-**State Transition Table (Aegis 9-stage):**
-```
-INTAKE ---[scope confirmed]---> RESEARCH
-RESEARCH ---[research approved]---> ROADMAP
-ROADMAP ---[roadmap approved]---> PHASE_PLAN
-PHASE_PLAN ---[plan validated]---> EXECUTE
-EXECUTE ---[tasks complete]---> VERIFY
-VERIFY ---[check passes]---> TEST_GATE
-TEST_GATE ---[tests green]---> ADVANCE
-ADVANCE ---[more phases?]---> PHASE_PLAN  (loop)
-ADVANCE ---[all done]---> DEPLOY
-DEPLOY ---[smoke tests pass]---> COMPLETE
+---
 
-Any state ---[rollback requested]---> previous state (via git tag)
-Any state ---[error + retry exhausted]---> BLOCKED
-```
+### Phase 2: Stage Checkpoints
 
-### Pattern 2: Lean Orchestrator / Fat Subagent
+**Build second because:** Checkpoints write to `.aegis/checkpoints/` at every gate pass. They depend on `complete_stage()` being reliable (Phase 1) but do not depend on the behavioral gate or preflight. They also feed the behavioral gate (subagents get checkpoint context).
 
-**What:** The orchestrator uses minimal context (~15% of window) for state management, routing, and gate evaluation. All heavy cognitive work (research, planning, code writing, verification) is delegated to subagents that get 100% fresh context windows. Communication happens through files, not in-context passing.
+**What to build:**
+1. `aegis-checkpoint.sh` — full library (write, read, list, assemble)
+2. Step 5.55-A insertion in `orchestrator.md` — write checkpoint after gate pass
+3. Augment Step 4.5 in `orchestrator.md` — inject checkpoint context into subagent prompts
 
-**When to use:** Always for Claude Code orchestrators. Context is the most expensive resource. Keeping the orchestrator lean means it can manage more stages without hitting window limits.
+**Dependencies:** Phase 1 (`complete_stage()` must exist for clean gate-pass signal).
+**Risk:** LOW. Checkpoint files are additive. `assemble_context_window()` failure must be silent (empty context is acceptable — subagents already work without checkpoint context).
 
-**Trade-offs:**
-- PRO: Subagents get full context window for their specific task
-- PRO: Orchestrator can manage long pipelines without degradation
-- PRO: Each subagent starts fresh (no accumulated noise)
-- CON: File-based handoff has latency (subagent reads/writes files)
-- CON: Subagents cannot spawn sub-subagents (Claude Code limitation)
-- CON: Orchestrator loses nuance that subagents discovered (only gets file output)
+---
 
-**File-based handoff pattern:**
-```
-Orchestrator                    Subagent
-     |                              |
-     |-- write context files ------>|
-     |   (PROJECT.md, STATE.md,     |
-     |    REQUIREMENTS.md)          |
-     |                              |-- read context files
-     |                              |-- do work
-     |                              |-- write output files
-     |                              |   (PLAN.md, RESEARCH.md,
-     |                              |    SUMMARY.md)
-     |<-- return structured msg ----|
-     |   "## TASK COMPLETE"         |
-     |                              |
-     |-- read output files          |
-     |-- validate against gate      |
-     |-- transition state           |
-```
+### Phase 3: Subagent Behavioral Gate
 
-### Pattern 3: Multi-Model Routing by Task Complexity
+**Build third because:** The behavioral gate preamble is injected via `invocation-protocol.md` and the orchestrator's Step 5 Path A. It depends on checkpoints (Phase 2) being available to include in the preamble context, but not on preflight.
 
-**What:** Different LLM models are assigned to different agent types based on the cognitive demands of the task. High-reasoning tasks (planning, architecture) get the strongest model. Execution tasks (following explicit plans) get a mid-tier model. Read-only tasks (mapping, verification) get the cheapest model. External models (DeepSeek via Sparrow, Codex) supplement for second opinions.
+**What to build:**
+1. New "Behavioral Gate Requirements" section in `references/invocation-protocol.md`
+2. `validate_behavioral_gate()` in `aegis-validate.sh`
+3. Orchestrator Step 5 Path A: prepend behavioral gate preamble to every Agent dispatch
+4. Orchestrator Step 5 Path A: call `validate_behavioral_gate()` on subagent return (warn-only)
 
-**When to use:** When operating under cost constraints or API quotas. Aegis operates within Claude's context quota plus a $30/mo Codex budget, making routing essential.
+**Dependencies:** Phase 2 (checkpoint assembler provides the context block injected into the preamble).
+**Risk:** MEDIUM. Subagents that do not output the checklist should generate a warning, not a pipeline failure. The validation must be warn-only to avoid breaking the pipeline on subagents that happen to produce correct output without explicit checklist output.
 
-**Trade-offs:**
-- PRO: 20-40% cost reduction vs using top-tier model for everything
-- PRO: Faster execution (smaller models respond faster)
-- PRO: Budget predictability (Codex gated to user-explicit invocations)
-- CON: Wrong routing wastes tokens (cheap model fails, retries with expensive model)
-- CON: Requires calibration (which tasks actually need Opus vs Sonnet)
+---
 
-**Aegis routing table:**
-```
-Task Type          | Primary Model  | Fallback    | External
--------------------|----------------|-------------|------------------
-Orchestration      | Claude (main)  | N/A         | N/A
-Planning/Roadmap   | Opus           | Sonnet      | Codex (at gates)
-Research           | Sonnet/Opus    | Haiku       | DeepSeek (free)
-Execution          | Sonnet         | Sonnet      | N/A
-Verification       | Sonnet         | Haiku       | N/A
-Codebase mapping   | Haiku          | Haiku       | N/A
-Cheap autonomous   | N/A            | N/A         | GPT-4 Mini
-```
+### Phase 4: Deploy Preflight Guard
 
-### Pattern 4: Gate Composition
+**Build last because:** Preflight depends on state being reliable (`complete_stage()` from Phase 1), reads checkpoints for context (Phase 2), but does not depend on the behavioral gate. Build it last because it is the highest-risk integration point and benefits from the other phases being stable first.
 
-**What:** Gates are composable predicates that can be stacked. A stage transition might require: (1) automated quality checks pass AND (2) user approval AND (3) Engram memory check for known gotchas. Gates can also be conditionally bypassed (YOLO mode skips approval gates but not quality gates).
+**What to build:**
+1. `aegis-preflight.sh` — full library (`run_preflight`, `verify_deploy_scope`, `verify_state_position`)
+2. `09-deploy.md` Step 0 — preflight gate before any deploy action
+3. Preflight display format (PREFLIGHT CHECK banner, consistent with existing `show_checkpoint` style)
 
-**When to use:** At every stage boundary. This is how the pipeline enforces quality without being inflexible.
+**Dependencies:** Phase 1 (`complete_stage()` makes `verify_state_position()` reliable).
+**Risk:** HIGH for the preflight itself (it guards the highest-risk operation), but LOW for the integration (it is a hard stop before deployment — a false positive blocks deploy, a false negative is the existing behavior). Err toward false positives: if state is unclear, block and surface the issue.
 
-**Trade-offs:**
-- PRO: Flexible quality enforcement (strict for critical stages, loose for routine ones)
-- PRO: YOLO mode for experienced users who trust the pipeline
-- PRO: Composable (add/remove checks without rewriting stages)
-- CON: Too many gates slow down iteration speed
-- CON: Gate bypass (YOLO) can let problems through
+---
 
-**Gate types for Aegis:**
-```
-approval     - User confirms (skippable in YOLO mode)
-compilation  - Code compiles/lints (never skippable)
-regression   - Existing tests pass (never skippable)
-drift        - Plan deviation < 15% (warning, not blocking)
-memory       - Engram search for relevant bugs/gotchas (advisory)
-dual-review  - Sparrow/Codex second opinion (at critical gates only)
-```
-
-## Data Flow
-
-### Pipeline Execution Flow
+## Dependency Graph Summary
 
 ```
-User invokes /aegis:launch
+Phase 1: complete_stage() + memory quality control
     |
     v
-Orchestrator reads STATE.md
+Phase 2: stage-boundary checkpoints
     |
     v
-[Current Stage = ?]
+Phase 3: subagent behavioral gate (depends on checkpoints for context)
     |
-    +---> INTAKE: Gather requirements, write PROJECT.md
-    |         |
-    |         v gate: user confirms scope
-    |
-    +---> RESEARCH: Spawn 4 parallel researchers
-    |         |       Write STACK.md, FEATURES.md, ARCHITECTURE.md, PITFALLS.md
-    |         |       Synthesizer creates SUMMARY.md
-    |         v gate: research summary reviewed
-    |
-    +---> ROADMAP: Spawn roadmapper
-    |         |     Write ROADMAP.md, STATE.md phase list
-    |         v gate: user approves roadmap
-    |
-    +---> PHASE_PLAN: Spawn planner for current phase
-    |         |        Write {phase}-PLAN.md
-    |         |        Optional: plan-checker validates
-    |         v gate: plan validated
-    |
-    +---> EXECUTE: Spawn executor(s) for plan segments
-    |         |     Write code, run tests, create SUMMARY.md
-    |         v gate: tasks complete + code compiles
-    |
-    +---> VERIFY: Spawn verifier
-    |         |    Goal-backward check against phase requirements
-    |         v gate: verification passes
-    |
-    +---> TEST_GATE: Run test suite
-    |         |       Coverage threshold check
-    |         v gate: tests green, coverage met
-    |
-    +---> ADVANCE: Check if more phases remain
-    |         |
-    |         +---> Yes: Loop to PHASE_PLAN (next phase)
-    |         +---> No: Proceed to DEPLOY
-    |
-    +---> DEPLOY: Spawn deploy agent
-              |    Docker/PM2/static site deployment
-              |    Smoke test runner
-              v gate: smoke tests pass
-              |
-              COMPLETE
+Phase 4: deploy preflight guard (depends on complete_stage, independent of gate)
 ```
 
-### Memory Flow (Engram Integration)
+Note: Phase 4 can be built in parallel with Phase 3 since they share only the Phase 1 dependency. If building with parallel agents, assign Phase 3 and Phase 4 to separate agents after Phase 2 completes.
 
-```
-INTAKE:
-  Engram.search("global:gotchas", project_domain)  --> surface known issues
-  Engram.search("global:conventions")              --> apply naming patterns
+---
 
-EACH GATE PASS:
-  Engram.store("project:{name}:decisions", decision_data)
-  Engram.store("project:{name}:bugs", any_bugs_found)
+## Anti-Patterns to Avoid
 
-PHASE COMPLETE:
-  Engram.store("project:{name}:patterns", what_worked)
+### Anti-Pattern 1: Hard-Fail on Behavioral Gate Absence
 
-DEPLOY:
-  Engram.store("global:stack-knowledge", deployment_learnings)
-```
+**What goes wrong:** Making the behavioral gate checklist a hard pipeline failure causes every subagent invocation to break until the preamble is perfectly calibrated.
+**Do this instead:** Warn when the checklist is absent. Log it. Never block the pipeline on a missing checklist marker — only on missing output files (which `validate_subagent_output()` already handles).
 
-### Key Data Flows
+### Anti-Pattern 2: Context Checkpoint Bloat
 
-1. **Context Propagation:** Orchestrator writes context files (PROJECT.md, STATE.md, REQUIREMENTS.md) before spawning any subagent. Subagents read these files as their primary context. This replaces in-memory state passing and survives context resets.
+**What goes wrong:** Writing full stage output into checkpoints instead of compact summaries causes checkpoint context injection to consume more context than it saves.
+**Do this instead:** Checkpoints are capped at ~300 words. Three checkpoints injected = ~900 words. The assembler MUST truncate aggressively. "What was decided" in 3 bullets, not 3 paragraphs.
 
-2. **Gate Results Cascade:** Each gate evaluation produces a pass/fail result with structured data. On fail, the result feeds back into the stage for retry or escalation. On pass, the result updates STATE.md and may trigger Engram persistence.
+### Anti-Pattern 3: Memory Decay Mid-Pipeline
 
-3. **Rollback Chain:** At each stage completion, a git tag is created (`aegis/{project}/{stage}-{timestamp}`). Rollback reads STATE.md for the target state, does `git checkout` to the tagged point, and updates STATE.md to reflect the rollback.
+**What goes wrong:** Running memory GC during an active pipeline run deletes memories that might be needed later in the same session.
+**Do this instead:** GC runs ONLY at pipeline startup (Step 2), guarded by a `last_gc` timestamp in state. Never run GC during stage execution.
 
-4. **Cross-Project Learning:** Engram stores generalizable patterns under `global:*` keys. At intake, these are queried to seed new projects with accumulated knowledge. This creates a feedback loop where each project makes subsequent projects better.
+### Anti-Pattern 4: Preflight as a Second Gate
 
-## Scaling Considerations
+**What goes wrong:** Treating the preflight as just another approval gate means it gets bypassed in YOLO mode.
+**Do this instead:** The preflight is classified as `external` gate type (never skippable). The keyword "deploy" (not "approved") is required. This is the only place in the pipeline where a keyword other than "approved" is accepted.
 
-| Scale | Architecture Adjustments |
-|-------|--------------------------|
-| 1 project | Monolithic orchestrator, all state in .planning/, single user. This is the primary use case. |
-| 3-5 concurrent projects | Each project gets isolated .planning/ directory. Engram cross-project queries become valuable. No architectural changes needed. |
-| Open-source adoption | Graceful degradation: Engram optional (falls back to file-only state), Sparrow optional (skip dual-review gates), Codex optional (skip external review). Core FSM + file state works standalone. |
+### Anti-Pattern 5: Checkpoint Context Replacing Stage Workflow Context
 
-### Scaling Priorities
+**What goes wrong:** Subagents skip reading the actual project files because checkpoints seem to have enough context.
+**Do this instead:** Checkpoints are ADDITIVE context, not replacement context. The invocation protocol still lists all relevant project files in `## Context Files`. Checkpoints go in a separate `## Prior Stage Context` section before `## Context Files`.
 
-1. **First bottleneck: Context window exhaustion.** Long pipelines with many phases exhaust the orchestrator's context. Prevention: lean orchestrator pattern, file-based handoff, `/clear` between major stages.
+---
 
-2. **Second bottleneck: Engram query latency.** As cross-project memory grows, search gets slower. Prevention: hierarchical keys with namespace scoping, prune old entries, index by project + date.
+## Integration Points Summary
 
-## Anti-Patterns
+| Integration Point | File | Change Type | Risk |
+|------------------|------|-------------|------|
+| Behavioral gate preamble | `references/invocation-protocol.md` | New section | LOW |
+| Behavioral gate validation | `lib/aegis-validate.sh` | New function (warn-only) | LOW |
+| Checkpoint write (post-gate) | `workflows/pipeline/orchestrator.md` | New step 5.55-A | LOW |
+| Checkpoint inject (pre-dispatch) | `workflows/pipeline/orchestrator.md` | Augment step 4.5 | LOW |
+| Checkpoint library | `lib/aegis-checkpoint.sh` | New file | LOW |
+| Memory project scoping | `lib/aegis-memory.sh` | New functions + key prefix | LOW |
+| Memory GC trigger | `workflows/pipeline/orchestrator.md` | Step 2 addition | LOW |
+| Deploy preflight library | `lib/aegis-preflight.sh` | New file | MEDIUM |
+| Deploy Stage Step 0 | `workflows/stages/09-deploy.md` | New step at top | MEDIUM |
+| complete_stage() helper | `lib/aegis-state.sh` | New function | LOW |
+| Memory taxonomy rules | `references/memory-taxonomy.md` | Additive sections | LOW |
+| State schema checkpoints field | `templates/pipeline-state.json` | New field | LOW |
 
-### Anti-Pattern 1: Fat Orchestrator
-
-**What people do:** Keep all context in the orchestrator's conversation -- research results, plan details, code snippets, test output.
-**Why it's wrong:** Context window fills up by stage 4-5. Quality degrades. Compaction loses critical details. The orchestrator becomes the bottleneck.
-**Do this instead:** Orchestrator holds only state position + file references. Everything else lives in .planning/ files that subagents read directly.
-
-### Anti-Pattern 2: In-Memory State Only
-
-**What people do:** Track pipeline position in conversation context without writing to disk.
-**Why it's wrong:** Context compaction, conversation restart, or crash loses pipeline position. User has to manually figure out where they were.
-**Do this instead:** Write STATE.md on every transition. The very first thing the orchestrator does on launch is read STATE.md to determine current position.
-
-### Anti-Pattern 3: Monolithic Stages
-
-**What people do:** One massive prompt that handles an entire stage (research + plan + execute + verify all in one).
-**Why it's wrong:** No intermediate checkpoints. Failure at step 3 loses work from steps 1-2. Cannot route different parts to different models.
-**Do this instead:** Each stage is a separate workflow file. Each spawns focused subagents. Work is committed incrementally.
-
-### Anti-Pattern 4: Unguarded YOLO Mode
-
-**What people do:** YOLO mode bypasses ALL gates including compilation and test checks.
-**Why it's wrong:** Broken code accumulates across phases. Technical debt compounds. By phase 5, the codebase is unmaintainable.
-**Do this instead:** YOLO mode only bypasses approval/advisory gates. Quality gates (compilation, tests, regression) are always enforced. The distinction is "skip human confirmation" not "skip quality assurance."
-
-### Anti-Pattern 5: Symmetric Model Routing
-
-**What people do:** Use the same model (usually the best available) for every task.
-**Why it's wrong:** Burns through quota/budget on tasks that don't need top-tier reasoning. Research and verification are often formulaic. Codebase mapping is pure extraction.
-**Do this instead:** Route by cognitive demand. Opus for architecture decisions. Sonnet for following explicit plans. Haiku for read-only tasks. External models for cheap autonomous work.
-
-## Integration Points
-
-### External Services
-
-| Service | Integration Pattern | Notes |
-|---------|---------------------|-------|
-| Engram (MCP) | MCP tool calls from within Claude Code context | Optional -- graceful fallback to no-memory mode when unavailable |
-| Sparrow (DeepSeek) | Shell exec: `/home/ai/scripts/sparrow "message"` | Free tier, used for general consultation at advisory gates |
-| Codex (GPT-5.3) | Shell exec: `/home/ai/scripts/sparrow --codex "message"` | Paid, $30/mo budget, only when user says "codex" or at critical gates |
-| Git | Standard git CLI from within Claude Code | Tags for rollback, commits for persistence, diffs for drift detection |
-
-### Internal Boundaries
-
-| Boundary | Communication | Notes |
-|----------|---------------|-------|
-| Orchestrator <-> Subagents | File I/O + structured return messages | Subagents read .planning/ files, write output files, return "## STATUS" messages |
-| Orchestrator <-> Gate Engine | Function call within same context | Gates are predicate functions, not separate processes |
-| Orchestrator <-> State Machine | File I/O (STATE.md) | Every read/write is to STATE.md -- this IS the state machine's storage |
-| Orchestrator <-> Engram | MCP tool calls | Async, may timeout -- always have fallback path |
-| Orchestrator <-> GSD Framework | Skill/workflow invocation | Aegis wraps GSD, does not replace it. Stages map to GSD workflows. |
-
-## Build Order Implications
-
-The component dependency graph determines what must be built first:
-
-```
-Layer 0 (no dependencies):
-  - State Machine + STATE.md format
-  - File system conventions (.planning/ structure)
-
-Layer 1 (depends on Layer 0):
-  - Gate Engine (needs state machine to know current state)
-  - Agent Spawner (needs file conventions for context passing)
-
-Layer 2 (depends on Layer 1):
-  - Stage workflows (need gate engine + agent spawner)
-  - Model Router (needs agent spawner to route to)
-
-Layer 3 (depends on Layer 2):
-  - Engram integration (enhances stages, not required for them)
-  - Sparrow/Codex integration (enhances gates, not required for them)
-
-Layer 4 (depends on Layer 3):
-  - Cross-project memory features
-  - Dashboard/monitoring
-```
-
-**Recommended build phases based on dependency layers:**
-
-1. **Phase 1: Core FSM + Entry Point** -- State machine, STATE.md format, `/aegis:launch` skill, basic stage transitions. This is the skeleton everything else hangs on.
-
-2. **Phase 2: Gate Engine + Stage Workflows** -- Gate predicates, stage workflow files (starting with Intake and Roadmap since those are the first stages a user hits).
-
-3. **Phase 3: Agent Spawner + Model Routing** -- Subagent dispatch, model profile integration (leverage existing GSD model-profiles.md).
-
-4. **Phase 4: Engram + Consultation** -- Memory layer integration, Sparrow/Codex at gate boundaries. These are enhancers, not core requirements.
-
-5. **Phase 5: Deploy Stage + Rollback** -- Docker/PM2 deployment, git tag rollback, smoke tests. This is the last stage in the pipeline and depends on everything before it.
+---
 
 ## Sources
 
-- [Agentic Design Patterns: The 2026 Guide](https://www.sitepoint.com/the-definitive-guide-to-agentic-design-patterns-in-2026/) -- orchestrator-worker, state machine patterns
-- [AI Agent Orchestration Patterns - Microsoft Azure](https://learn.microsoft.com/en-us/azure/architecture/ai-ml/guide/ai-agent-design-patterns) -- sequential, concurrent, hierarchical patterns
-- [LangGraph Review: Agentic State Machine 2025](https://sider.ai/blog/ai-tools/langgraph-review-is-the-agentic-state-machine-worth-your-stack-in-2025) -- state graph, interrupt/resume, checkpointing
-- [Checkpoint/Restore Systems for AI Agents](https://eunomia.dev/blog/2025/05/11/checkpointrestore-systems-evolution-techniques-and-applications-in-ai-agents/) -- checkpoint patterns, recovery strategies
-- [Claude Code Subagents Documentation](https://code.claude.com/docs/en/sub-agents) -- spawning constraints, context management
-- [Context Management with Subagents](https://www.richsnapp.com/article/2025/10-05-context-management-with-subagents-in-claude-code) -- file-based handoff, skill injection
-- [Multi-Model Routing Strategies - AWS](https://aws.amazon.com/blogs/machine-learning/multi-llm-routing-strategies-for-generative-ai-applications-on-aws/) -- cost optimization through routing
-- [Memory in the Age of AI Agents](https://arxiv.org/abs/2512.13564) -- episodic, semantic, procedural memory taxonomy
-- [Beyond Short-term Memory: 3 Types of Long-term Memory](https://machinelearningmastery.com/beyond-short-term-memory-the-3-types-of-long-term-memory-ai-agents-need/) -- memory architecture for agents
-- GSD Framework source: `/home/ai/.claude/get-shit-done/` -- existing workflow patterns, model profiles, checkpoint definitions
+- Direct inspection: `/home/ai/aegis/lib/aegis-state.sh` — complete_stage() gap confirmed
+- Direct inspection: `/home/ai/aegis/lib/aegis-memory.sh` — no project scoping or decay
+- Direct inspection: `/home/ai/aegis/workflows/pipeline/orchestrator.md` — no checkpoint step
+- Direct inspection: `/home/ai/aegis/workflows/stages/09-deploy.md` — no preflight step
+- Direct inspection: `/home/ai/aegis/references/invocation-protocol.md` — no behavioral gate preamble
+- Direct inspection: `/home/ai/aegis/.planning/PROJECT.md` — v2.0 feature list
+- Milestone context: behavioral gate pattern from Claude Code hooks (PreToolUse/PostToolUse/Stop hook)
+- Prior research: SUMMARY.md (2026-03-09) — context exhaustion and memory pollution identified as critical pitfalls in v1.0
 
 ---
-*Architecture research for: CLI-based agentic project orchestrator*
-*Researched: 2026-03-09*
+
+*Architecture research for: Aegis v2.0 Quality Enforcement Integration*
+*Researched: 2026-03-21*
+*Confidence: HIGH — based on direct source inspection, not web research*
