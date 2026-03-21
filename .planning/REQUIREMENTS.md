@@ -85,7 +85,7 @@
 
 - [x] **ENFC-01**: Behavioral gate blocks all mutating actions (Edit, Write, mutating Bash, git commit/tag/push, deploy) for subagents at execute/verify/deploy stages when BEHAVIORAL_GATE_CHECK is missing
 - [x] **ENFC-02**: Behavioral gate remains warn-only for non-mutating stages (research, phase-plan) — read-only operations are not blocked
-- [ ] **ENFC-03**: Any gate bypass generates a mandatory audit log entry that is surfaced in the next session summary and advance-stage report
+- [x] **ENFC-03**: Any gate bypass generates a mandatory audit log entry that is surfaced in the next session summary and advance-stage report
 
 ### Consultation (Risk-Scored)
 
@@ -217,7 +217,7 @@
 | EVID-03 | Phase 12 | Complete |
 | ENFC-01 | Phase 13 | Complete |
 | ENFC-02 | Phase 13 | Complete |
-| ENFC-03 | Phase 13 | Pending |
+| ENFC-03 | Phase 13 | Complete |
 | CONS-01 | Phase 14 | Pending |
 | CONS-02 | Phase 14 | Pending |
 | CONS-03 | Phase 14 | Pending |

@@ -40,7 +40,7 @@
 
 - [x] **Phase 11: Policy-as-Code** - Gate policies defined in versioned config with auditable change tracking (completed 2026-03-21)
 - [x] **Phase 12: Evidence Artifacts** - Every stage produces machine-checkable evidence; gates evaluate artifacts, not prose (completed 2026-03-21)
-- [ ] **Phase 13: Enforcement Upgrade** - Behavioral gate upgraded from warn-only to blocking for mutating actions, with audit trail
+- [x] **Phase 13: Enforcement Upgrade** - Behavioral gate upgraded from warn-only to blocking for mutating actions, with audit trail (completed 2026-03-21)
 - [ ] **Phase 14: Risk-Scored Consultation** - Automatic risk scoring triggers mandatory consultation with structured evidence output
 - [ ] **Phase 15: Phase Regression** - Advance gate verifies new phases don't break prior success criteria; regression blocks advancement
 - [ ] **Phase 16: Patterns and Rollback** - Cross-project pattern library and deterministic rollback drill
@@ -147,7 +147,7 @@ Phases 11 through 16 execute in order. Phase 16 (Patterns/Rollback) is independe
 | 10. Deploy Preflight Guard | v2.0 | 2/2 | Complete | 2026-03-21 |
 | 11. Policy-as-Code | v3.0 | 2/2 | Complete | 2026-03-21 |
 | 12. Evidence Artifacts | 2/2 | Complete    | 2026-03-21 | - |
-| 13. Enforcement Upgrade | 1/2 | In Progress|  | - |
+| 13. Enforcement Upgrade | 2/2 | Complete   | 2026-03-21 | - |
 | 14. Risk-Scored Consultation | v3.0 | 0/? | Not started | - |
 | 15. Phase Regression | v3.0 | 0/? | Not started | - |
 | 16. Patterns and Rollback | v3.0 | 0/? | Not started | - |
