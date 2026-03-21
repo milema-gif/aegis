@@ -4,8 +4,8 @@ milestone: v3.0
 milestone_name: Evidence-Driven Pipeline
 status: executing
 stopped_at: Completed 13-02-PLAN.md (Phase 13 complete)
-last_updated: "2026-03-21T16:02:30Z"
-last_activity: 2026-03-21 -- Phase 13 complete (enforcement upgrade)
+last_updated: "2026-03-21T16:07:12.439Z"
+last_activity: "2026-03-21 -- Phase 13 complete (enforcement upgrade: stage-aware + bypass audit)"
 progress:
   total_phases: 6
   completed_phases: 3
