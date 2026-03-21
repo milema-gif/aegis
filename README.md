@@ -11,13 +11,13 @@
 <p align="center">
   <a href="#installation"><img src="https://img.shields.io/badge/bash-4%2B-green?logo=gnubash&logoColor=white" alt="Bash 4+"/></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT License"/></a>
-  <a href="https://github.com/obra/get-shit-done"><img src="https://img.shields.io/badge/powered%20by-GSD-orange" alt="Powered by GSD"/></a>
+  <a href="https://github.com/gsd-build/get-shit-done"><img src="https://img.shields.io/badge/powered%20by-GSD-orange" alt="Powered by GSD"/></a>
   <a href="https://docs.anthropic.com/en/docs/claude-code"><img src="https://img.shields.io/badge/runtime-Claude%20Code-blueviolet?logo=anthropic" alt="Claude Code"/></a>
 </p>
 
 ---
 
-A meta-orchestrator that guides software projects from ideation through deployment, wrapping [GSD](https://github.com/obra/get-shit-done), [Engram](https://github.com/cyanheads/engram-mcp-server), and Sparrow into a single pipeline with hard gates between stages.
+A meta-orchestrator that guides software projects from ideation through deployment, wrapping [GSD](https://github.com/gsd-build/get-shit-done), [Engram](https://github.com/Gentleman-Programming/engram), and Sparrow into a single pipeline with hard gates between stages.
 
 ## The Pipeline
 
@@ -56,13 +56,13 @@ Each stage has **hard gates** — you can't skip ahead without satisfying the pr
 ## Prerequisites
 
 - [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code) installed and configured
-- [GSD framework](https://github.com/obra/get-shit-done) installed as Claude Code skills
+- [GSD framework](https://github.com/gsd-build/get-shit-done) installed as Claude Code skills
 - Bash 4+ (ships with most Linux/macOS systems)
 - Python 3 (for JSON manipulation in gate scripts)
 
 ### Optional Integrations
 
-- **[Engram](https://github.com/cyanheads/engram-mcp-server)** — Persistent cross-project memory (MCP plugin). Falls back to local JSON if unavailable.
+- **[Engram](https://github.com/Gentleman-Programming/engram)** — Persistent cross-project memory (MCP plugin). Falls back to local JSON if unavailable.
 - **Sparrow** — Cross-model consultation bridge. Pipeline continues without it (skips external review).
 
 ## Installation
@@ -163,7 +163,7 @@ See `templates/aegis-policy.default.json` for the full default configuration.
 
 ## Acknowledgements
 
-Aegis is built on top of [Get Shit Done (GSD)](https://github.com/obra/get-shit-done) by Jesse Vincent — the planning, execution, and verification framework that makes agentic development actually work. GSD provides the foundation that Aegis orchestrates: phase planning, atomic execution, goal-backward verification, and the discipline to ship rather than spin.
+Aegis is built on top of [Get Shit Done (GSD)](https://github.com/gsd-build/get-shit-done) by [TACHES](https://github.com/gsd-build) — the meta-prompting, context engineering, and spec-driven development system that makes agentic development actually work. GSD provides the foundation that Aegis orchestrates: phase planning, atomic execution, goal-backward verification, and the discipline to ship rather than spin.
 
 ## License
 
