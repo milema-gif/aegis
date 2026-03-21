@@ -2,6 +2,20 @@
 
 Defines the structured prompt template that the orchestrator MUST use for every Agent tool dispatch. Consistent invocation format ensures subagents receive complete context and produce predictable outputs.
 
+## Behavioral Gate (MANDATORY -- complete before any Edit or Write)
+
+Every subagent MUST complete this checklist before making any code changes. Read every file listed in Context Files first, then output the completed checklist.
+
+```
+BEHAVIORAL_GATE_CHECK
+- files_read: [list every file path you read]
+- drift_check: [differences found between expected and actual state, or "none"]
+- scope: [exactly what you will change and why]
+- risk: [low/med/high -- med+ means flag to orchestrator]
+```
+
+This checklist is mandatory but non-blocking. Missing it generates a warning, not a pipeline failure. The orchestrator uses `validate_behavioral_gate()` to detect compliance -- it always returns 0 but writes a warning to stderr when the marker is absent.
+
 ## Structured Prompt Template
 
 Every subagent invocation MUST follow this template:

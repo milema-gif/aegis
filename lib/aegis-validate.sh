@@ -77,3 +77,20 @@ validate_sparrow_result() {
 
   return 0
 }
+
+# --- validate_behavioral_gate(return_text) ---
+# Checks whether a subagent output includes the BEHAVIORAL_GATE_CHECK marker.
+# ALWAYS returns 0 (warn-only, never blocks the pipeline).
+# Writes a warning to stderr when the marker is absent.
+#
+# Usage:
+#   validate_behavioral_gate "$subagent_output"
+#
+validate_behavioral_gate() {
+  local return_text="${1:-}"
+  if echo "$return_text" | grep -q "BEHAVIORAL_GATE_CHECK"; then
+    return 0
+  fi
+  echo "BEHAVIORAL GATE WARNING: subagent did not output BEHAVIORAL_GATE_CHECK checklist" >&2
+  return 0
+}
