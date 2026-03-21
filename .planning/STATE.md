@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Evidence-Driven Pipeline
 status: executing
-stopped_at: Completed 14-01-PLAN.md
-last_updated: "2026-03-21T17:29:10Z"
-last_activity: "2026-03-21 -- Phase 14 Plan 01 complete (risk scoring + budget tracking)"
+stopped_at: Completed 14-02-PLAN.md
+last_updated: "2026-03-21T17:39:18Z"
+last_activity: "2026-03-21 -- Phase 14 Plan 02 complete (risk-scored consultation wiring)"
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 8
-  completed_plans: 7
-  percent: 87
+  completed_plans: 8
+  percent: 93
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 ## Current Position
 
 Phase: 14 of 16 (Risk-Scored Consultation)
-Plan: 1 of 2 in current phase
-Status: In Progress
-Last activity: 2026-03-21 -- Phase 14 Plan 01 complete (risk scoring + budget tracking)
+Plan: 2 of 2 in current phase
+Status: Phase Complete
+Last activity: 2026-03-21 -- Phase 14 Plan 02 complete (risk-scored consultation wiring)
 
-Progress: [████████░░] 87% (v3.0)
+Progress: [████████░░] 93% (v3.0)
 
 ## Performance Metrics
 
@@ -52,6 +52,7 @@ Progress: [████████░░] 87% (v3.0)
 | Phase 13 P01 | 3min | 2 tasks | 5 files |
 | Phase 13 P02 | 4min | 2 tasks | 4 files |
 | Phase 14 P01 | 5min | 2 tasks | 6 files |
+| Phase 14 P02 | 7min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -84,6 +85,10 @@ Recent decisions affecting current work:
 - [14-01]: Risk classification uses max-aggregation (highest factor wins)
 - [14-01]: Budget tracker at .aegis/consultation-budget.json with atomic writes
 - [14-01]: Hardcoded defaults match policy values for graceful degradation
+- [14-02]: Consultation evidence stored as consultation-{stage}-phase-{N}.json
+- [14-02]: Risk escalation triggers only for high risk (med does not escalate)
+- [14-02]: Codex requires triple gate: critical+high+opted_in
+- [14-02]: Budget exhaustion skips consultation silently (advisory, never blocks)
 
 ### Pending Todos
 
@@ -95,7 +100,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-21T17:29:10Z
-Stopped at: Completed 14-01-PLAN.md
+Last session: 2026-03-21T17:39:18Z
+Stopped at: Completed 14-02-PLAN.md
 Resume file: None
-Next step: Phase 14 Plan 02 (risk-routed consultation)
+Next step: Phase 15 (next phase)
