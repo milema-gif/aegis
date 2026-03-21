@@ -89,6 +89,18 @@
     "advance": "none",
     "deploy": "block"
   },
+  "risk_thresholds": {
+    "file_count": { "low": 3, "high": 10 },
+    "line_count": { "low": 50, "high": 200 },
+    "mutation_scope": {
+      "read_only": "low",
+      "create": "med",
+      "modify": "med",
+      "modified": "med",
+      "delete": "high",
+      "deploy": "high"
+    }
+  },
   "gate_rules": {
     "quality_never_skippable": true,
     "external_never_skippable": true,

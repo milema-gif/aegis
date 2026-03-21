@@ -29,6 +29,7 @@ TESTS=(
   "test-preflight"
   "test-evidence"
   "test-enforcement"
+  "test-risk-consultation"
   "test-pipeline-integration"
 )
 
