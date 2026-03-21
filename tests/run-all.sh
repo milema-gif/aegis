@@ -25,6 +25,7 @@ TESTS=(
   "test-namespace"
   "test-checkpoints"
   "test-behavioral-gate"
+  "test-preflight"
   "test-pipeline-integration"
 )
 
