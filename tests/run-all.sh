@@ -31,6 +31,8 @@ TESTS=(
   "test-enforcement"
   "test-risk-consultation"
   "test-regression"
+  "test-patterns"
+  "test-rollback-drill"
   "test-pipeline-integration"
 )
 
