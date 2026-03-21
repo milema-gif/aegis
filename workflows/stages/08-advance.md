@@ -1,7 +1,7 @@
 # Stage: Advance
 
 Tag the completed phase, update the roadmap, and route the pipeline to the next phase or to deployment.
-Runs regression checks before tagging to ensure prior phases still pass.
+Runs regression checks and rollback drill before tagging to ensure prior phases still pass and recovery is verified.
 
 ## Inputs
 
@@ -9,6 +9,7 @@ Runs regression checks before tagging to ensure prior phases still pass.
 - `.planning/ROADMAP.md` -- phase checklist with completion status
 - `lib/aegis-git.sh` -- git tagging functions
 - `lib/aegis-regression.sh` -- regression check, prior test, delta report functions
+- `lib/aegis-rollback-drill.sh` -- rollback drill verification
 
 ## Actions
 
@@ -16,6 +17,7 @@ Runs regression checks before tagging to ensure prior phases still pass.
    ```bash
    source lib/aegis-git.sh
    source lib/aegis-regression.sh
+   source lib/aegis-rollback-drill.sh
    ```
 
 2. **Determine the completed phase** from state and roadmap:
@@ -102,17 +104,50 @@ Runs regression checks before tagging to ensure prior phases still pass.
    "
    ```
 
-6. **Tag phase completion** (GIT-01):
+6. **Run rollback drill** (ROLL-01):
+   ```bash
+   drill_result=$(run_rollback_drill "$phase_number")
+   drill_status=$(echo "$drill_result" | python3 -c "import json,sys; print(json.load(sys.stdin)['status'])")
+   ```
+   - If drill_status is "skipped": print info and continue
+     ```bash
+     if [[ "$drill_status" == "skipped" ]]; then
+       echo "No prior tag -- rollback drill skipped (first phase)"
+     fi
+     ```
+   - If drill_status is "passed": print success
+     ```bash
+     if [[ "$drill_status" == "passed" ]]; then
+       echo "Rollback drill passed -- recovery verified for phase $phase_number"
+     fi
+     ```
+   - If drill_status is "failed": print error and BLOCK advancement
+     ```bash
+     if [[ "$drill_status" == "failed" ]]; then
+       echo "ROLLBACK DRILL FAILED: Cannot verify recovery for phase $phase_number"
+       echo "$drill_result" | python3 -c "
+     import json, sys
+     d = json.load(sys.stdin)
+     if d.get('error'):
+         print(f'  Error: {d[\"error\"]}')
+     if d.get('diff_files'):
+         print(f'  Divergent files: {d[\"diff_files\"]}')
+     "
+       exit 1
+     fi
+     ```
+
+7. **Tag phase completion** (GIT-01):
    ```bash
    tag_phase_completion "$phase_number" "$phase_name"
    ```
    Creates `aegis/phase-N-name` tag. Idempotent -- skips if tag exists.
    Only reached if regression and test checks pass.
 
-7. **Mark phase complete in ROADMAP.md:**
+8. **Mark phase complete in ROADMAP.md:**
    - Change `- [ ] **Phase N:` to `- [x] **Phase N:` for the completed phase
 
-8. **Count remaining unchecked phases:**
+9. **Count remaining unchecked phases:**
    ```bash
    remaining_phases=$(python3 -c "
    import re
@@ -125,7 +160,7 @@ Runs regression checks before tagging to ensure prior phases still pass.
    ")
    ```
 
-9. **Route the pipeline:**
+10. **Route the pipeline:**
    - If `remaining_phases > 0`: call `advance_stage "$remaining_phases"` -- loops to **phase-plan** (index 3)
    - If `remaining_phases == 0`: call `advance_stage 0` -- proceeds to **deploy** (index 8)
 
@@ -134,6 +169,7 @@ Runs regression checks before tagging to ensure prior phases still pass.
 - Git tag `aegis/phase-N-name` created
 - `.planning/ROADMAP.md` updated (phase checkbox checked)
 - `.aegis/evidence/delta-report-phase-{N}.json` generated (informational)
+- `.aegis/evidence/rollback-drill-phase-{N}.json` generated (drill results)
 - Pipeline routed to next stage (phase-plan or deploy)
 
 ## Completion Criteria
@@ -141,6 +177,7 @@ Runs regression checks before tagging to ensure prior phases still pass.
 - Regression check passed (no missing evidence files)
 - Prior test suites re-run and all passed
 - Delta report generated and shown to operator
+- Rollback drill passed or skipped (no prior tag)
 - Git tag exists for the completed phase (`git tag -l "aegis/phase-N-*"`)
 - ROADMAP.md shows the phase as checked
 - `advance_stage` called with correct remaining count
