@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Quality Enforcement
 status: executing
-stopped_at: Completed 07-01-PLAN.md
-last_updated: "2026-03-21T09:22:19.542Z"
-last_activity: 2026-03-21 — Completed 07-01 Pipeline Foundation Infrastructure
+stopped_at: Completed 07-02-PLAN.md
+last_updated: "2026-03-21T09:29:15Z"
+last_activity: 2026-03-21 — Completed 07-02 Memory Scoping Enforcement
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
-  percent: 0
+  completed_plans: 2
+  percent: 67
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Never lose context, direction, or consistency across a project's entire lifecycle
-**Current focus:** v2.0 Quality Enforcement — Phase 7 (Foundation) Plan 1 complete
+**Current focus:** v2.0 Quality Enforcement — Phase 7 (Foundation) Plan 2 complete
 
 ## Current Position
 
 Phase: 7 of 10 (Foundation) — first phase of v2.0 milestone
-Plan: 1 of 3 complete
+Plan: 2 of 3 complete
 Status: Executing
-Last activity: 2026-03-21 — Completed 07-01 Pipeline Foundation Infrastructure
+Last activity: 2026-03-21 — Completed 07-02 Memory Scoping Enforcement
 
-Progress: [███░░░░░░░] 33% (v2.0 Phase 7)
+Progress: [██████░░░░] 67% (v2.0 Phase 7)
 
 ## Performance Metrics
 
@@ -67,6 +67,9 @@ Recent decisions affecting current work:
 - [v2.0 Research]: Phase 10 needs deeper research on Docker/PM2 snapshot fields for ai-core-01
 - [07-01]: Used python3 exit code 2 as sentinel for idempotent no-op in complete_stage()
 - [07-01]: Workspace isolation via filesystem directories under .aegis/workspaces/{stage}/
+- [07-02]: memory_save_gate() changed to 4-param API (project, stage, phase, summary)
+- [07-02]: Project prefix uses forward slash: {project}/{key}
+- [07-02]: Decay classes defined as taxonomy only -- implementation deferred to Plan 03
 
 ### Pending Todos
 
@@ -87,6 +90,6 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-21
-Stopped at: Completed 07-01-PLAN.md
+Stopped at: Completed 07-02-PLAN.md
 Resume file: None
-Next step: Execute 07-02-PLAN.md (memory scoping)
+Next step: Execute 07-03-PLAN.md (memory decay/TTL)

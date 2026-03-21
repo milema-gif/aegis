@@ -48,12 +48,12 @@
 
 ### Memory Quality Control
 
-- [ ] **MEM-04**: All Engram writes and reads enforce `project_id` field — memory is project-scoped by default
+- [x] **MEM-04**: All Engram writes and reads enforce `project_id` field — memory is project-scoped by default
 - [ ] **MEM-05**: Legacy Engram observations (424 existing) are migrated — classified by project with operator review before scoping ships
-- [ ] **MEM-06**: Pipeline runs a memory pollution scan at startup, warning if entries appear to belong to a different project
+- [x] **MEM-06**: Pipeline runs a memory pollution scan at startup, warning if entries appear to belong to a different project
 - [ ] **MEM-07**: Memory decay runs at pipeline startup (24h guard) with class-based policy: `pinned` never decays, `project` decays on archive, `session` 30d, `ephemeral` 7d
-- [ ] **MEM-08**: Global-scope memory writes require explicit `cross_project: true` flag — default is always project-scoped
-- [ ] **MEM-09**: Memory keys use project prefix format: `{project}/gate-{stage}-phase-{N}`
+- [x] **MEM-08**: Global-scope memory writes require explicit `cross_project: true` flag — default is always project-scoped
+- [x] **MEM-09**: Memory keys use project prefix format: `{project}/gate-{stage}-phase-{N}`
 
 ### Stage Checkpoints
 
@@ -154,12 +154,12 @@
 | FOUND-01 | Phase 7 | Complete |
 | FOUND-02 | Phase 7 | Complete |
 | FOUND-03 | Phase 7 | Complete |
-| MEM-04 | Phase 7 | Pending |
+| MEM-04 | Phase 7 | Complete |
 | MEM-05 | Phase 7 | Pending |
-| MEM-06 | Phase 7 | Pending |
+| MEM-06 | Phase 7 | Complete |
 | MEM-07 | Phase 7 | Pending |
-| MEM-08 | Phase 7 | Pending |
-| MEM-09 | Phase 7 | Pending |
+| MEM-08 | Phase 7 | Complete |
+| MEM-09 | Phase 7 | Complete |
 | CHKP-01 | Phase 8 | Pending |
 | CHKP-02 | Phase 8 | Pending |
 | CHKP-03 | Phase 8 | Pending |
