@@ -28,7 +28,7 @@
 - Decimal phases (8.1, 8.2): Urgent insertions (marked with INSERTED)
 
 - [x] **Phase 7: Foundation** - `complete_stage()` helper, memory project-scoping, legacy migration, namespace isolation, global install (completed 2026-03-21)
-- [ ] **Phase 8: Stage-Boundary Checkpoints** - Structured context snapshots after each gate pass, context window assembler for subagent dispatch
+- [x] **Phase 8: Stage-Boundary Checkpoints** - Structured context snapshots after each gate pass, context window assembler for subagent dispatch (completed 2026-03-21)
 - [ ] **Phase 9: Subagent Behavioral Gate** - Read-before-edit enforcement via invocation protocol, behavioral gate validation, batch approval for parallel dispatch
 - [ ] **Phase 10: Deploy Preflight Guard** - Pre-deploy state verification, scope matching, "deploy" keyword confirmation, live state snapshot
 
@@ -98,6 +98,6 @@ Phases 7 through 10 execute in order. Phases 9 and 10 can be parallelized after 
 | 5. Engram Integration | v1.0 | 2/2 | Complete | 2026-03-09 |
 | 6. Multi-Model Consultation | v1.0 | 2/2 | Complete | 2026-03-09 |
 | 7. Foundation | 3/3 | Complete   | 2026-03-21 | - |
-| 8. Stage-Boundary Checkpoints | v2.0 | 1/2 | In progress | - |
+| 8. Stage-Boundary Checkpoints | 2/2 | Complete   | 2026-03-21 | - |
 | 9. Subagent Behavioral Gate | v2.0 | 0/? | Not started | - |
 | 10. Deploy Preflight Guard | v2.0 | 0/? | Not started | - |
