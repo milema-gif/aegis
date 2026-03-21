@@ -374,6 +374,69 @@ for s in d['stages']:
   teardown
 }
 
+# --- Evidence pre-check tests ---
+
+test_evaluate_gate_evidence_missing() {
+  setup
+  init_state "test-project"
+  # No evidence file exists — should return evidence-missing for phase>0
+  local result
+  result=$(evaluate_gate "intake" "false" "1")
+  if [[ "$result" == "evidence-missing" ]]; then
+    pass "[EVID-02] evaluate_gate returns evidence-missing when no evidence file exists"
+  else
+    fail "[EVID-02] evaluate_gate returns evidence-missing when no evidence file exists" "got=$result"
+  fi
+  teardown
+}
+
+test_evaluate_gate_evidence_invalid() {
+  setup
+  init_state "test-project"
+  # Write a malformed evidence JSON (missing required fields)
+  mkdir -p "$AEGIS_DIR/evidence"
+  echo '{"stage":"intake","phase":1}' > "$AEGIS_DIR/evidence/intake-phase-1.json"
+  local result
+  result=$(evaluate_gate "intake" "false" "1")
+  if [[ "$result" == "evidence-invalid" ]]; then
+    pass "[EVID-02] evaluate_gate returns evidence-invalid when evidence has missing fields"
+  else
+    fail "[EVID-02] evaluate_gate returns evidence-invalid when evidence has missing fields" "got=$result"
+  fi
+  teardown
+}
+
+test_evaluate_gate_evidence_valid() {
+  setup
+  init_state "test-project"
+  export AEGIS_POLICY_VERSION="1.0.0"
+  # Create valid evidence using write_evidence
+  write_evidence "intake" "1" '[]' '["EVID-02"]' '{}' '{}' > /dev/null
+  local result
+  result=$(evaluate_gate "intake" "false" "1")
+  # With valid evidence, gate proceeds to normal logic — intake is approval type, no YOLO → approval-needed
+  if [[ "$result" == "approval-needed" ]]; then
+    pass "[EVID-02] evaluate_gate passes with valid evidence"
+  else
+    fail "[EVID-02] evaluate_gate passes with valid evidence" "got=$result"
+  fi
+  teardown
+}
+
+test_evaluate_gate_evidence_skipped_phase0() {
+  setup
+  init_state "test-project"
+  # Phase 0 (default) — evidence check should be skipped, no evidence file needed
+  local result
+  result=$(evaluate_gate "intake" "false")
+  if [[ "$result" == "approval-needed" ]]; then
+    pass "[EVID-02] evaluate_gate skips evidence check when phase is 0 (backward compat)"
+  else
+    fail "[EVID-02] evaluate_gate skips evidence check when phase is 0 (backward compat)" "got=$result"
+  fi
+  teardown
+}
+
 # --- Run all tests ---
 test_evaluate_gate_approval_no_yolo
 test_evaluate_gate_approval_yolo
@@ -389,6 +452,10 @@ test_check_gate_limits_timed_out
 test_record_gate_attempt
 test_init_gate_state_sets_first_attempt
 test_init_gate_state_no_overwrite
+test_evaluate_gate_evidence_missing
+test_evaluate_gate_evidence_invalid
+test_evaluate_gate_evidence_valid
+test_evaluate_gate_evidence_skipped_phase0
 
 echo ""
 echo "Results: $PASS_COUNT passed, $FAIL_COUNT failed"

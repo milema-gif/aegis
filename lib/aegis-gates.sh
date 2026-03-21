@@ -8,12 +8,28 @@ set -euo pipefail
 AEGIS_LIB_DIR="${AEGIS_LIB_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
 source "$AEGIS_LIB_DIR/aegis-state.sh"
 source "$AEGIS_LIB_DIR/aegis-policy.sh"
+source "$AEGIS_LIB_DIR/aegis-evidence.sh"
 
-# --- evaluate_gate(stage_name, yolo_mode) ---
-# Returns: pass | fail | approval-needed | auto-approved
+# --- evaluate_gate(stage_name, yolo_mode, phase) ---
+# Returns: pass | fail | approval-needed | auto-approved | evidence-missing | evidence-invalid
 evaluate_gate() {
   local stage_name="${1:?evaluate_gate requires stage_name}"
   local yolo_mode="${2:-false}"
+  local phase="${3:-0}"
+
+  # Evidence pre-check: if phase > 0, validate evidence before gate logic
+  if [[ "$phase" -gt 0 ]]; then
+    local ev_result
+    ev_result=$(validate_evidence "$stage_name" "$phase" 2>/dev/null) || true
+    if [[ "$ev_result" == "missing" ]]; then
+      echo "evidence-missing"
+      return 0
+    elif [[ "$ev_result" == "invalid" ]]; then
+      echo "evidence-invalid"
+      return 0
+    fi
+    # ev_result == "valid" — proceed to normal gate logic
+  fi
 
   python3 -c "
 import json, sys
