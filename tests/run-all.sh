@@ -24,6 +24,7 @@ TESTS=(
   "test-complete-stage"
   "test-namespace"
   "test-checkpoints"
+  "test-behavioral-gate"
   "test-pipeline-integration"
 )
 
