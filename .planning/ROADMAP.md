@@ -125,8 +125,8 @@ Plans:
   3. Phase completion criteria include a deterministic rollback drill -- "can recover from this phase's changes" is verified, not assumed
 **Plans**: 2 plans
 Plans:
-- [ ] 16-01-PLAN.md — [To be planned]
-- [ ] 16-02-PLAN.md — [To be planned]
+- [ ] 16-01-PLAN.md — Pattern library + rollback drill library with TDD tests
+- [ ] 16-02-PLAN.md — Wire drill into advance stage, policy config, register tests
 
 ## Progress
 
