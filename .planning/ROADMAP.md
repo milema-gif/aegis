@@ -3,7 +3,8 @@
 ## Milestones
 
 - [x] **v1.0 MVP** - Phases 1-6 (shipped 2026-03-09)
-- [ ] **v2.0 Quality Enforcement** - Phases 7-10 (in progress)
+- [x] **v2.0 Quality Enforcement** - Phases 7-10 (shipped 2026-03-21)
+- [ ] **v3.0 Evidence-Driven Pipeline** - Phases 11-16 (in progress)
 
 ## Phases
 
@@ -19,81 +20,100 @@
 
 </details>
 
-### v2.0 Quality Enforcement
+<details>
+<summary>v2.0 Quality Enforcement (Phases 7-10) - SHIPPED 2026-03-21</summary>
 
-**Milestone Goal:** Ensure every agent at every stage does verified, grounded work with persistent, project-scoped memory. Ship v1.1 debt + quality enforcement in one milestone.
+- [x] **Phase 7: Foundation** - `complete_stage()` helper, memory project-scoping, legacy migration, namespace isolation, global install
+- [x] **Phase 8: Stage-Boundary Checkpoints** - Structured context snapshots after each gate pass, context window assembler for subagent dispatch
+- [x] **Phase 9: Subagent Behavioral Gate** - Read-before-edit enforcement via invocation protocol, behavioral gate validation, batch approval for parallel dispatch
+- [x] **Phase 10: Deploy Preflight Guard** - Pre-deploy state verification, scope matching, "deploy" keyword confirmation, live state snapshot
+
+</details>
+
+### v3.0 Evidence-Driven Pipeline
+
+**Milestone Goal:** Move from "good process" to "enforced evidence-driven process" -- every stage produces machine-checkable evidence, gates evaluate evidence not prose, and critical actions are blocked without verification.
 
 **Phase Numbering:**
-- Integer phases (7, 8, 9, 10): Planned milestone work
-- Decimal phases (8.1, 8.2): Urgent insertions (marked with INSERTED)
+- Integer phases (11-16): Planned milestone work
+- Decimal phases (11.1, 12.1): Urgent insertions (marked with INSERTED)
 
-- [x] **Phase 7: Foundation** - `complete_stage()` helper, memory project-scoping, legacy migration, namespace isolation, global install (completed 2026-03-21)
-- [x] **Phase 8: Stage-Boundary Checkpoints** - Structured context snapshots after each gate pass, context window assembler for subagent dispatch (completed 2026-03-21)
-- [ ] **Phase 9: Subagent Behavioral Gate** - Read-before-edit enforcement via invocation protocol, behavioral gate validation, batch approval for parallel dispatch
-- [x] **Phase 10: Deploy Preflight Guard** - Pre-deploy state verification, scope matching, "deploy" keyword confirmation, live state snapshot (completed 2026-03-21)
+- [ ] **Phase 11: Policy-as-Code** - Gate policies defined in versioned config with auditable change tracking
+- [ ] **Phase 12: Evidence Artifacts** - Every stage produces machine-checkable evidence; gates evaluate artifacts, not prose
+- [ ] **Phase 13: Enforcement Upgrade** - Behavioral gate upgraded from warn-only to blocking for mutating actions, with audit trail
+- [ ] **Phase 14: Risk-Scored Consultation** - Automatic risk scoring triggers mandatory consultation with structured evidence output
+- [ ] **Phase 15: Phase Regression** - Advance gate verifies new phases don't break prior success criteria; regression blocks advancement
+- [ ] **Phase 16: Patterns and Rollback** - Cross-project pattern library and deterministic rollback drill
 
 ## Phase Details
 
-### Phase 7: Foundation
-**Goal**: Pipeline has reliable stage completion signals and project-scoped memory with legacy data migrated
-**Depends on**: Phase 6 (v1.0 complete)
-**Requirements**: FOUND-01, FOUND-02, FOUND-03, MEM-04, MEM-05, MEM-06, MEM-07, MEM-08, MEM-09
+### Phase 11: Policy-as-Code
+**Goal**: Gate behavior is driven by a versioned configuration file, not hardcoded logic -- operators can tune gates without modifying library code
+**Depends on**: Phase 10 (v2.0 complete)
+**Requirements**: POLC-01, POLC-02
 **Success Criteria** (what must be TRUE):
-  1. Calling `complete_stage()` atomically marks a stage as completed with a timestamp, and calling it again is a no-op (idempotent)
-  2. Subagents from different stages cannot read or write each other's working state (namespace isolation verified)
-  3. `aegis` command is available on PATH from any directory without specifying a full path
-  4. Memory writes without a `project_id` are rejected — every `mem_save` enforces project scope
-  5. Pipeline startup runs a pollution scan and warns the operator if cross-project memory entries are detected
-**Plans**: 3 plans
-Plans:
-- [ ] 07-01-PLAN.md — Foundation infrastructure (complete_stage, namespace isolation, global install)
-- [ ] 07-02-PLAN.md — Memory scoping enforcement (project-id, global guard, key prefix, pollution scan)
-- [ ] 07-03-PLAN.md — Memory decay and legacy migration (class-based decay, 424-observation migration)
+  1. All gate policies (which gates block, retry limits, risk thresholds, consultation triggers) are read from a single versioned config file at pipeline startup
+  2. Changing a gate policy (e.g., switching a gate from warn to block) requires only a config file edit, not a code change
+  3. Every evidence artifact stamps the policy config version that was active when it was produced
+  4. Policy config changes are tracked in git -- `git log` shows who changed what gate policy and when
+**Plans**: TBD
 
-### Phase 8: Stage-Boundary Checkpoints
-**Goal**: Pipeline preserves compact, structured context at every stage transition so late stages and resumed sessions have reliable decision history
-**Depends on**: Phase 7 (`complete_stage()` provides clean gate-pass signal for checkpoint writes)
-**Requirements**: CHKP-01, CHKP-02, CHKP-03
+### Phase 12: Evidence Artifacts
+**Goal**: Every pipeline stage produces structured, machine-checkable evidence that gates can evaluate programmatically
+**Depends on**: Phase 11 (evidence artifacts stamp policy version from config)
+**Requirements**: EVID-01, EVID-02, EVID-03
 **Success Criteria** (what must be TRUE):
-  1. After each gate pass, a checkpoint file appears at `.aegis/checkpoints/{stage}-phase-{N}.md` containing decisions made, files changed, active constraints, and next-stage context
-  2. Subagent invocations include a "Prior Stage Context" section assembled from the last 3 checkpoints
-  3. Checkpoint write rejects any entry exceeding ~500 tokens — oversized checkpoints fail at write time, not silently truncate
-  4. Checkpoint failure is silent and non-blocking — the pipeline continues with empty context rather than crashing
-**Plans**: 2 plans
-Plans:
-- [ ] 08-01-PLAN.md — Checkpoint library and test suite (write/read/list/assemble functions, TDD)
-- [ ] 08-02-PLAN.md — Orchestrator and protocol integration (wire checkpoints into pipeline flow)
+  1. After each stage completes, a structured evidence artifact (JSON or markdown with machine-parseable fields) exists in `.aegis/evidence/` with file hashes, requirement references, and schema-valid fields
+  2. Gate evaluation reads the evidence artifact and checks it programmatically (field presence, hash verification, requirement coverage) -- a stage with missing or malformed evidence is rejected
+  3. Test-gate rejects any test suite where tests do not reference specific requirement IDs -- empty or vacuous test suites block the pipeline
+  4. Evidence artifacts are queryable -- given a requirement ID, the pipeline can trace which evidence proves it was satisfied
+**Plans**: TBD
 
-### Phase 9: Subagent Behavioral Gate
-**Goal**: Subagents verify existing code before editing it, with enforcement that does not break parallel dispatch
-**Depends on**: Phase 8 (checkpoint context feeds the behavioral gate preamble)
-**Requirements**: AGENT-01, AGENT-02, AGENT-03
+### Phase 13: Enforcement Upgrade
+**Goal**: Subagents at mutating stages are blocked from editing without verification, while read-only stages remain unblocked
+**Depends on**: Phase 12 (enforcement decisions reference evidence artifacts; bypass generates evidence-format audit entries)
+**Requirements**: ENFC-01, ENFC-02, ENFC-03
 **Success Criteria** (what must be TRUE):
-  1. Every subagent invocation includes a mandatory pre-action checklist block requiring file reads, drift check, scope declaration, and risk assessment before any Edit/Write
-  2. Orchestrator checks subagent returns for the behavioral gate checklist — missing checklist generates a warning in the pipeline log, not a hard failure
-  3. When three subagents are dispatched in parallel, the operator sees one batch approval prompt (not three sequential ones), or approval is automatic when scope matches the declared task
-**Plans**: 2 plans
-Plans:
-- [ ] 09-01-PLAN.md — Behavioral gate protocol and validation function (TDD)
-- [ ] 09-02-PLAN.md — Orchestrator integration and parallel dispatch mode
+  1. A subagent at execute, verify, or deploy stage that attempts Edit/Write/git-commit without a BEHAVIORAL_GATE_CHECK marker is blocked -- the action does not proceed
+  2. A subagent at research or phase-plan stage operates normally without gate enforcement -- read-only stages are not affected
+  3. Any gate bypass (manual override) generates an audit log entry that appears in the next session summary and advance-stage report -- bypasses cannot be silent
+**Plans**: TBD
 
-### Phase 10: Deploy Preflight Guard
-**Goal**: No deploy action fires without a verified preflight that checks state, scope, and gets explicit operator confirmation
-**Depends on**: Phase 7 (`complete_stage()` makes `verify_state_position()` reliable); independent of Phase 9
-**Requirements**: DEPLOY-01, DEPLOY-02, DEPLOY-03
+### Phase 14: Risk-Scored Consultation
+**Goal**: High-risk stages automatically trigger model consultation, with results persisted as evidence -- not just logged to stdout
+**Depends on**: Phase 12 (consultation results stored as evidence artifacts); Phase 11 (risk thresholds read from policy config)
+**Requirements**: CONS-01, CONS-02, CONS-03
 **Success Criteria** (what must be TRUE):
-  1. Before any deploy action, a preflight check verifies: all 8 prior stages completed, deploy scope matches roadmap target, rollback tag exists, working tree is clean
-  2. Deploy confirmation requires the operator to type "deploy" explicitly — the word "approved" does not satisfy the gate, and the preflight is never skippable (even in YOLO mode)
-  3. Pre-deploy snapshot captures running service state (Docker container IDs, PM2 process metadata) so rollback can restore to the actual pre-deploy state, not just the last git tag
-**Plans**: 2 plans
-Plans:
-- [ ] 10-01-PLAN.md — Preflight library and test suite (TDD: verify_state_position, verify_deploy_scope, verify_rollback_tag, snapshot_running_state, run_preflight)
-- [ ] 10-02-PLAN.md — Deploy stage integration (wire preflight into 09-deploy.md, deploy keyword confirmation)
+  1. Each stage computes a risk score (low/med/high) based on file count, complexity heuristics, and mutation scope -- the score is visible in the stage evidence artifact
+  2. A stage scored as high-risk triggers mandatory DeepSeek consultation before the gate passes -- the operator sees consultation happened without needing to request it
+  3. Codex consultation triggers only for critical+high-risk stages AND only when the operator has opted in -- budget cap and per-stage max consultation count are enforced
+  4. Consultation results are persisted as structured evidence artifacts in `.aegis/evidence/` with model name, query, response summary, and risk assessment
+**Plans**: TBD
+
+### Phase 15: Phase Regression
+**Goal**: Advancing to a new phase requires proof that prior phases still pass -- regressions block advancement
+**Depends on**: Phase 12 (evidence artifacts provide the delta-check baseline)
+**Requirements**: REGR-01, REGR-02, REGR-03
+**Success Criteria** (what must be TRUE):
+  1. The advance-stage gate checks that new phase work has not invalidated any prior phase's success criteria -- a phase delta check runs automatically
+  2. Prior phase test suites re-run before advancing -- any test failure blocks the advance gate with a clear report of which phase regressed
+  3. A phase delta report is generated showing files modified since last phase completion, functions added/removed, and test count delta -- the operator sees what changed before approving advancement
+**Plans**: TBD
+
+### Phase 16: Patterns and Rollback
+**Goal**: Operators can curate cross-project patterns and verify rollback capability as part of phase completion
+**Depends on**: Phase 12 (rollback drill results stored as evidence); independent of Phases 13-15
+**Requirements**: PATN-01, PATN-03, ROLL-01
+**Success Criteria** (what must be TRUE):
+  1. An opt-in pattern library exists where operators can store curated patterns from completed projects -- patterns are stored with project origin and description
+  2. Writing a pattern to the library requires explicit operator approval -- no automatic cross-project memory sharing occurs
+  3. Phase completion criteria include a deterministic rollback drill -- "can recover from this phase's changes" is verified, not assumed
+**Plans**: TBD
 
 ## Progress
 
 **Execution Order:**
-Phases 7 through 10 execute in order. Phases 9 and 10 can be parallelized after Phase 8 completes (they share only the Phase 7 dependency).
+Phases 11 through 16 execute in order. Phase 16 (Patterns/Rollback) is independent of Phases 13-15 and could execute after Phase 12, but is sequenced last for natural delivery flow.
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -105,5 +125,11 @@ Phases 7 through 10 execute in order. Phases 9 and 10 can be parallelized after 
 | 6. Multi-Model Consultation | v1.0 | 2/2 | Complete | 2026-03-09 |
 | 7. Foundation | v2.0 | 3/3 | Complete | 2026-03-21 |
 | 8. Stage-Boundary Checkpoints | v2.0 | 2/2 | Complete | 2026-03-21 |
-| 9. Subagent Behavioral Gate | 1/2 | In Progress|  | - |
-| 10. Deploy Preflight Guard | 2/2 | Complete    | 2026-03-21 | - |
+| 9. Subagent Behavioral Gate | v2.0 | 2/2 | Complete | 2026-03-21 |
+| 10. Deploy Preflight Guard | v2.0 | 2/2 | Complete | 2026-03-21 |
+| 11. Policy-as-Code | v3.0 | 0/? | Not started | - |
+| 12. Evidence Artifacts | v3.0 | 0/? | Not started | - |
+| 13. Enforcement Upgrade | v3.0 | 0/? | Not started | - |
+| 14. Risk-Scored Consultation | v3.0 | 0/? | Not started | - |
+| 15. Phase Regression | v3.0 | 0/? | Not started | - |
+| 16. Patterns and Rollback | v3.0 | 0/? | Not started | - |

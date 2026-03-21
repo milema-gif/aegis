@@ -210,27 +210,28 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| EVID-01 | TBD | Pending |
-| EVID-02 | TBD | Pending |
-| EVID-03 | TBD | Pending |
-| ENFC-01 | TBD | Pending |
-| ENFC-02 | TBD | Pending |
-| ENFC-03 | TBD | Pending |
-| CONS-01 | TBD | Pending |
-| CONS-02 | TBD | Pending |
-| CONS-03 | TBD | Pending |
-| REGR-01 | TBD | Pending |
-| REGR-02 | TBD | Pending |
-| REGR-03 | TBD | Pending |
-| POLC-01 | TBD | Pending |
-| POLC-02 | TBD | Pending |
-| PATN-01 | TBD | Pending |
-| PATN-03 | TBD | Pending |
-| ROLL-01 | TBD | Pending |
+| POLC-01 | Phase 11 | Pending |
+| POLC-02 | Phase 11 | Pending |
+| EVID-01 | Phase 12 | Pending |
+| EVID-02 | Phase 12 | Pending |
+| EVID-03 | Phase 12 | Pending |
+| ENFC-01 | Phase 13 | Pending |
+| ENFC-02 | Phase 13 | Pending |
+| ENFC-03 | Phase 13 | Pending |
+| CONS-01 | Phase 14 | Pending |
+| CONS-02 | Phase 14 | Pending |
+| CONS-03 | Phase 14 | Pending |
+| REGR-01 | Phase 15 | Pending |
+| REGR-02 | Phase 15 | Pending |
+| REGR-03 | Phase 15 | Pending |
+| PATN-01 | Phase 16 | Pending |
+| PATN-03 | Phase 16 | Pending |
+| ROLL-01 | Phase 16 | Pending |
 
-**v3.0 Coverage:** 17 total, 0 mapped (pending roadmap)
+**v3.0 Coverage:** 17/17 mapped, 0 unmapped
 
 ---
 *Requirements defined: 2026-03-09*
 *v2.0 requirements added: 2026-03-21 from research synthesis*
 *v3.0 requirements added: 2026-03-21 from Codex review (2 rounds)*
+*v3.0 traceability mapped: 2026-03-21 from roadmap creation*
