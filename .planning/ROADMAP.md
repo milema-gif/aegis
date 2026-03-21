@@ -43,7 +43,7 @@
 - [x] **Phase 13: Enforcement Upgrade** - Behavioral gate upgraded from warn-only to blocking for mutating actions, with audit trail (completed 2026-03-21)
 - [x] **Phase 14: Risk-Scored Consultation** - Automatic risk scoring triggers mandatory consultation with structured evidence output (completed 2026-03-21)
 - [x] **Phase 15: Phase Regression** - Advance gate verifies new phases don't break prior success criteria; regression blocks advancement (completed 2026-03-21)
-- [ ] **Phase 16: Patterns and Rollback** - Cross-project pattern library and deterministic rollback drill
+- [x] **Phase 16: Patterns and Rollback** - Cross-project pattern library and deterministic rollback drill (completed 2026-03-21)
 
 ## Phase Details
 
@@ -150,4 +150,4 @@ Phases 11 through 16 execute in order. Phase 16 (Patterns/Rollback) is independe
 | 13. Enforcement Upgrade | 2/2 | Complete    | 2026-03-21 | - |
 | 14. Risk-Scored Consultation | 2/2 | Complete    | 2026-03-21 | - |
 | 15. Phase Regression | 2/2 | Complete    | 2026-03-21 | - |
-| 16. Patterns and Rollback | 1/2 | In Progress|  | - |
+| 16. Patterns and Rollback | 2/2 | Complete   | 2026-03-21 | - |

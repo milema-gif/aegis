@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Evidence-Driven Pipeline
-status: in_progress
-stopped_at: Completed 16-01-PLAN.md
-last_updated: "2026-03-21T18:49:07Z"
-last_activity: 2026-03-21 -- Phase 16 Plan 01 complete (pattern library + rollback drill)
+status: complete
+stopped_at: Completed 16-02-PLAN.md -- v3.0 milestone complete
+last_updated: "2026-03-21T18:56:00Z"
+last_activity: 2026-03-21 -- Phase 16 Plan 02 complete (advance stage wiring) -- v3.0 COMPLETE
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 12
-  completed_plans: 11
-  percent: 97
+  completed_plans: 12
+  percent: 100
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 ## Current Position
 
 Phase: 16 of 16 (Patterns and Rollback)
-Plan: 1 of 2 in current phase
-Status: In Progress
-Last activity: 2026-03-21 -- Phase 16 Plan 01 complete (pattern library + rollback drill)
+Plan: 2 of 2 in current phase
+Status: Complete
+Last activity: 2026-03-21 -- Phase 16 Plan 02 complete (advance stage wiring + policy config)
 
-Progress: [██████████] 97% (v3.0)
+Progress: [██████████] 100% (v3.0)
 
 ## Performance Metrics
 
@@ -56,6 +56,7 @@ Progress: [██████████] 97% (v3.0)
 | Phase 15 P01 | 3min | 1 task | 3 files |
 | Phase 15 P02 | 2min | 2 tasks | 1 files |
 | Phase 16 P01 | 4min | 2 tasks | 5 files |
+| Phase 16 P02 | 4min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -101,6 +102,9 @@ Recent decisions affecting current work:
 - [16-01]: sys.argv for python3 args — prevents injection issues in pattern text
 - [16-01]: get_pattern returns error JSON with exit 0 — consistent pipeline consumption
 - [16-01]: Rollback drill writes evidence directly (not via write_evidence) — different schema
+- [16-02]: Rollback drill at step 6 (after delta report, before tagging) — requires clean working tree
+- [16-02]: Policy version bumped to 1.1.0 for rollback_drill config addition
+- [16-02]: Workflow line limit raised 100->200 — advance stage legitimately complex with regression+drill
 
 ### Pending Todos
 
@@ -112,7 +116,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-21T18:49:07Z
-Stopped at: Completed 16-01-PLAN.md
+Last session: 2026-03-21T18:56:00Z
+Stopped at: Completed 16-02-PLAN.md -- v3.0 milestone complete
 Resume file: None
-Next step: Phase 16 Plan 02 (advance stage wiring)
+Next step: v3.0 complete -- all 12 plans across 6 phases delivered
