@@ -14,6 +14,7 @@ This orchestrator depends on five foundation libraries. Source them before use:
 - **`lib/aegis-git.sh`** -- Git tagging: tag_phase_completion, rollback, compatibility checks
 - **`lib/aegis-validate.sh`** -- Output validation for subagent results
 - **`lib/aegis-consult.sh`** -- Consultation: send context to external models (DeepSeek/Codex) at configurable gates
+- **`lib/aegis-checkpoint.sh`** -- Checkpoint persistence: write/read/list/assemble stage-boundary context snapshots
 
 ## Important Rules
 
@@ -62,6 +63,11 @@ Check if `.aegis/state.current.json` exists:
 - If the JSON is corrupt (parse error), run `recover_state()` from `lib/aegis-state.sh`.
   - If recovery succeeds, continue with the recovered state.
   - If recovery fails (no journal or no snapshots), inform the user and offer to reinitialize.
+- Clear checkpoints at pipeline start -- cross-session context is Engram's job, not checkpoints':
+  ```bash
+  # Clear stale checkpoints from any previous pipeline run
+  rm -rf "${AEGIS_DIR}/checkpoints"
+  ```
 - **Check for pending approval:** After loading state, iterate through `stages` and check if any stage has `gate.pending_approval: true`. If found:
   - Announce: "Pending approval for stage '{name}'."
   - Source `lib/aegis-gates.sh` and call `show_checkpoint("APPROVAL GATE", "Stage '{name}' completed. Review required before advancing.", "Type 'approved' to advance, or describe issues")`.
@@ -78,6 +84,9 @@ Check if `.aegis/state.current.json` exists:
 # Initialize state
 source lib/aegis-state.sh
 init_state "$PROJECT_NAME"
+
+# Clear stale checkpoints from any previous pipeline run
+rm -rf "${AEGIS_DIR}/checkpoints"
 ```
 
 ## Step 3 -- Detect Integrations
@@ -143,6 +152,19 @@ After announcing pipeline status (Step 4), retrieve relevant memories before dis
    ```
    Include $CONTEXT as additional context for the stage.
 4. If no relevant memories found (empty results), proceed without injecting context -- do not block.
+
+### Checkpoint Context for Subagent Dispatch
+
+If the current stage is a subagent stage (research, phase-plan, execute, verify), assemble recent checkpoint context:
+
+```bash
+source lib/aegis-checkpoint.sh
+
+PRIOR_CONTEXT=$(assemble_context_window "$CURRENT_STAGE" 3)
+# PRIOR_CONTEXT is empty string if no checkpoints exist — safe to inject unconditionally
+```
+
+Include `$PRIOR_CONTEXT` in the subagent invocation prompt (Step 5 Path A) as the `## Prior Stage Context` section, placed between `## Objective` and `## Context Files`. If empty, omit the section entirely.
 
 ## Step 5 -- Dispatch to Current Stage
 
@@ -277,6 +299,29 @@ YOLO_MODE=$(read_yolo_mode)
    - `"fail"`: Call `record_gate_attempt "$CURRENT_STAGE" "fail" "Quality gate failed"`. Display retry banner showing attempts remaining. **STOP** -- do not advance.
 
 4. **Advance (gate passed):** If the gate result was `"pass"` or `"auto-approved"`:
+   - **Write checkpoint:** After gate passes, persist a compact context snapshot:
+     ```bash
+     source lib/aegis-checkpoint.sh
+
+     # Compose checkpoint content from stage outputs
+     # The orchestrator (not the library) is responsible for content composition
+     CHECKPOINT_CONTENT="**Decisions:**
+   - [extracted from stage output]
+
+   **Files changed:**
+   - [paths only, never content]
+
+   **Active constraints:**
+   - [carry-forward constraints]
+
+   **Next stage context:**
+   - [what the next stage needs to know]"
+
+     write_checkpoint "$CURRENT_STAGE" "$PHASE_NUM" "$CHECKPOINT_CONTENT" || {
+       echo "[checkpoint] Warning: checkpoint write failed for ${CURRENT_STAGE}, continuing" >&2
+     }
+     ```
+     Checkpoint write failure is non-blocking -- the pipeline continues with empty context rather than crashing. The `|| { ... }` block logs a warning to stderr.
    - Proceed to **Step 5.55** (External Model Consultation), then **Step 5.6** (Persist Gate Memory) before advancing.
    - If the current stage is `advance`: check the roadmap for remaining phases and call `advance_stage "$REMAINING_PHASES"`.
    - Otherwise: call `advance_stage`.
@@ -424,5 +469,8 @@ fi
 | Critical consultation (codex not opted-in) | Falls back to DeepSeek. Codex NEVER auto-invoked. |
 | Consultation failure | Sparrow unavailable or timeout: skip review, log warning, continue pipeline. Never blocks. |
 | Codex opt-in detection | Checked at Step 1 from launch arguments. Stored in state config. Default false. |
+| Checkpoint write after gate | write_checkpoint persists compact context; failure is non-blocking (|| warning). |
+| Checkpoint clear at init | Pipeline start clears .aegis/checkpoints/ to prevent stale context injection. |
+| Checkpoint context for subagent | assemble_context_window injects last 3 checkpoints into Prior Stage Context section. |
 
 ---
