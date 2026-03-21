@@ -9,7 +9,7 @@ The subagent receives a structured prompt with Objective, Context Files, Constra
 **Model:** sonnet (fallback: haiku)
 **Invocation:** Orchestrator builds prompt per `references/invocation-protocol.md`
 
-**GPT-4 Mini delegation:** Sparrow can summarize long documents or format findings, but NOT evaluate technical decisions. Use `/home/ai/scripts/sparrow 'summarize: ...' --timeout 60` with graceful fallback.
+**GPT-4 Mini delegation:** Sparrow can summarize long documents or format findings, but NOT evaluate technical decisions. Use `sparrow 'summarize: ...' --timeout 60` with graceful fallback.
 
 Delegate domain research for the current phase to GSD's research framework.
 

@@ -90,7 +90,7 @@ The following invocation patterns cause subagent failures and MUST be avoided:
 
 ### 3. Content Dumping
 - BAD: Pasting 500 lines of code into the prompt
-- GOOD: "Read /home/ai/project/src/auth.ts for the current implementation"
+- GOOD: "Read src/auth.ts for the current implementation"
 
 ### 4. Missing Success Criteria
 - BAD: "Make it work"
@@ -110,7 +110,7 @@ For tasks that qualify for external delegation (see model-routing.md), use this 
 
 ```bash
 # Delegate formatting/summarizing to Sparrow
-result=$(/home/ai/scripts/sparrow "Format these findings as a markdown table: ...")
+result=$(sparrow "Format these findings as a markdown table: ...")
 
 # Check result before using
 if [[ -n "$result" && "$result" != *"error"* && "$result" != *"Error"* ]]; then

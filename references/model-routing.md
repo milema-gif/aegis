@@ -66,14 +66,14 @@ Tasks that are safe to delegate to external models via Sparrow:
 
 ```bash
 # Standard invocation (DeepSeek -- free)
-/home/ai/scripts/sparrow "Summarize these research findings: ..."
+sparrow "Summarize these research findings: ..."
 
 # With timeout (recommended)
-timeout 60 /home/ai/scripts/sparrow "Format this routing table as markdown: ..."
+timeout 60 sparrow "Format this routing table as markdown: ..."
 
 # Codex invocation (paid -- user-explicit ONLY per CLAUDE.md)
 # ONLY when user literally says "codex" in their message
-/home/ai/scripts/sparrow --codex "Review this architecture plan: ..."
+sparrow --codex "Review this architecture plan: ..."
 ```
 
 ### Fallback Behavior

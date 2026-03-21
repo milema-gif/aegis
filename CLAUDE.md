@@ -15,7 +15,7 @@ Built as a Claude Code skill (`/aegis:launch`).
 - Memory: Engram (SQLite, MCP plugin)
 - Consultation: Sparrow bridge (DeepSeek free / Codex paid)
 - Execution: GSD framework (plan/execute/verify)
-- Host: ai-core-01 (192.168.1.144)
+- Host: Your server (configure in environment)
 
 ## Conventions
 - Skills go in `skills/`

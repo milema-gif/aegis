@@ -1,0 +1,12 @@
+# Runtime state (created by aegis at launch)
+.aegis/
+
+# Planning artifacts (local dev only)
+.planning/
+
+# Claude Code local config
+.claude/
+
+# OS files
+.DS_Store
+Thumbs.db

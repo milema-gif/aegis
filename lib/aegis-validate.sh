@@ -38,7 +38,7 @@ validate_subagent_output() {
 # Returns 0 if result looks valid, 1 if empty or error.
 #
 # Usage:
-#   result=$(/home/ai/scripts/sparrow "task")
+#   result=$(sparrow "task")
 #   validate_sparrow_result "$result"
 #
 validate_sparrow_result() {

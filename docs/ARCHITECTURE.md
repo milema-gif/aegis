@@ -353,7 +353,7 @@ From `workflows/pipeline/orchestrator.md`:
 
 **Step 3: Detect Integrations**
 - Probe for Engram: command on PATH, `/tmp/engram.sock`, or `.engram-available` marker
-- Probe for Sparrow: `/home/ai/scripts/sparrow` exists and executable
+- Probe for Sparrow: `$AEGIS_SPARROW_PATH` (or `sparrow` on PATH) exists and executable
 - Probe for Codex: available if Sparrow available; always gated to user-explicit
 - Update state.integrations with current status
 
@@ -527,7 +527,7 @@ From `workflows/pipeline/orchestrator.md`:
 
 **Probes:**
 - Engram: command on PATH, `/tmp/engram.sock`, `.engram-available` marker
-- Sparrow: `/home/ai/scripts/sparrow` exists and executable
+- Sparrow: `$AEGIS_SPARROW_PATH` (or `sparrow` on PATH) exists and executable
 - Codex: available if Sparrow available; always gated to user-explicit
 
 **Announcement Format:**
@@ -733,7 +733,7 @@ Never delegate:
 
 Invocation pattern:
 ```bash
-result=$(/home/ai/scripts/sparrow "task: ...")
+result=$(sparrow "task: ...")
 if [[ -n "$result" && "$result" != *"error"* ]]; then
   # Use result
 else
@@ -868,7 +868,7 @@ Default: `project`. Set via `decay_class` field.
 
 **Sparrow (DeepSeek Bridge):**
 - Purpose: Free cross-model consultation
-- Probe: `/home/ai/scripts/sparrow` exists and executable
+- Probe: `$AEGIS_SPARROW_PATH` (or `sparrow` on PATH) exists and executable
 - Available: Use for second-opinion reviews (routine and critical gates)
 - Fallback: claude-only (skip cross-model review)
 - Status tag: `[OK] Sparrow` or `[MISSING] Sparrow`
@@ -1321,7 +1321,7 @@ Write deployment report to specified path.
 
 ### 8.1 Test Suite Architecture
 
-**Test Runner:** `/home/ai/aegis/tests/run-all.sh`
+**Test Runner:** `tests/run-all.sh`
 
 **Test Execution Order (Dependency Order):**
 1. test-state-transitions — State machine progression
@@ -1356,9 +1356,8 @@ Write deployment report to specified path.
 ### 9.1 Directory Layout
 
 ```
-/home/ai/aegis/
+aegis/
 ├── CLAUDE.md                           # Project instructions
-├── PLAN.md                             # v2 milestone planning
 ├── .aegis/                             # Pipeline state (created at launch)
 │   ├── state.current.json              # Current pipeline state
 │   ├── checkpoints/                    # Stage-boundary context snapshots
@@ -1494,15 +1493,15 @@ Write deployment report to specified path.
 
 ### 10.2 Sparrow Bridge Integration
 
-**Path:** `/home/ai/scripts/sparrow [--codex] "message"`
+**Path:** `$AEGIS_SPARROW_PATH` or `sparrow [--codex] "message"` on PATH
 
-**Detection:** Check `/home/ai/scripts/sparrow` exists and executable
+**Detection:** Check `$AEGIS_SPARROW_PATH` (or `sparrow`) exists and executable
 
 **Invocation:**
 - Free (DeepSeek): `sparrow "message"`
 - Paid (Codex): `sparrow --codex "message"` (user-explicit only)
 
-**Timeout Handling:** `timeout 60 /home/ai/scripts/sparrow "..."` recommended
+**Timeout Handling:** `timeout 60 sparrow "..."` recommended
 
 **Fallback:** Skip consultation, log warning, continue pipeline (never blocks)
 
@@ -1774,7 +1773,7 @@ BEHAVIORAL_GATE_CHECK
 - Outcome: STOP pipeline, user intervention required
 
 **Scenario: Sparrow Unavailable**
-- Detection: `/home/ai/scripts/sparrow` not executable
+- Detection: Sparrow script not found or not executable
 - Recovery: Skip consultation entirely (graceful degradation)
 - Outcome: Pipeline continues without external review
 

@@ -24,7 +24,7 @@ git config user.email "smoke@aegis.test"
 git config user.name "Aegis Smoke Test"
 
 # Copy project structure
-SCRIPT_DIR="/home/ai/aegis"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 mkdir -p .aegis lib workflows/stages templates references .claude/agents .planning
 
 cp "$SCRIPT_DIR/lib/"aegis-*.sh lib/
@@ -65,7 +65,7 @@ fi
 if [[ "$SPARROW_LIVE" == "True" ]]; then
   pass "Sparrow detected as LIVE"
 else
-  fail "Sparrow not detected — /home/ai/scripts/sparrow should exist"
+  fail "Sparrow not detected — sparrow should be on PATH or set AEGIS_SPARROW_PATH"
 fi
 
 if [[ "$CODEX_LIVE" == "True" ]]; then

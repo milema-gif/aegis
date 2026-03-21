@@ -24,7 +24,7 @@ git config user.name "Test"
 
 # Create minimal project structure
 mkdir -p .aegis lib workflows/stages templates references .claude/agents .planning
-SCRIPT_DIR="/home/ai/aegis"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 # Copy all libraries
 cp "$SCRIPT_DIR/lib/"aegis-*.sh lib/

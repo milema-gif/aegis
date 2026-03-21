@@ -10,7 +10,7 @@ source "$AEGIS_LIB_DIR/aegis-state.sh"
 source "$AEGIS_LIB_DIR/aegis-policy.sh"
 
 # Sparrow path — override via environment for testing
-AEGIS_SPARROW_PATH="${AEGIS_SPARROW_PATH:-/home/ai/scripts/sparrow}"
+AEGIS_SPARROW_PATH="${AEGIS_SPARROW_PATH:-sparrow}"
 
 # --- get_consultation_type(stage_name) ---
 # Returns "none", "routine", or "critical" for the given stage.

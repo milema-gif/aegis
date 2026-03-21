@@ -22,7 +22,7 @@ Each integration has a probe method, a fallback when unavailable, and a formatte
 | Property   | Value                                                      |
 |------------|------------------------------------------------------------|
 | Purpose    | Cross-model consultation via DeepSeek (free tier)          |
-| Probe      | Check: `/home/ai/scripts/sparrow` exists and is executable |
+| Probe      | Check: `$AEGIS_SPARROW_PATH` (or `sparrow` on PATH) exists and is executable |
 | Available  | Use Sparrow for second-opinion reviews                     |
 | Fallback   | `claude-only` — skip cross-model review stages             |
 | Status tag | `[OK] Sparrow` or `[MISSING] Sparrow`                      |

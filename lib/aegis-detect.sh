@@ -7,7 +7,7 @@ set -euo pipefail
 # Probes for Engram and Sparrow. Returns JSON object.
 # Configurable paths via environment (for testing).
 detect_integrations() {
-  local sparrow_path="${AEGIS_SPARROW_PATH:-/home/ai/scripts/sparrow}"
+  local sparrow_path="${AEGIS_SPARROW_PATH:-sparrow}"
   local engram_cmd="${AEGIS_ENGRAM_CMD:-engram}"
   local engram_sock="${AEGIS_ENGRAM_SOCK:-/tmp/engram.sock}"
   local engram_marker="${AEGIS_ENGRAM_MARKER:-.engram-available}"

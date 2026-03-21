@@ -129,7 +129,7 @@ update_state_integrations "$AEGIS_DIR/state.current.json" "$INTEGRATIONS"
 
 This probes for:
 - **Engram:** command on PATH, `/tmp/engram.sock`, or `.engram-available` marker
-- **Sparrow:** `/home/ai/scripts/sparrow` exists and is executable
+- **Sparrow:** `$AEGIS_SPARROW_PATH` (or `sparrow` on PATH) exists and is executable
 - **Codex:** Available if Sparrow is available. Always gated: user-explicit only (user must say "codex").
 
 Update the state file with current integration status.

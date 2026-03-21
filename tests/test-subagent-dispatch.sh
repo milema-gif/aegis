@@ -190,7 +190,7 @@ test_sparrow_delegation_pattern() {
   fi
   local all_ok=true
   local details=""
-  if ! grep -q "/home/ai/scripts/sparrow" "$path"; then
+  if ! grep -q "sparrow" "$path"; then
     all_ok=false
     details="$details missing sparrow invocation path;"
   fi
