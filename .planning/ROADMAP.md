@@ -58,8 +58,8 @@
   4. Policy config changes are tracked in git -- `git log` shows who changed what gate policy and when
 **Plans**: 2 plans
 Plans:
-- [ ] 11-01-PLAN.md — Policy config file, loader library, and tests
-- [ ] 11-02-PLAN.md — Wire existing gates and consultation to read from policy
+- [x] 11-01-PLAN.md — Policy config file, loader library, and tests
+- [x] 11-02-PLAN.md — Wire existing gates and consultation to read from policy
 
 ### Phase 12: Evidence Artifacts
 **Goal**: Every pipeline stage produces structured, machine-checkable evidence that gates can evaluate programmatically
@@ -72,8 +72,8 @@ Plans:
   4. Evidence artifacts are queryable -- given a requirement ID, the pipeline can trace which evidence proves it was satisfied
 **Plans**: 2 plans
 Plans:
-- [ ] 11-01-PLAN.md — Policy config file, loader library, and tests
-- [ ] 11-02-PLAN.md — Wire existing gates and consultation to read from policy
+- [ ] 12-01-PLAN.md — Evidence library (write, validate, query, test-req check) with TDD
+- [ ] 12-02-PLAN.md — Gate integration (evidence pre-check) and test name migration ([REQ-ID] prefixes)
 
 ### Phase 13: Enforcement Upgrade
 **Goal**: Subagents at mutating stages are blocked from editing without verification, while read-only stages remain unblocked
@@ -85,8 +85,8 @@ Plans:
   3. Any gate bypass (manual override) generates an audit log entry that appears in the next session summary and advance-stage report -- bypasses cannot be silent
 **Plans**: 2 plans
 Plans:
-- [ ] 11-01-PLAN.md — Policy config file, loader library, and tests
-- [ ] 11-02-PLAN.md — Wire existing gates and consultation to read from policy
+- [ ] 13-01-PLAN.md — [To be planned]
+- [ ] 13-02-PLAN.md — [To be planned]
 
 ### Phase 14: Risk-Scored Consultation
 **Goal**: High-risk stages automatically trigger model consultation, with results persisted as evidence -- not just logged to stdout
@@ -99,8 +99,8 @@ Plans:
   4. Consultation results are persisted as structured evidence artifacts in `.aegis/evidence/` with model name, query, response summary, and risk assessment
 **Plans**: 2 plans
 Plans:
-- [ ] 11-01-PLAN.md — Policy config file, loader library, and tests
-- [ ] 11-02-PLAN.md — Wire existing gates and consultation to read from policy
+- [ ] 14-01-PLAN.md — [To be planned]
+- [ ] 14-02-PLAN.md — [To be planned]
 
 ### Phase 15: Phase Regression
 **Goal**: Advancing to a new phase requires proof that prior phases still pass -- regressions block advancement
@@ -112,8 +112,8 @@ Plans:
   3. A phase delta report is generated showing files modified since last phase completion, functions added/removed, and test count delta -- the operator sees what changed before approving advancement
 **Plans**: 2 plans
 Plans:
-- [ ] 11-01-PLAN.md — Policy config file, loader library, and tests
-- [ ] 11-02-PLAN.md — Wire existing gates and consultation to read from policy
+- [ ] 15-01-PLAN.md — [To be planned]
+- [ ] 15-02-PLAN.md — [To be planned]
 
 ### Phase 16: Patterns and Rollback
 **Goal**: Operators can curate cross-project patterns and verify rollback capability as part of phase completion
@@ -125,8 +125,8 @@ Plans:
   3. Phase completion criteria include a deterministic rollback drill -- "can recover from this phase's changes" is verified, not assumed
 **Plans**: 2 plans
 Plans:
-- [ ] 11-01-PLAN.md — Policy config file, loader library, and tests
-- [ ] 11-02-PLAN.md — Wire existing gates and consultation to read from policy
+- [ ] 16-01-PLAN.md — [To be planned]
+- [ ] 16-02-PLAN.md — [To be planned]
 
 ## Progress
 
@@ -145,8 +145,8 @@ Phases 11 through 16 execute in order. Phase 16 (Patterns/Rollback) is independe
 | 8. Stage-Boundary Checkpoints | v2.0 | 2/2 | Complete | 2026-03-21 |
 | 9. Subagent Behavioral Gate | v2.0 | 2/2 | Complete | 2026-03-21 |
 | 10. Deploy Preflight Guard | v2.0 | 2/2 | Complete | 2026-03-21 |
-| 11. Policy-as-Code | 2/2 | Complete    | 2026-03-21 | - |
-| 12. Evidence Artifacts | v3.0 | 0/? | Not started | - |
+| 11. Policy-as-Code | v3.0 | 2/2 | Complete | 2026-03-21 |
+| 12. Evidence Artifacts | v3.0 | 0/2 | Planning | - |
 | 13. Enforcement Upgrade | v3.0 | 0/? | Not started | - |
 | 14. Risk-Scored Consultation | v3.0 | 0/? | Not started | - |
 | 15. Phase Regression | v3.0 | 0/? | Not started | - |
