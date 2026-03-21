@@ -85,8 +85,8 @@ Plans:
   3. Any gate bypass (manual override) generates an audit log entry that appears in the next session summary and advance-stage report -- bypasses cannot be silent
 **Plans**: 2 plans
 Plans:
-- [ ] 13-01-PLAN.md — [To be planned]
-- [ ] 13-02-PLAN.md — [To be planned]
+- [ ] 13-01-PLAN.md — Stage-aware enforcement upgrade (policy config, validate function, tests)
+- [ ] 13-02-PLAN.md — Bypass audit trail (evidence functions, orchestrator wiring, docs)
 
 ### Phase 14: Risk-Scored Consultation
 **Goal**: High-risk stages automatically trigger model consultation, with results persisted as evidence -- not just logged to stdout
