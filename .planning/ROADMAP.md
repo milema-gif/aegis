@@ -56,7 +56,10 @@
   2. Changing a gate policy (e.g., switching a gate from warn to block) requires only a config file edit, not a code change
   3. Every evidence artifact stamps the policy config version that was active when it was produced
   4. Policy config changes are tracked in git -- `git log` shows who changed what gate policy and when
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 11-01-PLAN.md — Policy config file, loader library, and tests
+- [ ] 11-02-PLAN.md — Wire existing gates and consultation to read from policy
 
 ### Phase 12: Evidence Artifacts
 **Goal**: Every pipeline stage produces structured, machine-checkable evidence that gates can evaluate programmatically
@@ -67,7 +70,10 @@
   2. Gate evaluation reads the evidence artifact and checks it programmatically (field presence, hash verification, requirement coverage) -- a stage with missing or malformed evidence is rejected
   3. Test-gate rejects any test suite where tests do not reference specific requirement IDs -- empty or vacuous test suites block the pipeline
   4. Evidence artifacts are queryable -- given a requirement ID, the pipeline can trace which evidence proves it was satisfied
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 11-01-PLAN.md — Policy config file, loader library, and tests
+- [ ] 11-02-PLAN.md — Wire existing gates and consultation to read from policy
 
 ### Phase 13: Enforcement Upgrade
 **Goal**: Subagents at mutating stages are blocked from editing without verification, while read-only stages remain unblocked
@@ -77,7 +83,10 @@
   1. A subagent at execute, verify, or deploy stage that attempts Edit/Write/git-commit without a BEHAVIORAL_GATE_CHECK marker is blocked -- the action does not proceed
   2. A subagent at research or phase-plan stage operates normally without gate enforcement -- read-only stages are not affected
   3. Any gate bypass (manual override) generates an audit log entry that appears in the next session summary and advance-stage report -- bypasses cannot be silent
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 11-01-PLAN.md — Policy config file, loader library, and tests
+- [ ] 11-02-PLAN.md — Wire existing gates and consultation to read from policy
 
 ### Phase 14: Risk-Scored Consultation
 **Goal**: High-risk stages automatically trigger model consultation, with results persisted as evidence -- not just logged to stdout
@@ -88,7 +97,10 @@
   2. A stage scored as high-risk triggers mandatory DeepSeek consultation before the gate passes -- the operator sees consultation happened without needing to request it
   3. Codex consultation triggers only for critical+high-risk stages AND only when the operator has opted in -- budget cap and per-stage max consultation count are enforced
   4. Consultation results are persisted as structured evidence artifacts in `.aegis/evidence/` with model name, query, response summary, and risk assessment
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 11-01-PLAN.md — Policy config file, loader library, and tests
+- [ ] 11-02-PLAN.md — Wire existing gates and consultation to read from policy
 
 ### Phase 15: Phase Regression
 **Goal**: Advancing to a new phase requires proof that prior phases still pass -- regressions block advancement
@@ -98,7 +110,10 @@
   1. The advance-stage gate checks that new phase work has not invalidated any prior phase's success criteria -- a phase delta check runs automatically
   2. Prior phase test suites re-run before advancing -- any test failure blocks the advance gate with a clear report of which phase regressed
   3. A phase delta report is generated showing files modified since last phase completion, functions added/removed, and test count delta -- the operator sees what changed before approving advancement
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 11-01-PLAN.md — Policy config file, loader library, and tests
+- [ ] 11-02-PLAN.md — Wire existing gates and consultation to read from policy
 
 ### Phase 16: Patterns and Rollback
 **Goal**: Operators can curate cross-project patterns and verify rollback capability as part of phase completion
@@ -108,7 +123,10 @@
   1. An opt-in pattern library exists where operators can store curated patterns from completed projects -- patterns are stored with project origin and description
   2. Writing a pattern to the library requires explicit operator approval -- no automatic cross-project memory sharing occurs
   3. Phase completion criteria include a deterministic rollback drill -- "can recover from this phase's changes" is verified, not assumed
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 11-01-PLAN.md — Policy config file, loader library, and tests
+- [ ] 11-02-PLAN.md — Wire existing gates and consultation to read from policy
 
 ## Progress
 
@@ -127,7 +145,7 @@ Phases 11 through 16 execute in order. Phase 16 (Patterns/Rollback) is independe
 | 8. Stage-Boundary Checkpoints | v2.0 | 2/2 | Complete | 2026-03-21 |
 | 9. Subagent Behavioral Gate | v2.0 | 2/2 | Complete | 2026-03-21 |
 | 10. Deploy Preflight Guard | v2.0 | 2/2 | Complete | 2026-03-21 |
-| 11. Policy-as-Code | v3.0 | 0/? | Not started | - |
+| 11. Policy-as-Code | v3.0 | 0/2 | Planning | - |
 | 12. Evidence Artifacts | v3.0 | 0/? | Not started | - |
 | 13. Enforcement Upgrade | v3.0 | 0/? | Not started | - |
 | 14. Risk-Scored Consultation | v3.0 | 0/? | Not started | - |
