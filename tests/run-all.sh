@@ -27,6 +27,7 @@ TESTS=(
   "test-checkpoints"
   "test-behavioral-gate"
   "test-preflight"
+  "test-evidence"
   "test-pipeline-integration"
 )
 
