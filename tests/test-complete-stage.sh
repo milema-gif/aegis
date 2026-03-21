@@ -111,7 +111,7 @@ test_complete_stage_no_arg() {
   setup
   init_state "test-project"
   local rc=0
-  complete_stage 2>/dev/null || rc=$?
+  ( complete_stage ) 2>/dev/null || rc=$?
   if [[ "$rc" -ne 0 ]]; then
     pass "complete_stage with no argument fails"
   else

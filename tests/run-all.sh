@@ -19,6 +19,8 @@ TESTS=(
   "test-advance-loop"
   "test-subagent-dispatch"
   "test-consultation"
+  "test-complete-stage"
+  "test-namespace"
   "test-pipeline-integration"
 )
 

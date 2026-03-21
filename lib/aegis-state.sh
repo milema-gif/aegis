@@ -129,7 +129,7 @@ print(json.dumps(d, indent=2))
 
   write_state "$new_state"
 
-  # Append state snapshot to journal for recovery
+  # Append state snapshot to journal for recovery (advance_stage)
   python3 -c "
 import json
 with open('${AEGIS_DIR}/state.current.json') as f:
@@ -250,4 +250,69 @@ for s in d['stages']:
 print('error: unknown stage', file=sys.stderr)
 sys.exit(1)
 "
+}
+
+# --- complete_stage(stage_name) ---
+# Marks a stage as completed with a timestamp. Idempotent: if already completed,
+# returns 0 without modifying the timestamp.
+complete_stage() {
+  local stage_name="${1:?complete_stage requires stage_name}"
+
+  # Validate stage name
+  local found=0
+  for s in "${STAGES[@]}"; do
+    if [[ "$s" == "$stage_name" ]]; then
+      found=1
+      break
+    fi
+  done
+  if [[ "$found" -eq 0 ]]; then
+    echo "Error: unknown stage '$stage_name'" >&2
+    return 1
+  fi
+
+  local now
+  now=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+  local rc=0
+  python3 -c "
+import json, sys
+
+with open('${AEGIS_DIR}/state.current.json') as f:
+    d = json.load(f)
+
+for s in d['stages']:
+    if s['name'] == '${stage_name}':
+        if s.get('status') == 'completed':
+            # Already completed — idempotent no-op
+            sys.exit(2)
+        s['status'] = 'completed'
+        s['completed_at'] = '${now}'
+        break
+
+d['updated_at'] = '${now}'
+
+tmp = '${AEGIS_DIR}/state.current.json.tmp.$$'
+with open(tmp, 'w') as f:
+    json.dump(d, f, indent=2)
+" || rc=$?
+
+  if [[ "$rc" -eq 2 ]]; then
+    # Already completed — no file to move
+    return 0
+  elif [[ "$rc" -ne 0 ]]; then
+    return "$rc"
+  fi
+
+  mv -f "${AEGIS_DIR}/state.current.json.tmp.$$" "${AEGIS_DIR}/state.current.json"
+}
+
+# --- ensure_stage_workspace(stage_name) ---
+# Creates an isolated workspace directory for a stage. Idempotent.
+# Prints the workspace path to stdout.
+ensure_stage_workspace() {
+  local stage_name="${1:?ensure_stage_workspace requires stage_name}"
+  local ws_path="${AEGIS_DIR}/workspaces/${stage_name}"
+  mkdir -p "$ws_path"
+  echo "$ws_path"
 }
