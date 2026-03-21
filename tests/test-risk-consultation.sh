@@ -476,6 +476,188 @@ else:
 }
 
 # ============================================================
+# CONS-03: Consultation evidence persistence tests
+# ============================================================
+
+test_write_consultation_evidence_creates_file() {
+  setup
+  source "$PROJECT_ROOT/lib/aegis-evidence.sh"
+  local result
+  result=$(write_consultation_evidence "verify" "3" "DeepSeek" "Review deploy output" "Looks good, no issues" "med" "routine" "configured" 2>/dev/null) || result=""
+
+  if [[ -f "$result" ]]; then
+    pass "[CONS-03] write_consultation_evidence creates consultation evidence file"
+  else
+    fail "[CONS-03] write_consultation_evidence creates consultation evidence file" "file not found: $result"
+  fi
+  teardown
+}
+
+test_write_consultation_evidence_filename() {
+  setup
+  source "$PROJECT_ROOT/lib/aegis-evidence.sh"
+  local result
+  result=$(write_consultation_evidence "verify" "3" "DeepSeek" "query" "response" "med" "routine" "configured" 2>/dev/null) || result=""
+  local basename
+  basename=$(basename "$result" 2>/dev/null) || basename=""
+
+  if [[ "$basename" == "consultation-verify-phase-3.json" ]]; then
+    pass "[CONS-03] write_consultation_evidence creates file named consultation-{stage}-phase-{N}.json"
+  else
+    fail "[CONS-03] write_consultation_evidence creates file named consultation-{stage}-phase-{N}.json" "got: $basename"
+  fi
+  teardown
+}
+
+test_write_consultation_evidence_type_field() {
+  setup
+  source "$PROJECT_ROOT/lib/aegis-evidence.sh"
+  local filepath
+  filepath=$(write_consultation_evidence "verify" "3" "DeepSeek" "query" "response" "med" "routine" "configured" 2>/dev/null) || filepath=""
+
+  local etype
+  etype=$(python3 -c "
+import json
+with open('${filepath}') as f:
+    data = json.load(f)
+print(data.get('type', ''))
+" 2>/dev/null) || etype=""
+
+  if [[ "$etype" == "consultation_evidence" ]]; then
+    pass "[CONS-03] consultation evidence has type 'consultation_evidence'"
+  else
+    fail "[CONS-03] consultation evidence has type 'consultation_evidence'" "got: $etype"
+  fi
+  teardown
+}
+
+test_write_consultation_evidence_schema_fields() {
+  setup
+  source "$PROJECT_ROOT/lib/aegis-evidence.sh"
+  local filepath
+  filepath=$(write_consultation_evidence "verify" "3" "DeepSeek" "Review this" "All good" "high" "critical" "risk_escalation" 2>/dev/null) || filepath=""
+
+  local ok
+  ok=$(python3 -c "
+import json
+with open('${filepath}') as f:
+    data = json.load(f)
+required = ['schema_version','type','stage','phase','policy_version','timestamp',
+            'model','consultation_type','risk_score','query_summary','response_summary','triggered_by']
+missing = [k for k in required if k not in data]
+if not missing and data['schema_version'] == '1.0.0':
+    print('yes')
+else:
+    print(f'no: missing={missing}')
+" 2>/dev/null) || ok="error"
+
+  if [[ "$ok" == "yes" ]]; then
+    pass "[CONS-03] consultation evidence contains all required schema fields with schema_version 1.0.0"
+  else
+    fail "[CONS-03] consultation evidence contains all required schema fields with schema_version 1.0.0" "$ok"
+  fi
+  teardown
+}
+
+test_write_consultation_evidence_values() {
+  setup
+  source "$PROJECT_ROOT/lib/aegis-evidence.sh"
+  local filepath
+  filepath=$(write_consultation_evidence "deploy" "5" "GPT Codex" "Check deploy" "LGTM" "high" "critical" "risk_escalation" 2>/dev/null) || filepath=""
+
+  local ok
+  ok=$(python3 -c "
+import json
+with open('${filepath}') as f:
+    data = json.load(f)
+checks = [
+    data.get('stage') == 'deploy',
+    data.get('phase') == 5,
+    data.get('model') == 'GPT Codex',
+    data.get('consultation_type') == 'critical',
+    data.get('risk_score') == 'high',
+    data.get('query_summary') == 'Check deploy',
+    data.get('response_summary') == 'LGTM',
+    data.get('triggered_by') == 'risk_escalation',
+]
+if all(checks):
+    print('yes')
+else:
+    print(f'no: checks={checks}')
+" 2>/dev/null) || ok="error"
+
+  if [[ "$ok" == "yes" ]]; then
+    pass "[CONS-03] consultation evidence stores correct stage, phase, model, type, risk, query, response, triggered_by"
+  else
+    fail "[CONS-03] consultation evidence stores correct stage, phase, model, type, risk, query, response, triggered_by" "$ok"
+  fi
+  teardown
+}
+
+test_write_consultation_evidence_iso_timestamp() {
+  setup
+  source "$PROJECT_ROOT/lib/aegis-evidence.sh"
+  local filepath
+  filepath=$(write_consultation_evidence "verify" "1" "DeepSeek" "q" "r" "low" "routine" "configured" 2>/dev/null) || filepath=""
+
+  local ok
+  ok=$(python3 -c "
+import json, re
+with open('${filepath}') as f:
+    data = json.load(f)
+ts = data.get('timestamp', '')
+# ISO 8601 pattern
+if re.match(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$', ts):
+    print('yes')
+else:
+    print(f'no: {ts}')
+" 2>/dev/null) || ok="error"
+
+  if [[ "$ok" == "yes" ]]; then
+    pass "[CONS-03] consultation evidence has ISO 8601 timestamp"
+  else
+    fail "[CONS-03] consultation evidence has ISO 8601 timestamp" "$ok"
+  fi
+  teardown
+}
+
+test_write_consultation_evidence_returns_path() {
+  setup
+  source "$PROJECT_ROOT/lib/aegis-evidence.sh"
+  local result
+  result=$(write_consultation_evidence "verify" "2" "DeepSeek" "q" "r" "low" "routine" "configured" 2>/dev/null) || result=""
+
+  if [[ "$result" == *"consultation-verify-phase-2.json"* ]]; then
+    pass "[CONS-03] write_consultation_evidence returns file path on stdout"
+  else
+    fail "[CONS-03] write_consultation_evidence returns file path on stdout" "got: $result"
+  fi
+  teardown
+}
+
+test_write_consultation_evidence_policy_version() {
+  setup
+  source "$PROJECT_ROOT/lib/aegis-evidence.sh"
+  local filepath
+  filepath=$(write_consultation_evidence "verify" "1" "DeepSeek" "q" "r" "low" "routine" "configured" 2>/dev/null) || filepath=""
+
+  local pv
+  pv=$(python3 -c "
+import json
+with open('${filepath}') as f:
+    data = json.load(f)
+print(data.get('policy_version', ''))
+" 2>/dev/null) || pv=""
+
+  if [[ "$pv" == "1.0.0" ]]; then
+    pass "[CONS-03] consultation evidence includes policy_version from get_policy_version()"
+  else
+    fail "[CONS-03] consultation evidence includes policy_version from get_policy_version()" "got: $pv"
+  fi
+  teardown
+}
+
+# ============================================================
 # Run all tests
 # ============================================================
 
@@ -497,6 +679,15 @@ test_check_budget_codex_limit
 test_record_consultation_increments
 test_record_consultation_codex_count
 test_consultation_budget_in_policy
+
+test_write_consultation_evidence_creates_file
+test_write_consultation_evidence_filename
+test_write_consultation_evidence_type_field
+test_write_consultation_evidence_schema_fields
+test_write_consultation_evidence_values
+test_write_consultation_evidence_iso_timestamp
+test_write_consultation_evidence_returns_path
+test_write_consultation_evidence_policy_version
 
 echo ""
 echo "Risk & consultation tests: ${PASS_COUNT} passed, ${FAIL_COUNT} failed"

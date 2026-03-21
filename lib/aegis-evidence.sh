@@ -278,6 +278,56 @@ with open('${tmp_file}', 'w') as f:
   echo "$audit_file"
 }
 
+# --- write_consultation_evidence(stage, phase, model, query_summary, response_summary, risk_score, consultation_type, triggered_by) ---
+# Creates .aegis/evidence/consultation-{stage}-phase-{phase}.json with consultation schema.
+# Records consultation event with model, risk, type, and trigger information.
+# Returns the file path on stdout.
+write_consultation_evidence() {
+  local stage="${1:?write_consultation_evidence requires stage}"
+  local phase="${2:?write_consultation_evidence requires phase}"
+  local model="${3:?write_consultation_evidence requires model}"
+  local query_summary="${4:-}"
+  local response_summary="${5:-}"
+  local risk_score="${6:-low}"
+  local consultation_type="${7:-routine}"
+  local triggered_by="${8:-configured}"
+
+  local evidence_dir="${AEGIS_DIR:-.aegis}/evidence"
+  mkdir -p "$evidence_dir"
+
+  local evidence_file="${evidence_dir}/consultation-${stage}-phase-${phase}.json"
+  local policy_version="${AEGIS_POLICY_VERSION:-unknown}"
+
+  local tmp_file
+  tmp_file=$(mktemp "${evidence_dir}/.tmp.XXXXXX")
+
+  python3 -c "
+import json
+from datetime import datetime, timezone
+
+evidence = {
+    'schema_version': '1.0.0',
+    'type': 'consultation_evidence',
+    'stage': '${stage}',
+    'phase': int('${phase}'),
+    'policy_version': '${policy_version}',
+    'timestamp': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
+    'model': '${model}',
+    'consultation_type': '${consultation_type}',
+    'risk_score': '${risk_score}',
+    'query_summary': '''${query_summary}'''.strip(),
+    'response_summary': '''${response_summary}'''.strip(),
+    'triggered_by': '${triggered_by}'
+}
+
+with open('${tmp_file}', 'w') as f:
+    json.dump(evidence, f, indent=2)
+" || { rm -f "$tmp_file"; return 1; }
+
+  mv "$tmp_file" "$evidence_file"
+  echo "$evidence_file"
+}
+
 # --- scan_unsurfaced_bypasses() ---
 # Scans .aegis/evidence/bypass-*.json for entries with surfaced=false.
 # Returns JSON array on stdout (empty array [] if none found).
