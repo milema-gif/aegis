@@ -57,9 +57,9 @@
 
 ### Stage Checkpoints
 
-- [ ] **CHKP-01**: Structured checkpoint file written to `.aegis/checkpoints/{stage}-phase-{N}.md` after each gate pass, containing decisions, files changed, active constraints, and next-stage context
-- [ ] **CHKP-02**: Context window assembler (`assemble_context_window()`) injects last N checkpoints into subagent dispatch as "Prior Stage Context"
-- [ ] **CHKP-03**: Checkpoint schema enforces ~500 token budget at write time — checkpoints reference artifacts by path, never embed content
+- [x] **CHKP-01**: Structured checkpoint file written to `.aegis/checkpoints/{stage}-phase-{N}.md` after each gate pass, containing decisions, files changed, active constraints, and next-stage context
+- [x] **CHKP-02**: Context window assembler (`assemble_context_window()`) injects last N checkpoints into subagent dispatch as "Prior Stage Context"
+- [x] **CHKP-03**: Checkpoint schema enforces ~500 token budget at write time — checkpoints reference artifacts by path, never embed content
 
 ### Subagent Quality
 
@@ -160,9 +160,9 @@
 | MEM-07 | Phase 7 | Complete |
 | MEM-08 | Phase 7 | Complete |
 | MEM-09 | Phase 7 | Complete |
-| CHKP-01 | Phase 8 | Pending |
-| CHKP-02 | Phase 8 | Pending |
-| CHKP-03 | Phase 8 | Pending |
+| CHKP-01 | Phase 8 | Complete |
+| CHKP-02 | Phase 8 | Complete |
+| CHKP-03 | Phase 8 | Complete |
 | AGENT-01 | Phase 9 | Pending |
 | AGENT-02 | Phase 9 | Pending |
 | AGENT-03 | Phase 9 | Pending |

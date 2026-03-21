@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Quality Enforcement
 status: executing
-stopped_at: Completed 07-03-PLAN.md
-last_updated: "2026-03-21T09:45:52.324Z"
-last_activity: 2026-03-21 — Completed 07-03 Memory Decay & Legacy Migration
+stopped_at: Completed 08-01-PLAN.md
+last_updated: "2026-03-21T10:05:16Z"
+last_activity: 2026-03-21 — Completed 08-01 Checkpoint Library
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
-  percent: 100
+  total_plans: 5
+  completed_plans: 4
+  percent: 80
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 
 ## Current Position
 
-Phase: 7 of 10 (Foundation) — first phase of v2.0 milestone
-Plan: 3 of 3 complete (Phase 7 COMPLETE)
+Phase: 8 of 10 (Stage Checkpoints)
+Plan: 1 of 2 complete
 Status: Executing
-Last activity: 2026-03-21 — Completed 07-03 Memory Decay & Legacy Migration
+Last activity: 2026-03-21 — Completed 08-01 Checkpoint Library
 
-Progress: [██████████] 100% (v2.0 Phase 7)
+Progress: [█████-----] 50% (v2.0 Phase 8)
 
 ## Performance Metrics
 
@@ -52,6 +52,7 @@ Progress: [██████████] 100% (v2.0 Phase 7)
 
 *Updated after each plan completion*
 | Phase 07 P03 | 4min | 3 tasks | 5 files |
+| Phase 08 P01 | 3min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -74,6 +75,8 @@ Recent decisions affecting current work:
 - [07-03]: Decay uses find -mmin guard (filesystem mtime) for 24h check
 - [07-03]: Unclassified legacy entries preserved as pinned/global — safe default
 - [07-03]: Migration handles local JSON only; Engram MCP migration is separate manual session
+- [08-01]: Dynamic AEGIS_DIR resolution in checkpoint functions for test isolation
+- [08-01]: 375-word budget enforced at write time; oldest-first sort for chronological assembly
 
 ### Pending Todos
 
@@ -93,7 +96,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-21T09:41:44.784Z
-Stopped at: Completed 07-03-PLAN.md
+Last session: 2026-03-21T10:05:16Z
+Stopped at: Completed 08-01-PLAN.md
 Resume file: None
-Next step: Phase 8 planning (Checkpoints)
+Next step: Execute 08-02 (Orchestrator checkpoint integration)
