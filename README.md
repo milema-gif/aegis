@@ -134,6 +134,10 @@ Gate behavior is configured in `aegis-policy.json`:
 
 See `templates/aegis-policy.default.json` for the full default configuration.
 
+## Acknowledgements
+
+Aegis is built on top of [Get Shit Done (GSD)](https://github.com/obra/get-shit-done) by Jesse Vincent — the planning, execution, and verification framework that makes agentic development actually work. GSD provides the foundation that Aegis orchestrates: phase planning, atomic execution, goal-backward verification, and the discipline to ship rather than spin.
+
 ## License
 
 MIT
