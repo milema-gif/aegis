@@ -7,6 +7,10 @@ set -euo pipefail
 # Defaults — override via environment before sourcing
 AEGIS_DIR="${AEGIS_DIR:-.aegis}"
 AEGIS_TEMPLATE_DIR="${AEGIS_TEMPLATE_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../templates" && pwd)}"
+AEGIS_LIB_DIR="${AEGIS_LIB_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
+
+# Source policy loader (provides load_policy, get_gate_config, etc.)
+source "$AEGIS_LIB_DIR/aegis-policy.sh"
 
 # Canonical stage order (0-8)
 STAGES=("intake" "research" "roadmap" "phase-plan" "execute" "verify" "test-gate" "advance" "deploy")
@@ -22,17 +26,36 @@ init_state() {
   local now
   now=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
+  # Load and validate policy before init
+  load_policy || { echo "Error: policy load failed during init_state" >&2; return 1; }
+
   python3 -c "
 import json, sys
 
 with open('${AEGIS_TEMPLATE_DIR}/pipeline-state.json') as f:
     state = json.load(f)
 
+# Load policy config
+with open('${AEGIS_POLICY_FILE}') as f:
+    policy = json.load(f)
+
 state['project'] = '${project_name}'
 state['pipeline_id'] = '${pipeline_id}'
 state['started_at'] = '${now}'
 state['updated_at'] = '${now}'
 state['stages'][0]['entered_at'] = '${now}'
+
+# Stamp policy version into state
+state['policy_version'] = policy['policy_version']
+
+# Populate gate fields from policy for each stage
+for stage in state['stages']:
+    stage_name = stage['name']
+    gate_policy = policy.get('gates', {}).get(stage_name)
+    if gate_policy:
+        # Overwrite config fields from policy; keep runtime fields from template
+        for field in ('type', 'skippable', 'max_retries', 'backoff', 'timeout_seconds'):
+            stage['gate'][field] = gate_policy[field]
 
 with open('${AEGIS_DIR}/state.current.json.tmp.$$', 'w') as f:
     json.dump(state, f, indent=2)

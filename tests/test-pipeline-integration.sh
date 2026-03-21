@@ -31,6 +31,7 @@ cp "$SCRIPT_DIR/lib/"aegis-*.sh lib/
 cp "$SCRIPT_DIR/templates/pipeline-state.json" templates/
 cp "$SCRIPT_DIR/references/gate-definitions.md" references/
 cp "$SCRIPT_DIR/references/consultation-config.md" references/ 2>/dev/null || true
+cp "$SCRIPT_DIR/aegis-policy.json" ./aegis-policy.json
 
 # Disable Sparrow for controlled testing
 export AEGIS_SPARROW_PATH="/nonexistent/sparrow"
@@ -42,6 +43,7 @@ export AEGIS_ENGRAM_MARKER="/nonexistent/marker"
 export AEGIS_DIR=".aegis"
 export AEGIS_TEMPLATE_DIR="templates"
 export AEGIS_LIB_DIR="lib"
+export AEGIS_POLICY_FILE="$TEST_DIR/aegis-policy.json"
 
 echo "=== Pipeline Integration Test ==="
 echo ""
