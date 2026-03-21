@@ -112,8 +112,8 @@ Plans:
   3. A phase delta report is generated showing files modified since last phase completion, functions added/removed, and test count delta -- the operator sees what changed before approving advancement
 **Plans**: 2 plans
 Plans:
-- [ ] 15-01-PLAN.md — [To be planned]
-- [ ] 15-02-PLAN.md — [To be planned]
+- [ ] 15-01-PLAN.md — Regression library (check, test re-run, delta report) with TDD
+- [ ] 15-02-PLAN.md — Wire regression into advance stage workflow, add to test runner
 
 ### Phase 16: Patterns and Rollback
 **Goal**: Operators can curate cross-project patterns and verify rollback capability as part of phase completion
@@ -149,5 +149,5 @@ Phases 11 through 16 execute in order. Phase 16 (Patterns/Rollback) is independe
 | 12. Evidence Artifacts | 2/2 | Complete    | 2026-03-21 | - |
 | 13. Enforcement Upgrade | 2/2 | Complete    | 2026-03-21 | - |
 | 14. Risk-Scored Consultation | 2/2 | Complete    | 2026-03-21 | - |
-| 15. Phase Regression | v3.0 | 0/? | Not started | - |
+| 15. Phase Regression | v3.0 | 0/2 | Not started | - |
 | 16. Patterns and Rollback | v3.0 | 0/? | Not started | - |
