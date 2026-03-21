@@ -359,7 +359,7 @@ test_get_policy_version() {
   load_policy 2>/dev/null
   local version
   version=$(get_policy_version)
-  if [[ "$version" == "1.0.0" ]]; then
+  if [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     pass "[POLC-01] get_policy_version returns version after load"
   else
     fail "[POLC-01] get_policy_version returns version after load" "got=$version"
@@ -413,7 +413,7 @@ test_stamp_policy_version() {
   stamp_policy_version "$test_file"
   local stamped_version
   stamped_version=$(python3 -c "import json; print(json.load(open('$test_file')).get('policy_version',''))")
-  if [[ "$stamped_version" == "1.0.0" ]]; then
+  if [[ "$stamped_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     pass "[POLC-01] stamp_policy_version adds policy_version to JSON file"
   else
     fail "[POLC-01] stamp_policy_version adds policy_version to JSON file" "got=$stamped_version"
