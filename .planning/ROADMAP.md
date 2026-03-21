@@ -85,7 +85,10 @@ Plans:
   1. Before any deploy action, a preflight check verifies: all 8 prior stages completed, deploy scope matches roadmap target, rollback tag exists, working tree is clean
   2. Deploy confirmation requires the operator to type "deploy" explicitly — the word "approved" does not satisfy the gate, and the preflight is never skippable (even in YOLO mode)
   3. Pre-deploy snapshot captures running service state (Docker container IDs, PM2 process metadata) so rollback can restore to the actual pre-deploy state, not just the last git tag
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 10-01-PLAN.md — Preflight library and test suite (TDD: verify_state_position, verify_deploy_scope, verify_rollback_tag, snapshot_running_state, run_preflight)
+- [ ] 10-02-PLAN.md — Deploy stage integration (wire preflight into 09-deploy.md, deploy keyword confirmation)
 
 ## Progress
 
@@ -103,4 +106,4 @@ Phases 7 through 10 execute in order. Phases 9 and 10 can be parallelized after 
 | 7. Foundation | v2.0 | 3/3 | Complete | 2026-03-21 |
 | 8. Stage-Boundary Checkpoints | v2.0 | 2/2 | Complete | 2026-03-21 |
 | 9. Subagent Behavioral Gate | v2.0 | 0/2 | Planned | - |
-| 10. Deploy Preflight Guard | v2.0 | 0/? | Not started | - |
+| 10. Deploy Preflight Guard | v2.0 | 0/2 | Planned | - |
