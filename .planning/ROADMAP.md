@@ -99,8 +99,8 @@ Plans:
   4. Consultation results are persisted as structured evidence artifacts in `.aegis/evidence/` with model name, query, response summary, and risk assessment
 **Plans**: 2 plans
 Plans:
-- [ ] 14-01-PLAN.md — [To be planned]
-- [ ] 14-02-PLAN.md — [To be planned]
+- [ ] 14-01-PLAN.md — Risk scoring library, budget tracking, policy config extensions, test suite
+- [ ] 14-02-PLAN.md — Consultation evidence persistence, orchestrator wiring (Step 5.55 upgrade)
 
 ### Phase 15: Phase Regression
 **Goal**: Advancing to a new phase requires proof that prior phases still pass -- regressions block advancement
@@ -148,6 +148,6 @@ Phases 11 through 16 execute in order. Phase 16 (Patterns/Rollback) is independe
 | 11. Policy-as-Code | v3.0 | 2/2 | Complete | 2026-03-21 |
 | 12. Evidence Artifacts | 2/2 | Complete    | 2026-03-21 | - |
 | 13. Enforcement Upgrade | 2/2 | Complete    | 2026-03-21 | - |
-| 14. Risk-Scored Consultation | v3.0 | 0/? | Not started | - |
+| 14. Risk-Scored Consultation | v3.0 | 0/2 | Not started | - |
 | 15. Phase Regression | v3.0 | 0/? | Not started | - |
 | 16. Patterns and Rollback | v3.0 | 0/? | Not started | - |
