@@ -59,7 +59,10 @@ Plans:
   2. Subagent invocations include a "Prior Stage Context" section assembled from the last 3 checkpoints
   3. Checkpoint write rejects any entry exceeding ~500 tokens — oversized checkpoints fail at write time, not silently truncate
   4. Checkpoint failure is silent and non-blocking — the pipeline continues with empty context rather than crashing
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 08-01-PLAN.md — Checkpoint library and test suite (write/read/list/assemble functions, TDD)
+- [ ] 08-02-PLAN.md — Orchestrator and protocol integration (wire checkpoints into pipeline flow)
 
 ### Phase 9: Subagent Behavioral Gate
 **Goal**: Subagents verify existing code before editing it, with enforcement that does not break parallel dispatch
@@ -95,6 +98,6 @@ Phases 7 through 10 execute in order. Phases 9 and 10 can be parallelized after 
 | 5. Engram Integration | v1.0 | 2/2 | Complete | 2026-03-09 |
 | 6. Multi-Model Consultation | v1.0 | 2/2 | Complete | 2026-03-09 |
 | 7. Foundation | 3/3 | Complete   | 2026-03-21 | - |
-| 8. Stage-Boundary Checkpoints | v2.0 | 0/? | Not started | - |
+| 8. Stage-Boundary Checkpoints | v2.0 | 0/2 | Not started | - |
 | 9. Subagent Behavioral Gate | v2.0 | 0/? | Not started | - |
 | 10. Deploy Preflight Guard | v2.0 | 0/? | Not started | - |
