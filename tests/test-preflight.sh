@@ -262,9 +262,16 @@ test_snapshot_no_docker() {
   setup_git
   init_state "test-project"
   git add -A && git commit -q -m "aegis state"
-  # Use a PATH that excludes docker
+  # Use a PATH that excludes docker (empty bin dir with essentials)
+  local fake_bin
+  fake_bin=$(mktemp -d)
+  for cmd in python3 git date mkdir mv rm; do
+    local cmd_path
+    cmd_path=$(command -v "$cmd" 2>/dev/null) && ln -sf "$cmd_path" "$fake_bin/$cmd"
+  done
   local snap_path
-  snap_path=$(PATH="/usr/bin:/bin" snapshot_running_state 2>/dev/null)
+  snap_path=$(PATH="$fake_bin" snapshot_running_state 2>/dev/null)
+  rm -rf "$fake_bin"
   local docker_len
   docker_len=$(python3 -c "
 import json
@@ -322,7 +329,7 @@ test_run_preflight_blocked() {
   git add -A && git commit -q -m "state"
   git tag "aegis/phase-1-foundation"
   local result
-  result=$(run_preflight "test-project" "$roadmap" 2>/dev/null | tail -1)
+  result=$(run_preflight "test-project" "$roadmap" 2>/dev/null | tail -1) || true
   if [[ "$result" == blocked:* ]]; then
     pass "run_preflight returns blocked when state position fails"
   else
