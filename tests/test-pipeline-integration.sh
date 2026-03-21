@@ -338,8 +338,8 @@ echo "## 7. Memory Library (Fallback Mode)"
 source lib/aegis-memory.sh
 
 # Test gate memory save (fallback)
-memory_save_gate "intake" "1" "Test gate summary for intake"
-SEARCH=$(memory_search "project" "intake" 5)
+memory_save_gate "aegis" "intake" "1" "Test gate summary for intake"
+SEARCH=$(memory_search "aegis-project" "intake" 5)
 if echo "$SEARCH" | grep -q "intake"; then
   pass "Gate memory save + search works in fallback mode"
 else

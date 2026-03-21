@@ -12,6 +12,7 @@ TESTS=(
   "test-integration-detection"
   "test-memory-stub"
   "test-memory-engram"
+  "test-memory-scoping"
   "test-gate-evaluation"
   "test-gate-banners"
   "test-git-operations"

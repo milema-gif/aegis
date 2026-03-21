@@ -26,24 +26,24 @@ source "$PROJECT_ROOT/lib/aegis-memory.sh"
 # --- Test: memory_save_gate creates entry with correct key format ---
 test_save_gate_key_format() {
   setup
-  memory_save_gate "execute" "3" "Stage completed successfully"
-  if [[ -f "$MEMORY_DIR/project.json" ]]; then
+  memory_save_gate "aegis" "execute" "3" "Stage completed successfully"
+  if [[ -f "$MEMORY_DIR/aegis-project.json" ]]; then
     local key_valid
     key_valid=$(python3 -c "
 import json
-with open('$MEMORY_DIR/project.json') as f:
+with open('$MEMORY_DIR/aegis-project.json') as f:
     d = json.load(f)
 assert len(d) == 1
-assert d[0]['key'] == 'gate-execute-phase-3'
+assert d[0]['key'] == 'aegis/gate-execute-phase-3'
 print('valid')
 " 2>/dev/null || echo "invalid")
     if [[ "$key_valid" == "valid" ]]; then
       pass "memory_save_gate creates entry with correct key format"
     else
-      fail "memory_save_gate key format" "key does not match gate-execute-phase-3"
+      fail "memory_save_gate key format" "key does not match aegis/gate-execute-phase-3"
     fi
   else
-    fail "memory_save_gate key format" "project.json not created"
+    fail "memory_save_gate key format" "aegis-project.json not created"
   fi
   teardown
 }
@@ -52,11 +52,11 @@ print('valid')
 test_save_gate_content() {
   setup
   local summary="**What**: Built auth\n**Why**: Security\n**Where**: lib/auth.sh\n**Learned**: JWT works"
-  memory_save_gate "intake" "0" "$summary"
+  memory_save_gate "aegis" "intake" "0" "$summary"
   local content_valid
   content_valid=$(python3 -c "
 import json
-with open('$MEMORY_DIR/project.json') as f:
+with open('$MEMORY_DIR/aegis-project.json') as f:
     d = json.load(f)
 assert '**What**: Built auth' in d[0]['content']
 assert 'timestamp' in d[0]
@@ -195,9 +195,9 @@ test_memory_search_bugfixes_empty_when_no_data() {
 # --- Test: gate save then bugfix search integration ---
 test_gate_save_then_bugfix_search_integration() {
   setup
-  memory_save_gate "verify" "3" "**What**: Fixed auth bypass\n**Learned**: bugfix for CVE check"
+  memory_save_gate "aegis" "verify" "3" "**What**: Fixed auth bypass\n**Learned**: bugfix for CVE check"
   local results
-  results=$(memory_search_bugfixes 10)
+  results=$(memory_search "aegis-project" "bugfix" 10)
   local count
   count=$(echo "$results" | python3 -c "import json,sys; d=json.load(sys.stdin); print(len(d))")
   if [[ "$count" -ge 1 ]]; then

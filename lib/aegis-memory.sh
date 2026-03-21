@@ -75,15 +75,111 @@ print(json.dumps(matches))
 "
 }
 
-# --- memory_save_gate(stage, phase, summary) ---
-# Saves a gate-passage memory entry. Local JSON fallback for MEM-01.
-# Uses key format: gate-{stage}-phase-{phase}
-memory_save_gate() {
-  local stage="${1:?memory_save_gate requires stage}"
-  local phase="${2:?memory_save_gate requires phase}"
-  local summary="${3:?memory_save_gate requires summary}"
+# --- memory_save_scoped(project, scope, key, content, cross_project) ---
+# Project-scoped memory write. Enforces MEM-04 (project required),
+# MEM-08 (global needs cross_project), MEM-09 (project prefix in key).
+memory_save_scoped() {
+  local project="${1:-}"
+  local scope="${2:?memory_save_scoped requires scope}"
+  local key="${3:?memory_save_scoped requires key}"
+  local content="${4:?memory_save_scoped requires content}"
+  local cross_project="${5:-false}"
 
-  memory_save "project" "gate-${stage}-phase-${phase}" "$summary"
+  if [[ -z "$project" ]]; then
+    echo "Error: memory write rejected -- project_id required (MEM-04)" >&2
+    return 1
+  fi
+
+  if [[ "$scope" == "global" && "$cross_project" != "true" ]]; then
+    echo "Error: global-scope write rejected -- requires cross_project=true (MEM-08)" >&2
+    return 1
+  fi
+
+  local prefixed_key="${project}/${key}"
+  memory_save "${project}-${scope}" "$prefixed_key" "$content"
+}
+
+# --- memory_pollution_scan(project) ---
+# Scans memory files for entries whose key does not start with project prefix (MEM-06).
+# Prints suspect count to stdout, warning to stderr if count > 0.
+memory_pollution_scan() {
+  local project="${1:?memory_pollution_scan requires project}"
+
+  local suspect_count
+  suspect_count=$(python3 -c "
+import json, glob, os
+
+memory_dir = '${MEMORY_DIR}'
+project = $(python3 -c "import json; print(json.dumps('${project}'))")
+prefix = project + '/'
+suspect = 0
+
+if os.path.isdir(memory_dir):
+    for f in glob.glob(os.path.join(memory_dir, '*.json')):
+        with open(f) as fh:
+            try:
+                entries = json.load(fh)
+            except (json.JSONDecodeError, ValueError):
+                continue
+            for e in entries:
+                key = e.get('key', '')
+                if not key.startswith(prefix):
+                    suspect += 1
+
+print(suspect)
+")
+
+  echo "$suspect_count"
+  if [[ "$suspect_count" -gt 0 ]]; then
+    echo "Warning: ${suspect_count} memory entries may belong to a different project (MEM-06)" >&2
+  fi
+}
+
+# --- memory_retrieve_context_scoped(project, terms, limit) ---
+# Project-scoped context retrieval. Searches in {project}-project.json
+# and filters to entries with matching project prefix.
+memory_retrieve_context_scoped() {
+  local project="${1:?memory_retrieve_context_scoped requires project}"
+  local terms="${2:?memory_retrieve_context_scoped requires terms}"
+  local limit="${3:-5}"
+
+  local file="$MEMORY_DIR/${project}-project.json"
+
+  if [[ ! -f "$file" ]]; then
+    echo "[]"
+    return 0
+  fi
+
+  python3 -c "
+import json
+
+with open('${file}') as f:
+    entries = json.load(f)
+
+project = $(python3 -c "import json; print(json.dumps('${project}'))")
+prefix = project + '/'
+query = $(python3 -c "import json; print(json.dumps('${terms}'))").lower()
+
+matches = [
+    e for e in entries
+    if e.get('key', '').startswith(prefix)
+    and (query in e.get('key', '').lower() or query in e.get('content', '').lower())
+][:${limit}]
+
+print(json.dumps(matches))
+"
+}
+
+# --- memory_save_gate(project, stage, phase, summary) ---
+# Saves a gate-passage memory entry. Local JSON fallback for MEM-01.
+# Uses key format: {project}/gate-{stage}-phase-{phase}
+memory_save_gate() {
+  local project="${1:?memory_save_gate requires project}"
+  local stage="${2:?memory_save_gate requires stage}"
+  local phase="${3:?memory_save_gate requires phase}"
+  local summary="${4:?memory_save_gate requires summary}"
+
+  memory_save_scoped "$project" "project" "gate-${stage}-phase-${phase}" "$summary"
 }
 
 # --- memory_retrieve_context(scope, terms, limit) ---
