@@ -103,6 +103,18 @@ if [[ "$UNSURFACED" != "[]" ]]; then
 fi
 ```
 
+### Budget Reset at Pipeline Start
+
+After bypass surfacing, reset the consultation budget for this pipeline run:
+
+```bash
+source lib/aegis-risk.sh
+source lib/aegis-consult.sh
+reset_consultation_budget
+```
+
+This ensures each pipeline run starts with a fresh budget tracker. The budget limits (per-run, per-stage, codex) are enforced during Step 5.55 consultation.
+
 ## Step 3 -- Detect Integrations
 
 Run integration detection on **every invocation** (never cache):
@@ -376,45 +388,80 @@ YOLO_MODE=$(read_yolo_mode)
    - If the current stage is `advance`: check the roadmap for remaining phases and call `advance_stage "$REMAINING_PHASES"`.
    - Otherwise: call `advance_stage`.
 
-## Step 5.55 -- External Model Consultation
+## Step 5.55 -- External Model Consultation (Risk-Scored)
 
 After gate passes (Step 5.5 result is "pass" or "auto-approved"), optionally consult an external model for review feedback. Consultation is ADVISORY -- it never blocks the pipeline.
 
+**Risk scoring drives consultation:** The stage's risk score can escalate consultation type. A high-risk stage with `type: "none"` in policy is automatically escalated to `"routine"` consultation to ensure critical changes get reviewed.
+
 ```bash
 source lib/aegis-consult.sh
+source lib/aegis-risk.sh
+source lib/aegis-evidence.sh
 
 CURRENT_STAGE=$(read_current_stage)
+
+# 1. Compute risk score from evidence artifact
+RISK_JSON=$(compute_risk_score "$CURRENT_STAGE" "$PHASE_NUM")
+RISK_SCORE=$(python3 -c "import json; print(json.loads('''${RISK_JSON}''').get('score','low'))")
+
+# 2. Embed risk score in evidence artifact (enriches stage_specific)
+embed_risk_in_evidence "$CURRENT_STAGE" "$PHASE_NUM" "$RISK_JSON" 2>/dev/null || true
+
+# 3. Get configured consultation type
 CONSULT_TYPE=$(get_consultation_type "$CURRENT_STAGE")
 
+# 4. Risk escalation: high risk + none type -> routine consultation
+TRIGGERED_BY="configured"
+if [[ "$RISK_SCORE" == "high" && "$CONSULT_TYPE" == "none" ]]; then
+  CONSULT_TYPE="routine"
+  TRIGGERED_BY="risk_escalation"
+  echo "[consultation] Risk escalation: high-risk stage '$CURRENT_STAGE' escalated to routine consultation"
+fi
+
+# 5. If still no consultation needed, skip to Step 5.6
 if [[ "$CONSULT_TYPE" == "none" ]]; then
   # No consultation for this stage, continue to Step 5.6
   :
-elif [[ "$CONSULT_TYPE" == "routine" ]]; then
-  CONTEXT=$(build_consultation_context "$CURRENT_STAGE" "$PROJECT_NAME")
-  RESULT=$(consult_sparrow "$CONTEXT" "false" 60)
-  if [[ -n "$RESULT" ]]; then
-    show_consultation_banner "DeepSeek" "$CURRENT_STAGE" "$RESULT"
-  else
-    echo "[consultation] Sparrow unavailable, skipping routine review."
-  fi
-elif [[ "$CONSULT_TYPE" == "critical" ]]; then
-  CODEX_OPT_IN=$(read_codex_opt_in)
-  if [[ "$CODEX_OPT_IN" == "true" ]]; then
-    CONTEXT=$(build_consultation_context "$CURRENT_STAGE" "$PROJECT_NAME")
-    RESULT=$(consult_sparrow "$CONTEXT" "true" 120)
-    if [[ -n "$RESULT" ]]; then
-      show_consultation_banner "GPT Codex" "$CURRENT_STAGE" "$RESULT"
-    else
-      echo "[consultation] Codex unavailable, skipping critical review."
+else
+  # 6. Determine model (Codex only for critical+high+opted-in)
+  USE_CODEX="false"
+  MODEL="DeepSeek"
+  if [[ "$CONSULT_TYPE" == "critical" && "$RISK_SCORE" == "high" ]]; then
+    CODEX_OPT_IN=$(read_codex_opt_in)
+    if [[ "$CODEX_OPT_IN" == "true" ]]; then
+      USE_CODEX="true"
+      MODEL="GPT Codex"
     fi
+  fi
+
+  # 7. Check budget before consulting
+  BUDGET_STATUS=$(check_consultation_budget "$CURRENT_STAGE" "$MODEL")
+  if [[ "$BUDGET_STATUS" != "allowed" ]]; then
+    echo "[consultation] Budget limit reached ($BUDGET_STATUS) for $CURRENT_STAGE. Skipping consultation."
   else
-    # Fall back to DeepSeek for critical stages when codex not opted-in
+    # 8. Build context and execute consultation
     CONTEXT=$(build_consultation_context "$CURRENT_STAGE" "$PROJECT_NAME")
-    RESULT=$(consult_sparrow "$CONTEXT" "false" 60)
-    if [[ -n "$RESULT" ]]; then
-      show_consultation_banner "DeepSeek" "$CURRENT_STAGE" "$RESULT"
+    QUERY_SUMMARY=$(echo "$CONTEXT" | head -c 200)
+
+    if [[ "$USE_CODEX" == "true" ]]; then
+      RESULT=$(consult_sparrow "$CONTEXT" "true" 120)
     else
-      echo "[consultation] Sparrow unavailable, skipping review."
+      RESULT=$(consult_sparrow "$CONTEXT" "false" 60)
+    fi
+
+    if [[ -n "$RESULT" ]]; then
+      # 9. Show consultation banner
+      show_consultation_banner "$MODEL" "$CURRENT_STAGE" "$RESULT"
+
+      # 10. Persist consultation evidence
+      write_consultation_evidence "$CURRENT_STAGE" "$PHASE_NUM" "$MODEL" \
+        "$QUERY_SUMMARY" "$RESULT" "$RISK_SCORE" "$CONSULT_TYPE" "$TRIGGERED_BY"
+
+      # 11. Record budget usage
+      record_consultation "$CURRENT_STAGE" "$MODEL"
+    else
+      echo "[consultation] $MODEL unavailable, skipping review."
     fi
   fi
 fi
@@ -517,6 +564,11 @@ fi
 | Routine consultation | At configurable gates (research, roadmap, phase-plan), context sent to DeepSeek via Sparrow. Result displayed as banner. |
 | Critical consultation (codex opted-in) | At verify/deploy, context sent to Codex via Sparrow --codex. Result displayed as banner. |
 | Critical consultation (codex not opted-in) | Falls back to DeepSeek. Codex NEVER auto-invoked. |
+| Risk-scored consultation | Step 5.55 computes risk score from evidence, embeds in artifact, escalates consultation type if high risk. |
+| Risk escalation (high + none) | High-risk stage with consultation type "none" in policy automatically escalated to "routine" (triggered_by=risk_escalation). |
+| Consultation budget enforcement | check_consultation_budget gates consultation: run-limit, stage-limit, codex-limit. Budget reset at pipeline startup (Step 2). |
+| Consultation evidence persistence | write_consultation_evidence creates consultation-{stage}-phase-{N}.json with model, risk_score, query/response summaries. |
+| Codex model selection | Codex used only when consultation_type=critical AND risk_score=high AND codex_opted_in=true. Never auto-invoked otherwise. |
 | Consultation failure | Sparrow unavailable or timeout: skip review, log warning, continue pipeline. Never blocks. |
 | Codex opt-in detection | Checked at Step 1 from launch arguments. Stored in state config. Default false. |
 | Checkpoint write after gate | write_checkpoint persists compact context; failure is non-blocking (|| warning). |

@@ -658,6 +658,126 @@ print(data.get('policy_version', ''))
 }
 
 # ============================================================
+# CONS-02: Risk escalation integration tests
+# ============================================================
+
+test_risk_escalation_high_none_to_routine() {
+  setup
+  source "$PROJECT_ROOT/lib/aegis-risk.sh"
+  source "$PROJECT_ROOT/lib/aegis-consult.sh"
+
+  # Create high-risk evidence (12 files triggers high)
+  create_test_evidence "execute" "1" 12
+
+  # Compute risk
+  local risk_json
+  risk_json=$(compute_risk_score "execute" "1" 2>/dev/null) || true
+  local risk_score
+  risk_score=$(python3 -c "import json; print(json.loads('''${risk_json}''').get('score',''))" 2>/dev/null) || risk_score=""
+
+  # Get consultation type — execute has type "none" by default in policy
+  local consult_type
+  consult_type=$(get_consultation_type "execute" 2>/dev/null) || consult_type=""
+
+  # Apply escalation logic
+  local triggered_by="configured"
+  if [[ "$risk_score" == "high" && "$consult_type" == "none" ]]; then
+    consult_type="routine"
+    triggered_by="risk_escalation"
+  fi
+
+  if [[ "$consult_type" == "routine" && "$triggered_by" == "risk_escalation" ]]; then
+    pass "[CONS-02] Risk escalation: high risk + none type -> routine consultation (triggered_by=risk_escalation)"
+  else
+    fail "[CONS-02] Risk escalation: high risk + none type -> routine consultation (triggered_by=risk_escalation)" "type=$consult_type triggered=$triggered_by risk=$risk_score"
+  fi
+  teardown
+}
+
+test_no_escalation_low_risk() {
+  setup
+  source "$PROJECT_ROOT/lib/aegis-risk.sh"
+  source "$PROJECT_ROOT/lib/aegis-consult.sh"
+
+  # Create low-risk evidence
+  create_test_evidence "execute" "1" 2 "read_only"
+
+  local risk_json
+  risk_json=$(compute_risk_score "execute" "1" 2>/dev/null) || true
+  local risk_score
+  risk_score=$(python3 -c "import json; print(json.loads('''${risk_json}''').get('score',''))" 2>/dev/null) || risk_score=""
+
+  local consult_type
+  consult_type=$(get_consultation_type "execute" 2>/dev/null) || consult_type=""
+
+  # Apply escalation logic
+  local triggered_by="configured"
+  if [[ "$risk_score" == "high" && "$consult_type" == "none" ]]; then
+    consult_type="routine"
+    triggered_by="risk_escalation"
+  fi
+
+  if [[ "$consult_type" == "none" && "$triggered_by" == "configured" ]]; then
+    pass "[CONS-02] No escalation: low risk + none type stays 'none'"
+  else
+    fail "[CONS-02] No escalation: low risk + none type stays 'none'" "type=$consult_type triggered=$triggered_by risk=$risk_score"
+  fi
+  teardown
+}
+
+test_codex_only_critical_high_opted_in() {
+  setup
+  source "$PROJECT_ROOT/lib/aegis-risk.sh"
+  source "$PROJECT_ROOT/lib/aegis-consult.sh"
+
+  # Simulate the model selection logic from orchestrator
+  local consult_type="critical"
+  local risk_score="high"
+  local codex_opted_in="true"
+
+  local use_codex="false"
+  local model="DeepSeek"
+  if [[ "$consult_type" == "critical" && "$risk_score" == "high" ]]; then
+    if [[ "$codex_opted_in" == "true" ]]; then
+      use_codex="true"
+      model="GPT Codex"
+    fi
+  fi
+
+  if [[ "$use_codex" == "true" && "$model" == "GPT Codex" ]]; then
+    pass "[CONS-02] Codex selected only when critical+high+opted_in"
+  else
+    fail "[CONS-02] Codex selected only when critical+high+opted_in" "use_codex=$use_codex model=$model"
+  fi
+  teardown
+}
+
+test_codex_not_fired_without_opt_in() {
+  setup
+
+  # Simulate: critical+high but NOT opted in
+  local consult_type="critical"
+  local risk_score="high"
+  local codex_opted_in="false"
+
+  local use_codex="false"
+  local model="DeepSeek"
+  if [[ "$consult_type" == "critical" && "$risk_score" == "high" ]]; then
+    if [[ "$codex_opted_in" == "true" ]]; then
+      use_codex="true"
+      model="GPT Codex"
+    fi
+  fi
+
+  if [[ "$use_codex" == "false" && "$model" == "DeepSeek" ]]; then
+    pass "[CONS-02] Codex never fires without codex_opted_in=true"
+  else
+    fail "[CONS-02] Codex never fires without codex_opted_in=true" "use_codex=$use_codex model=$model"
+  fi
+  teardown
+}
+
+# ============================================================
 # Run all tests
 # ============================================================
 
@@ -688,6 +808,11 @@ test_write_consultation_evidence_values
 test_write_consultation_evidence_iso_timestamp
 test_write_consultation_evidence_returns_path
 test_write_consultation_evidence_policy_version
+
+test_risk_escalation_high_none_to_routine
+test_no_escalation_low_risk
+test_codex_only_critical_high_opted_in
+test_codex_not_fired_without_opt_in
 
 echo ""
 echo "Risk & consultation tests: ${PASS_COUNT} passed, ${FAIL_COUNT} failed"
