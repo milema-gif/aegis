@@ -72,7 +72,10 @@ Plans:
   1. Every subagent invocation includes a mandatory pre-action checklist block requiring file reads, drift check, scope declaration, and risk assessment before any Edit/Write
   2. Orchestrator checks subagent returns for the behavioral gate checklist — missing checklist generates a warning in the pipeline log, not a hard failure
   3. When three subagents are dispatched in parallel, the operator sees one batch approval prompt (not three sequential ones), or approval is automatic when scope matches the declared task
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 09-01-PLAN.md — Behavioral gate protocol and validation function (TDD)
+- [ ] 09-02-PLAN.md — Orchestrator integration and parallel dispatch mode
 
 ### Phase 10: Deploy Preflight Guard
 **Goal**: No deploy action fires without a verified preflight that checks state, scope, and gets explicit operator confirmation
@@ -97,7 +100,7 @@ Phases 7 through 10 execute in order. Phases 9 and 10 can be parallelized after 
 | 4. Subagent System | v1.0 | 2/2 | Complete | 2026-03-09 |
 | 5. Engram Integration | v1.0 | 2/2 | Complete | 2026-03-09 |
 | 6. Multi-Model Consultation | v1.0 | 2/2 | Complete | 2026-03-09 |
-| 7. Foundation | 3/3 | Complete   | 2026-03-21 | - |
-| 8. Stage-Boundary Checkpoints | 2/2 | Complete   | 2026-03-21 | - |
-| 9. Subagent Behavioral Gate | v2.0 | 0/? | Not started | - |
+| 7. Foundation | v2.0 | 3/3 | Complete | 2026-03-21 |
+| 8. Stage-Boundary Checkpoints | v2.0 | 2/2 | Complete | 2026-03-21 |
+| 9. Subagent Behavioral Gate | v2.0 | 0/2 | Planned | - |
 | 10. Deploy Preflight Guard | v2.0 | 0/? | Not started | - |
