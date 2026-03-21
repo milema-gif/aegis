@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Evidence-Driven Pipeline
 status: executing
-stopped_at: Completed 13-02-PLAN.md (Phase 13 complete)
-last_updated: "2026-03-21T16:07:12.439Z"
-last_activity: "2026-03-21 -- Phase 13 complete (enforcement upgrade: stage-aware + bypass audit)"
+stopped_at: Completed 14-01-PLAN.md
+last_updated: "2026-03-21T17:29:10Z"
+last_activity: "2026-03-21 -- Phase 14 Plan 01 complete (risk scoring + budget tracking)"
 progress:
   total_phases: 6
   completed_phases: 3
-  total_plans: 6
-  completed_plans: 6
-  percent: 100
+  total_plans: 8
+  completed_plans: 7
+  percent: 87
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Never lose context, direction, or consistency across a project's entire lifecycle
-**Current focus:** v3.0 Evidence-Driven Pipeline -- Phase 12 (Evidence Artifacts) in progress
+**Current focus:** v3.0 Evidence-Driven Pipeline -- Phase 14 (Risk-Scored Consultation)
 
 ## Current Position
 
-Phase: 13 of 16 (Enforcement Layer)
-Plan: 2 of 2 in current phase -- PHASE COMPLETE
+Phase: 14 of 16 (Risk-Scored Consultation)
+Plan: 1 of 2 in current phase
 Status: In Progress
-Last activity: 2026-03-21 -- Phase 13 complete (enforcement upgrade: stage-aware + bypass audit)
+Last activity: 2026-03-21 -- Phase 14 Plan 01 complete (risk scoring + budget tracking)
 
-Progress: [██████████] 100% (v3.0)
+Progress: [████████░░] 87% (v3.0)
 
 ## Performance Metrics
 
@@ -51,6 +51,7 @@ Progress: [██████████] 100% (v3.0)
 | 12-evidence-artifacts | 2 | 8min | 4.0min |
 | Phase 13 P01 | 3min | 2 tasks | 5 files |
 | Phase 13 P02 | 4min | 2 tasks | 4 files |
+| Phase 14 P01 | 5min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -80,6 +81,9 @@ Recent decisions affecting current work:
 - [Phase 13]: Bypass audit uses evidence-format JSON (same dir, same query tools)
 - [Phase 13]: Timestamp in bypass filename for multiple-bypass support
 - [Phase 13]: Surfacing at pipeline startup (Step 2) and advance stage
+- [14-01]: Risk classification uses max-aggregation (highest factor wins)
+- [14-01]: Budget tracker at .aegis/consultation-budget.json with atomic writes
+- [14-01]: Hardcoded defaults match policy values for graceful degradation
 
 ### Pending Todos
 
@@ -91,7 +95,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-21T16:02:30Z
-Stopped at: Completed 13-02-PLAN.md (Phase 13 complete)
+Last session: 2026-03-21T17:29:10Z
+Stopped at: Completed 14-01-PLAN.md
 Resume file: None
-Next step: Phase 14 (Pattern Library) or Phase 15 (Rollback Safety)
+Next step: Phase 14 Plan 02 (risk-routed consultation)

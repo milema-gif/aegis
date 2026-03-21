@@ -89,8 +89,8 @@
 
 ### Consultation (Risk-Scored)
 
-- [ ] **CONS-01**: Each stage computes a risk score (low/med/high) based on file count, complexity heuristics, and mutation scope
-- [ ] **CONS-02**: High-risk stages trigger mandatory consultation (DeepSeek first; Codex only for critical+high-risk if opted-in) with per-run budget cap and per-stage max consultation count
+- [x] **CONS-01**: Each stage computes a risk score (low/med/high) based on file count, complexity heuristics, and mutation scope
+- [x] **CONS-02**: High-risk stages trigger mandatory consultation (DeepSeek first; Codex only for critical+high-risk if opted-in) with per-run budget cap and per-stage max consultation count
 - [ ] **CONS-03**: Consultation results are persisted as structured evidence artifacts in `.aegis/evidence/` — not just logged to stdout
 
 ### Regression (Phase Delta Check)
@@ -218,8 +218,8 @@
 | ENFC-01 | Phase 13 | Complete |
 | ENFC-02 | Phase 13 | Complete |
 | ENFC-03 | Phase 13 | Complete |
-| CONS-01 | Phase 14 | Pending |
-| CONS-02 | Phase 14 | Pending |
+| CONS-01 | Phase 14 | Complete |
+| CONS-02 | Phase 14 | Complete |
 | CONS-03 | Phase 14 | Pending |
 | REGR-01 | Phase 15 | Pending |
 | REGR-02 | Phase 15 | Pending |
