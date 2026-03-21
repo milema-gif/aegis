@@ -63,8 +63,8 @@
 
 ### Subagent Quality
 
-- [ ] **AGENT-01**: Behavioral gate preamble injected into every subagent invocation via `invocation-protocol.md` — mandatory pre-action checklist (files read, drift check, scope, risk) before any Edit/Write
-- [ ] **AGENT-02**: `validate_behavioral_gate()` checks subagent return for checklist marker — warn-only, never hard-fail (subagents producing correct output without checklist do not break pipeline)
+- [x] **AGENT-01**: Behavioral gate preamble injected into every subagent invocation via `invocation-protocol.md` — mandatory pre-action checklist (files read, drift check, scope, risk) before any Edit/Write
+- [x] **AGENT-02**: `validate_behavioral_gate()` checks subagent return for checklist marker — warn-only, never hard-fail (subagents producing correct output without checklist do not break pipeline)
 - [ ] **AGENT-03**: Parallel subagent dispatch supports batch approval and auto-approve-on-scope-match mode to prevent gate serialization
 
 ### Deploy Safety
@@ -163,8 +163,8 @@
 | CHKP-01 | Phase 8 | Complete |
 | CHKP-02 | Phase 8 | Complete |
 | CHKP-03 | Phase 8 | Complete |
-| AGENT-01 | Phase 9 | Pending |
-| AGENT-02 | Phase 9 | Pending |
+| AGENT-01 | Phase 9 | Complete |
+| AGENT-02 | Phase 9 | Complete |
 | AGENT-03 | Phase 9 | Pending |
 | DEPLOY-01 | Phase 10 | Pending |
 | DEPLOY-02 | Phase 10 | Pending |

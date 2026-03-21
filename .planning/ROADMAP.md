@@ -105,5 +105,5 @@ Phases 7 through 10 execute in order. Phases 9 and 10 can be parallelized after 
 | 6. Multi-Model Consultation | v1.0 | 2/2 | Complete | 2026-03-09 |
 | 7. Foundation | v2.0 | 3/3 | Complete | 2026-03-21 |
 | 8. Stage-Boundary Checkpoints | v2.0 | 2/2 | Complete | 2026-03-21 |
-| 9. Subagent Behavioral Gate | v2.0 | 0/2 | Planned | - |
+| 9. Subagent Behavioral Gate | 1/2 | In Progress|  | - |
 | 10. Deploy Preflight Guard | v2.0 | 0/2 | Planned | - |
