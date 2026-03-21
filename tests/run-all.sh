@@ -21,6 +21,7 @@ TESTS=(
   "test-advance-loop"
   "test-subagent-dispatch"
   "test-consultation"
+  "test-policy-config"
   "test-complete-stage"
   "test-namespace"
   "test-checkpoints"

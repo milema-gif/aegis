@@ -430,9 +430,8 @@ test_validate_policy_returns_errors() {
   # Create a malformed policy
   echo '{"gates": {}}' > "$TEST_DIR/bad-policy.json"
   export AEGIS_POLICY_FILE="$TEST_DIR/bad-policy.json"
-  local errors
-  errors=$(validate_policy 2>&1)
-  local rc=$?
+  local rc=0
+  validate_policy 2>/dev/null || rc=$?
   if [[ $rc -ne 0 ]]; then
     pass "validate_policy returns errors for malformed config"
   else
