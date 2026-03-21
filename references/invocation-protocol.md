@@ -10,6 +10,9 @@ Every subagent invocation MUST follow this template:
 ## Objective
 [One sentence: what the subagent must accomplish]
 
+## Prior Stage Context
+[Injected by orchestrator from assemble_context_window() — contains decisions, files changed, and constraints from the last 3 stage transitions. Omit this section entirely if no checkpoints exist.]
+
 ## Context Files (read these first)
 - [absolute path] -- [what it contains]
 - [absolute path] -- [what it contains]
@@ -34,6 +37,7 @@ Every subagent invocation MUST follow this template:
 - **Context Files:** Absolute paths only. Each file gets a one-line description. Subagent reads these FIRST before any other action.
 - **Constraints:** Include decisions from previous stages, naming conventions, and any limits on scope.
 - **Success Criteria:** Must be machine-verifiable where possible (file exists, test passes, pattern matches).
+- **Prior Stage Context:** Assembled automatically by the orchestrator from `.aegis/checkpoints/`. Contains compact summaries of recent stage transitions. Subagents should treat this as background context, not authoritative source -- always read actual files listed in Context Files. This section is OPTIONAL and omitted when no checkpoints exist.
 - **Output:** List every file the subagent should create or modify. Include the expected completion message format.
 
 ## Required Output Format
@@ -76,6 +80,10 @@ The following invocation patterns cause subagent failures and MUST be avoided:
 ### 5. Unbounded Scope
 - BAD: "Fix all the bugs"
 - GOOD: "Fix the null pointer in src/handler.ts line 42 by adding a guard clause"
+
+### 6. Relying on Checkpoint Context Instead of Files
+- BAD: Using checkpoint summaries as the source of truth for file contents
+- GOOD: Using checkpoint context for decision history, reading actual files for current state
 
 ## GPT-4 Mini Delegation via Sparrow
 
