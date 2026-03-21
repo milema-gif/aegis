@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Evidence-Driven Pipeline
-status: in-progress
-stopped_at: Completed 12-01-PLAN.md
-last_updated: "2026-03-21T14:53:13.000Z"
-last_activity: 2026-03-21 -- Phase 12 Plan 01 complete (evidence artifact library)
+status: executing
+stopped_at: Completed 12-02-PLAN.md (Phase 12 complete)
+last_updated: "2026-03-21T15:07:45.972Z"
+last_activity: 2026-03-21 -- Phase 12 complete (evidence artifacts — 2 plans done)
 progress:
   total_phases: 6
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
   completed_plans: 4
   percent: 67
