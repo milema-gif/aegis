@@ -199,6 +199,8 @@ These stages are dispatched to a subagent via the Agent tool. The orchestrator d
 2. **Resolve the agent name** from the stage-to-agent mapping table above.
 3. **Resolve the model** from `references/model-routing.md` (use the routing table row matching the agent role).
 4. **Build the invocation prompt** using the template from `references/invocation-protocol.md`, filling in:
+   - The behavioral gate preamble from `references/invocation-protocol.md` is part of the template. Every subagent invocation automatically includes the Behavioral Gate section at the top of the prompt, before `## Objective`. The orchestrator fills in the declared scope (from the stage workflow's expected output files) so the subagent can compare its assessed scope against the declared scope.
+   - Fill in the remaining sections:
    - **Objective:** from the stage workflow's title and purpose
    - **Context Files:** `.aegis/state.current.json`, `.planning/ROADMAP.md`, plus stage-specific inputs from the workflow's `## Inputs` section
    - **Constraints:** any prior-stage decisions from state, model routing rules
@@ -206,6 +208,7 @@ These stages are dispatched to a subagent via the Agent tool. The orchestrator d
    - **Output:** from the stage workflow's `## Outputs`
 5. **Dispatch via Agent tool** with the constructed prompt.
 6. **On return:** source `lib/aegis-validate.sh` and call `validate_subagent_output "$CURRENT_STAGE" {expected_files}` using the file list from the workflow's `## Outputs`.
+6.5. **Validate behavioral gate:** Call `validate_behavioral_gate "$SUBAGENT_RETURN_TEXT"`. This is warn-only -- if the subagent did not output the BEHAVIORAL_GATE_CHECK block, a warning is logged to stderr but the pipeline continues normally. If the warning fires, the orchestrator notes it in the stage's gate memory (Step 5.6) as `"behavioral_gate": "missing"` for audit trail.
 7. **If validation passes:** fall through to Step 5.5 (gate evaluation).
 8. **If validation fails:** log the failure, mark the stage as failed in state, **STOP**.
 
@@ -253,6 +256,7 @@ if [[ -n "${STAGE_AGENTS[$CURRENT_STAGE]+_}" ]]; then
   # 4. Dispatch via Agent tool
   # 5. Validate output:
   #    validate_subagent_output "$CURRENT_STAGE" {expected_output_files}
+  #    validate_behavioral_gate "$SUBAGENT_RETURN_TEXT"  # warn-only, never fails
   # 6. If validation fails: mark stage failed, STOP
 
   echo "Dispatching to subagent: $AGENT_NAME (workflow: $STAGE_FILE)"
@@ -271,6 +275,26 @@ These stages are executed inline by the orchestrator. Follow the stage workflow 
 1. Look up the workflow file for `current_stage` from the table above.
 2. Follow the workflow. The stage workflow controls its own execution and signals completion.
 3. After the stage signals completion, control falls through to **Step 5.5** for gate evaluation. Do NOT call `advance_stage()` here.
+
+### Parallel Subagent Dispatch
+
+When the orchestrator dispatches multiple subagents in the same execution wave (e.g., during the execute stage with parallel plans):
+
+**Behavioral Gate in Parallel Mode:**
+1. Each subagent receives the full behavioral gate preamble independently.
+2. Each subagent outputs its own BEHAVIORAL_GATE_CHECK block.
+3. The orchestrator collects all checklist outputs after all subagents return.
+4. `validate_behavioral_gate()` is called for each subagent's return text individually.
+
+**Batch Approval:**
+When multiple subagents complete in the same wave, the orchestrator presents all scope declarations together as a single batch review, not N sequential approval prompts. The operator sees one summary of all scopes and approves or rejects the batch.
+
+**Auto-Approve-on-Scope-Match:**
+If every subagent's reported scope (from its BEHAVIORAL_GATE_CHECK block) matches the declared scope (from the orchestrator's task description), approval is automatic -- no operator prompt required. Scope matches when:
+- Reported files are a subset of or equal to declared files
+- Change type is consistent (create, modify, delete matches the task intent)
+
+If any subagent's scope diverges from the declared scope, the entire batch is flagged for operator review. This prevents silent scope creep while avoiding approval fatigue for well-scoped parallel work.
 
 ## Step 5.5 -- Evaluate Gate
 
@@ -472,5 +496,8 @@ fi
 | Checkpoint write after gate | write_checkpoint persists compact context; failure is non-blocking (|| warning). |
 | Checkpoint clear at init | Pipeline start clears .aegis/checkpoints/ to prevent stale context injection. |
 | Checkpoint context for subagent | assemble_context_window injects last 3 checkpoints into Prior Stage Context section. |
+| Behavioral gate in subagent prompt | Every Agent dispatch includes Behavioral Gate preamble from invocation-protocol.md |
+| Behavioral gate validation | validate_behavioral_gate() warns on missing checklist, never fails pipeline |
+| Parallel dispatch batch approval | Multiple subagents in same wave get batch approval; auto-approve when scope matches |
 
 ---
