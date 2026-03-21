@@ -23,6 +23,7 @@ TESTS=(
   "test-consultation"
   "test-complete-stage"
   "test-namespace"
+  "test-checkpoints"
   "test-pipeline-integration"
 )
 
