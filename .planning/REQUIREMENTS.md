@@ -3,7 +3,7 @@
 **Defined:** 2026-03-09
 **Core Value:** Never lose context, direction, or consistency across a project's entire lifecycle
 
-## v1 Requirements
+## v1.0 Requirements (Complete)
 
 ### Pipeline
 
@@ -38,17 +38,54 @@
 
 - [x] **PORT-01**: Pipeline detects available integrations (Engram, Sparrow) at startup and announces capabilities
 
-## v2 Requirements
+## v2.0 Requirements (Quality Enforcement)
+
+### Foundation (v1.1 Debt)
+
+- [x] **FOUND-01**: `complete_stage()` helper provides a standardized stage completion signal (atomic JSON update with status + timestamp, idempotent)
+- [x] **FOUND-02**: Subagent namespace isolation prevents cross-stage state pollution (each subagent operates in its own scope)
+- [x] **FOUND-03**: Aegis is globally installed on PATH so hooks and scripts can invoke it without path gymnastics
+
+### Memory Quality Control
+
+- [ ] **MEM-04**: All Engram writes and reads enforce `project_id` field — memory is project-scoped by default
+- [ ] **MEM-05**: Legacy Engram observations (424 existing) are migrated — classified by project with operator review before scoping ships
+- [ ] **MEM-06**: Pipeline runs a memory pollution scan at startup, warning if entries appear to belong to a different project
+- [ ] **MEM-07**: Memory decay runs at pipeline startup (24h guard) with class-based policy: `pinned` never decays, `project` decays on archive, `session` 30d, `ephemeral` 7d
+- [ ] **MEM-08**: Global-scope memory writes require explicit `cross_project: true` flag — default is always project-scoped
+- [ ] **MEM-09**: Memory keys use project prefix format: `{project}/gate-{stage}-phase-{N}`
+
+### Stage Checkpoints
+
+- [ ] **CHKP-01**: Structured checkpoint file written to `.aegis/checkpoints/{stage}-phase-{N}.md` after each gate pass, containing decisions, files changed, active constraints, and next-stage context
+- [ ] **CHKP-02**: Context window assembler (`assemble_context_window()`) injects last N checkpoints into subagent dispatch as "Prior Stage Context"
+- [ ] **CHKP-03**: Checkpoint schema enforces ~500 token budget at write time — checkpoints reference artifacts by path, never embed content
+
+### Subagent Quality
+
+- [ ] **AGENT-01**: Behavioral gate preamble injected into every subagent invocation via `invocation-protocol.md` — mandatory pre-action checklist (files read, drift check, scope, risk) before any Edit/Write
+- [ ] **AGENT-02**: `validate_behavioral_gate()` checks subagent return for checklist marker — warn-only, never hard-fail (subagents producing correct output without checklist do not break pipeline)
+- [ ] **AGENT-03**: Parallel subagent dispatch supports batch approval and auto-approve-on-scope-match mode to prevent gate serialization
+
+### Deploy Safety
+
+- [ ] **DEPLOY-01**: Deploy preflight guard runs before any deploy action — verifies state position (all 8 prior stages completed), deploy scope matches roadmap, rollback tag exists, working tree is clean
+- [ ] **DEPLOY-02**: Deploy confirmation requires typing "deploy" keyword explicitly (not "approved") — preflight is classified as `external` gate type, never skippable
+- [ ] **DEPLOY-03**: Pre-deploy state snapshot captures running service metadata (Docker container IDs, PM2 process info) for rollback comparison
+
+## v3.0 Requirements (Deferred)
 
 ### Memory (Advanced)
 
-- **MEM-04**: Cross-project memory — learn from project A, apply to project B
-- **MEM-05**: Cross-stack consistency enforcement — shared contracts + audit gate for backend/frontend naming
+- **MEM-10**: Cross-project memory — learn from project A, apply to project B
+- **MEM-11**: Cross-stack consistency enforcement — shared contracts + audit gate for backend/frontend naming
+- **MEM-12**: Memory decay / staleness detection with conflict resolution (requires v2.0 scoping maturity)
 
-### Deployment
+### Deployment (Advanced)
 
-- **DEPLOY-01**: Service-level rollback — Docker restart with previous version, PM2 rollback
-- **DEPLOY-02**: Post-deploy smoke test runner
+- **DEPLOY-04**: Service-level rollback — Docker restart with previous version, PM2 rollback
+- **DEPLOY-05**: Post-deploy smoke test runner
+- **DEPLOY-06**: Pre-deploy scope verification report (structured document for informed consent)
 
 ### Templates
 
@@ -66,6 +103,8 @@
 ### Observability
 
 - **OBS-01**: Telemetry events per stage/gate (duration, fail causes, token usage)
+- **OBS-02**: Behavioral gate audit trail with file-read verification logs
+- **OBS-03**: Context budget tracking per stage (token consumption warnings)
 
 ### Safety
 
@@ -84,6 +123,8 @@
 | Full autonomy (zero human gates) | Agents drift without checkpoints. Industry consensus against this. |
 
 ## Traceability
+
+### v1.0 (Complete)
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
@@ -106,11 +147,32 @@
 | MDL-01 | Phase 6 | Complete |
 | MDL-02 | Phase 6 | Complete |
 
-**Coverage:**
-- v1 requirements: 18 total
-- Mapped to phases: 18
-- Unmapped: 0 ✓
+### v2.0 (Quality Enforcement)
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| FOUND-01 | Phase 7 | Complete |
+| FOUND-02 | Phase 7 | Complete |
+| FOUND-03 | Phase 7 | Complete |
+| MEM-04 | Phase 7 | Pending |
+| MEM-05 | Phase 7 | Pending |
+| MEM-06 | Phase 7 | Pending |
+| MEM-07 | Phase 7 | Pending |
+| MEM-08 | Phase 7 | Pending |
+| MEM-09 | Phase 7 | Pending |
+| CHKP-01 | Phase 8 | Pending |
+| CHKP-02 | Phase 8 | Pending |
+| CHKP-03 | Phase 8 | Pending |
+| AGENT-01 | Phase 9 | Pending |
+| AGENT-02 | Phase 9 | Pending |
+| AGENT-03 | Phase 9 | Pending |
+| DEPLOY-01 | Phase 10 | Pending |
+| DEPLOY-02 | Phase 10 | Pending |
+| DEPLOY-03 | Phase 10 | Pending |
+
+**v1.0 Coverage:** 18/18 mapped, 0 unmapped
+**v2.0 Coverage:** 18/18 mapped, 0 unmapped
 
 ---
 *Requirements defined: 2026-03-09*
-*Last updated: 2026-03-09 after Codex/DeepSeek consensus review*
+*v2.0 requirements added: 2026-03-21 from research synthesis*
