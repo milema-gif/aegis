@@ -145,6 +145,140 @@ show_consultation_banner() {
   echo "──────────────────────────────────────────────────────────────"
 }
 
+# --- reset_consultation_budget() ---
+# Creates/overwrites consultation-budget.json with zero counts.
+# Uses atomic tmp+mv.
+reset_consultation_budget() {
+  local budget_dir="${AEGIS_DIR:-.aegis}"
+  mkdir -p "$budget_dir"
+
+  local budget_file="${budget_dir}/consultation-budget.json"
+  local tmp_file
+  tmp_file=$(mktemp "${budget_dir}/.tmp.XXXXXX")
+
+  python3 -c "
+import json
+
+budget = {
+    'total_consultations': 0,
+    'codex_consultations': 0,
+    'per_stage': {}
+}
+
+with open('${tmp_file}', 'w') as f:
+    json.dump(budget, f, indent=2)
+" || { rm -f "$tmp_file"; return 1; }
+
+  mv "$tmp_file" "$budget_file"
+}
+
+# --- check_consultation_budget(stage, model?) ---
+# Reads budget tracker and policy limits.
+# Returns "allowed" | "run-limit" | "stage-limit" | "codex-limit".
+# Second optional arg: model (defaults to "deepseek"); if "codex", also checks codex limit.
+check_consultation_budget() {
+  local stage="${1:?check_consultation_budget requires stage}"
+  local model="${2:-deepseek}"
+
+  local budget_dir="${AEGIS_DIR:-.aegis}"
+  local budget_file="${budget_dir}/consultation-budget.json"
+  local policy_file="${AEGIS_POLICY_FILE:-}"
+
+  python3 -c "
+import json, os, sys
+
+# Default budget limits
+DEFAULT_LIMITS = {
+    'max_consultations_per_run': 10,
+    'max_per_stage': 2,
+    'codex_max_per_run': 3
+}
+
+# Load limits from policy if available
+limits = DEFAULT_LIMITS
+policy_file = '${policy_file}'
+if policy_file and os.path.isfile(policy_file):
+    try:
+        with open(policy_file) as f:
+            policy = json.load(f)
+        if 'consultation_budget' in policy:
+            limits = policy['consultation_budget']
+    except (json.JSONDecodeError, IOError):
+        pass
+
+# Load budget tracker
+budget_file = '${budget_file}'
+if not os.path.isfile(budget_file):
+    print('allowed')
+    sys.exit(0)
+
+with open(budget_file) as f:
+    budget = json.load(f)
+
+total = budget.get('total_consultations', 0)
+codex_total = budget.get('codex_consultations', 0)
+stage_count = budget.get('per_stage', {}).get('${stage}', 0)
+
+# Check run limit first
+if total >= limits.get('max_consultations_per_run', 10):
+    print('run-limit')
+    sys.exit(0)
+
+# Check stage limit
+if stage_count >= limits.get('max_per_stage', 2):
+    print('stage-limit')
+    sys.exit(0)
+
+# Check codex limit if model is codex
+model = '${model}'
+if 'codex' in model and codex_total >= limits.get('codex_max_per_run', 3):
+    print('codex-limit')
+    sys.exit(0)
+
+print('allowed')
+"
+}
+
+# --- record_consultation(stage, model) ---
+# Reads budget tracker, increments counts. Atomic tmp+mv write.
+record_consultation() {
+  local stage="${1:?record_consultation requires stage}"
+  local model="${2:-deepseek}"
+
+  local budget_dir="${AEGIS_DIR:-.aegis}"
+  local budget_file="${budget_dir}/consultation-budget.json"
+
+  # Create budget file if it doesn't exist
+  if [[ ! -f "$budget_file" ]]; then
+    reset_consultation_budget
+  fi
+
+  local tmp_file
+  tmp_file=$(mktemp "${budget_dir}/.tmp.XXXXXX")
+
+  python3 -c "
+import json
+
+with open('${budget_file}') as f:
+    budget = json.load(f)
+
+budget['total_consultations'] = budget.get('total_consultations', 0) + 1
+
+per_stage = budget.get('per_stage', {})
+per_stage['${stage}'] = per_stage.get('${stage}', 0) + 1
+budget['per_stage'] = per_stage
+
+model = '${model}'
+if 'codex' in model:
+    budget['codex_consultations'] = budget.get('codex_consultations', 0) + 1
+
+with open('${tmp_file}', 'w') as f:
+    json.dump(budget, f, indent=2)
+" || { rm -f "$tmp_file"; return 1; }
+
+  mv "$tmp_file" "$budget_file"
+}
+
 # --- read_codex_opt_in() ---
 # Reads codex_opted_in from state config. Defaults to "false".
 read_codex_opt_in() {

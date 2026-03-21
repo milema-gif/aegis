@@ -297,7 +297,186 @@ else:
 }
 
 # ============================================================
-# Run CONS-01 tests
+# CONS-02: Budget tracking tests
+# ============================================================
+
+test_reset_consultation_budget() {
+  setup
+  source "$PROJECT_ROOT/lib/aegis-consult.sh"
+  reset_consultation_budget 2>/dev/null || true
+
+  local budget_file="$AEGIS_DIR/consultation-budget.json"
+  if [[ -f "$budget_file" ]]; then
+    local total
+    total=$(python3 -c "
+import json
+with open('${budget_file}') as f:
+    data = json.load(f)
+print(data.get('total_consultations', -1))
+" 2>/dev/null) || total="-1"
+    if [[ "$total" == "0" ]]; then
+      pass "[CONS-02] reset_consultation_budget creates fresh budget tracker with zero counts"
+    else
+      fail "[CONS-02] reset_consultation_budget creates fresh budget tracker with zero counts" "total_consultations=$total"
+    fi
+  else
+    fail "[CONS-02] reset_consultation_budget creates fresh budget tracker with zero counts" "file not created"
+  fi
+  teardown
+}
+
+test_check_budget_allowed() {
+  setup
+  source "$PROJECT_ROOT/lib/aegis-consult.sh"
+  reset_consultation_budget 2>/dev/null || true
+  local result
+  result=$(check_consultation_budget "research" 2>/dev/null) || result=""
+  if [[ "$result" == "allowed" ]]; then
+    pass "[CONS-02] check_consultation_budget returns 'allowed' when under all limits"
+  else
+    fail "[CONS-02] check_consultation_budget returns 'allowed' when under all limits" "got: $result"
+  fi
+  teardown
+}
+
+test_check_budget_run_limit() {
+  setup
+  source "$PROJECT_ROOT/lib/aegis-consult.sh"
+  reset_consultation_budget 2>/dev/null || true
+
+  # Exhaust run limit (default: 10)
+  for i in $(seq 1 10); do
+    record_consultation "research" "deepseek" 2>/dev/null || true
+  done
+
+  local result
+  result=$(check_consultation_budget "research" 2>/dev/null) || result=""
+  if [[ "$result" == "run-limit" ]]; then
+    pass "[CONS-02] check_consultation_budget returns 'run-limit' when total exceeds max_consultations_per_run"
+  else
+    fail "[CONS-02] check_consultation_budget returns 'run-limit' when total exceeds max_consultations_per_run" "got: $result"
+  fi
+  teardown
+}
+
+test_check_budget_stage_limit() {
+  setup
+  source "$PROJECT_ROOT/lib/aegis-consult.sh"
+  reset_consultation_budget 2>/dev/null || true
+
+  # Exhaust stage limit (default: 2)
+  record_consultation "research" "deepseek" 2>/dev/null || true
+  record_consultation "research" "deepseek" 2>/dev/null || true
+
+  local result
+  result=$(check_consultation_budget "research" 2>/dev/null) || result=""
+  if [[ "$result" == "stage-limit" ]]; then
+    pass "[CONS-02] check_consultation_budget returns 'stage-limit' when stage exceeds max_per_stage"
+  else
+    fail "[CONS-02] check_consultation_budget returns 'stage-limit' when stage exceeds max_per_stage" "got: $result"
+  fi
+  teardown
+}
+
+test_check_budget_codex_limit() {
+  setup
+  source "$PROJECT_ROOT/lib/aegis-consult.sh"
+  reset_consultation_budget 2>/dev/null || true
+
+  # Exhaust codex limit (default: 3)
+  record_consultation "research" "codex" 2>/dev/null || true
+  record_consultation "roadmap" "codex" 2>/dev/null || true
+  record_consultation "verify" "codex" 2>/dev/null || true
+
+  local result
+  result=$(check_consultation_budget "deploy" "codex" 2>/dev/null) || result=""
+  if [[ "$result" == "codex-limit" ]]; then
+    pass "[CONS-02] check_consultation_budget returns 'codex-limit' when codex exceeds codex_max_per_run"
+  else
+    fail "[CONS-02] check_consultation_budget returns 'codex-limit' when codex exceeds codex_max_per_run" "got: $result"
+  fi
+  teardown
+}
+
+test_record_consultation_increments() {
+  setup
+  source "$PROJECT_ROOT/lib/aegis-consult.sh"
+  reset_consultation_budget 2>/dev/null || true
+  record_consultation "research" "deepseek" 2>/dev/null || true
+  record_consultation "research" "deepseek" 2>/dev/null || true
+  record_consultation "verify" "deepseek" 2>/dev/null || true
+
+  local budget_file="$AEGIS_DIR/consultation-budget.json"
+  local ok
+  ok=$(python3 -c "
+import json
+with open('${budget_file}') as f:
+    data = json.load(f)
+total = data.get('total_consultations', 0)
+research = data.get('per_stage', {}).get('research', 0)
+verify = data.get('per_stage', {}).get('verify', 0)
+if total == 3 and research == 2 and verify == 1:
+    print('yes')
+else:
+    print(f'no: total={total} research={research} verify={verify}')
+" 2>/dev/null) || ok="error"
+
+  if [[ "$ok" == "yes" ]]; then
+    pass "[CONS-02] record_consultation increments total and per-stage counts"
+  else
+    fail "[CONS-02] record_consultation increments total and per-stage counts" "$ok"
+  fi
+  teardown
+}
+
+test_record_consultation_codex_count() {
+  setup
+  source "$PROJECT_ROOT/lib/aegis-consult.sh"
+  reset_consultation_budget 2>/dev/null || true
+  record_consultation "research" "codex" 2>/dev/null || true
+  record_consultation "verify" "deepseek" 2>/dev/null || true
+
+  local budget_file="$AEGIS_DIR/consultation-budget.json"
+  local codex_count
+  codex_count=$(python3 -c "
+import json
+with open('${budget_file}') as f:
+    data = json.load(f)
+print(data.get('codex_consultations', -1))
+" 2>/dev/null) || codex_count="-1"
+
+  if [[ "$codex_count" == "1" ]]; then
+    pass "[CONS-02] record_consultation increments codex count when model is 'codex'"
+  else
+    fail "[CONS-02] record_consultation increments codex count when model is 'codex'" "codex_count=$codex_count"
+  fi
+  teardown
+}
+
+test_consultation_budget_in_policy() {
+  setup
+  local has_section
+  has_section=$(python3 -c "
+import json
+with open('${AEGIS_POLICY_FILE}') as f:
+    data = json.load(f)
+cb = data.get('consultation_budget', {})
+if 'max_consultations_per_run' in cb and 'max_per_stage' in cb and 'codex_max_per_run' in cb:
+    print('yes')
+else:
+    print('no')
+" 2>/dev/null) || has_section="error"
+
+  if [[ "$has_section" == "yes" ]]; then
+    pass "[CONS-02] consultation_budget section exists in policy config"
+  else
+    fail "[CONS-02] consultation_budget section exists in policy config" "section missing or incomplete"
+  fi
+  teardown
+}
+
+# ============================================================
+# Run all tests
 # ============================================================
 
 test_risk_score_low_few_files
@@ -309,6 +488,15 @@ test_risk_score_no_evidence_fallback
 test_risk_score_max_aggregation
 test_embed_risk_in_evidence
 test_risk_thresholds_in_policy
+
+test_reset_consultation_budget
+test_check_budget_allowed
+test_check_budget_run_limit
+test_check_budget_stage_limit
+test_check_budget_codex_limit
+test_record_consultation_increments
+test_record_consultation_codex_count
+test_consultation_budget_in_policy
 
 echo ""
 echo "Risk & consultation tests: ${PASS_COUNT} passed, ${FAIL_COUNT} failed"
