@@ -145,7 +145,7 @@ Phases 11 through 16 execute in order. Phase 16 (Patterns/Rollback) is independe
 | 8. Stage-Boundary Checkpoints | v2.0 | 2/2 | Complete | 2026-03-21 |
 | 9. Subagent Behavioral Gate | v2.0 | 2/2 | Complete | 2026-03-21 |
 | 10. Deploy Preflight Guard | v2.0 | 2/2 | Complete | 2026-03-21 |
-| 11. Policy-as-Code | v3.0 | 0/2 | Planning | - |
+| 11. Policy-as-Code | 1/2 | In Progress|  | - |
 | 12. Evidence Artifacts | v3.0 | 0/? | Not started | - |
 | 13. Enforcement Upgrade | v3.0 | 0/? | Not started | - |
 | 14. Risk-Scored Consultation | v3.0 | 0/? | Not started | - |

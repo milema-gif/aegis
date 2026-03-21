@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Evidence-Driven Pipeline
-status: planning
-stopped_at: null
-last_updated: "2026-03-21T14:00:00.000Z"
-last_activity: 2026-03-21 — v3.0 roadmap created (6 phases, 17 requirements)
+status: executing
+stopped_at: "Completed 11-01-PLAN.md"
+last_updated: "2026-03-21T13:47:00Z"
+last_activity: 2026-03-21 -- Phase 11 Plan 01 complete (policy config + loader)
 progress:
   total_phases: 6
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_plans: 2
+  completed_plans: 1
+  percent: 50
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Never lose context, direction, or consistency across a project's entire lifecycle
-**Current focus:** v3.0 Evidence-Driven Pipeline -- Phase 11 (Policy-as-Code) ready to plan
+**Current focus:** v3.0 Evidence-Driven Pipeline -- Phase 11 (Policy-as-Code) Plan 02 next
 
 ## Current Position
 
 Phase: 11 of 16 (Policy-as-Code)
-Plan: 0 of ? in current phase
-Status: Ready to plan
-Last activity: 2026-03-21 -- v3.0 roadmap created
+Plan: 1 of 2 in current phase
+Status: Executing
+Last activity: 2026-03-21 -- Phase 11 Plan 01 complete (policy config + loader)
 
-Progress: [..........] 0% (v3.0)
+Progress: [█████.....] 50% (v3.0)
 
 ## Performance Metrics
 
@@ -47,6 +47,7 @@ Progress: [..........] 0% (v3.0)
 | 08-checkpoints | 2 | 6min | 3.0min |
 | 09-behavioral-gate | 2 | 6min | 3.0min |
 | 10-deploy-preflight | 2 | 8min | 4.0min |
+| 11-policy-as-code | 1 | 4min | 4.0min |
 
 ## Accumulated Context
 
@@ -59,6 +60,9 @@ Recent decisions affecting current work:
 - [v3.0 Roadmap]: Evidence artifacts depend on policy; enforcement depends on evidence
 - [v3.0 Roadmap]: Patterns and Rollback are independent -- sequenced last but could parallelize after Phase 12
 - [v3.0 Roadmap]: 6 phases, 17 requirements, derived from Codex review gap analysis
+- [11-01]: Policy file in project root for visibility and git tracking
+- [11-01]: Single JSON file for all 9 stages, validated once at startup
+- [11-01]: gate_rules section documentational — safety invariants enforced in code regardless
 
 ### Pending Todos
 
@@ -71,6 +75,6 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-21
-Stopped at: v3.0 roadmap created
+Stopped at: Completed 11-01-PLAN.md
 Resume file: None
-Next step: `/gsd:plan-phase 11`
+Next step: Execute 11-02-PLAN.md (policy wiring into gates and consultation)

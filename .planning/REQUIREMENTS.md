@@ -101,8 +101,8 @@
 
 ### Policy (Gate Configuration)
 
-- [ ] **POLC-01**: Gate policies (which gates block, retry limits, risk thresholds, consultation triggers) are defined in a versioned config file — not hardcoded in library logic
-- [ ] **POLC-02**: Policy changes are auditable — config diffs tracked in git, policy version stamped in evidence artifacts
+- [x] **POLC-01**: Gate policies (which gates block, retry limits, risk thresholds, consultation triggers) are defined in a versioned config file — not hardcoded in library logic
+- [x] **POLC-02**: Policy changes are auditable — config diffs tracked in git, policy version stamped in evidence artifacts
 
 ### Patterns (Cross-Project — Minimal)
 
@@ -210,8 +210,8 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| POLC-01 | Phase 11 | Pending |
-| POLC-02 | Phase 11 | Pending |
+| POLC-01 | Phase 11 | Complete |
+| POLC-02 | Phase 11 | Complete |
 | EVID-01 | Phase 12 | Pending |
 | EVID-02 | Phase 12 | Pending |
 | EVID-03 | Phase 12 | Pending |
