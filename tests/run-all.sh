@@ -13,6 +13,7 @@ TESTS=(
   "test-memory-stub"
   "test-memory-engram"
   "test-memory-scoping"
+  "test-memory-migration"
   "test-gate-evaluation"
   "test-gate-banners"
   "test-git-operations"
