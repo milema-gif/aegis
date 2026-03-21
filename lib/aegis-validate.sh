@@ -78,19 +78,68 @@ validate_sparrow_result() {
   return 0
 }
 
-# --- validate_behavioral_gate(return_text) ---
-# Checks whether a subagent output includes the BEHAVIORAL_GATE_CHECK marker.
-# ALWAYS returns 0 (warn-only, never blocks the pipeline).
-# Writes a warning to stderr when the marker is absent.
+# --- get_enforcement_mode(stage_name) ---
+# Reads the behavioral_enforcement mode for a given stage from policy config.
+# Returns "none" if policy file is missing, unset, or stage not found.
 #
 # Usage:
-#   validate_behavioral_gate "$subagent_output"
+#   mode=$(get_enforcement_mode "execute")  # returns "block"
+#
+get_enforcement_mode() {
+  local stage_name="${1:?get_enforcement_mode requires stage_name}"
+  if [[ -z "${AEGIS_POLICY_FILE:-}" ]] || [[ ! -f "${AEGIS_POLICY_FILE:-}" ]]; then
+    echo "none"
+    return 0
+  fi
+  python3 -c "
+import json
+with open('${AEGIS_POLICY_FILE}') as f:
+    p = json.load(f)
+print(p.get('behavioral_enforcement', {}).get('${stage_name}', 'none'))
+" 2>/dev/null || echo "none"
+}
+
+# --- validate_behavioral_gate(return_text, [stage_name]) ---
+# Checks whether a subagent output includes the BEHAVIORAL_GATE_CHECK marker.
+# Stage-aware: mutating stages (execute/verify/deploy) block when marker absent,
+# read-only stages (research/phase-plan) warn, others pass silently.
+# Backward compatible: single-arg calls default to stage "unknown" (mode "none").
+#
+# Usage:
+#   validate_behavioral_gate "$subagent_output" "execute"  # blocks if no marker
+#   validate_behavioral_gate "$subagent_output" "research"  # warns if no marker
+#   validate_behavioral_gate "$subagent_output"             # backward compat (silent)
 #
 validate_behavioral_gate() {
   local return_text="${1:-}"
+  local stage_name="${2:-unknown}"
+
+  # Marker present — always pass regardless of mode
   if echo "$return_text" | grep -q "BEHAVIORAL_GATE_CHECK"; then
     return 0
   fi
-  echo "BEHAVIORAL GATE WARNING: subagent did not output BEHAVIORAL_GATE_CHECK checklist" >&2
-  return 0
+
+  # Marker absent — check enforcement mode for this stage
+  local mode
+  if [[ "$stage_name" == "unknown" ]]; then
+    # Backward compat: 1-arg calls default to warn (preserves original behavior)
+    mode="warn"
+  else
+    mode=$(get_enforcement_mode "$stage_name")
+  fi
+
+  case "$mode" in
+    block)
+      echo "BEHAVIORAL GATE BLOCKED: subagent at stage '${stage_name}' did not output BEHAVIORAL_GATE_CHECK -- mutating actions prevented" >&2
+      return 1
+      ;;
+    warn)
+      echo "BEHAVIORAL GATE WARNING: subagent did not output BEHAVIORAL_GATE_CHECK checklist" >&2
+      return 0
+      ;;
+    *)
+      # "none" or unknown — pass silently
+      return 0
+      ;;
+  esac
 }

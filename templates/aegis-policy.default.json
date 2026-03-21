@@ -78,6 +78,17 @@
     "advance": { "type": "none", "context_limit": 0 },
     "deploy": { "type": "critical", "context_limit": 4000 }
   },
+  "behavioral_enforcement": {
+    "intake": "none",
+    "research": "warn",
+    "roadmap": "none",
+    "phase-plan": "warn",
+    "execute": "block",
+    "verify": "block",
+    "test-gate": "none",
+    "advance": "none",
+    "deploy": "block"
+  },
   "gate_rules": {
     "quality_never_skippable": true,
     "external_never_skippable": true,

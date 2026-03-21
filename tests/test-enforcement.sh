@@ -195,7 +195,7 @@ test_mode_none_stages() {
 # --- Test 14: [ENFC-01] stderr output for blocked stage contains "BLOCKED" ---
 test_blocked_stderr_message() {
   local stderr_output
-  stderr_output=$(validate_behavioral_gate "$INPUT_NO_MARKER" "execute" 2>&1 1>/dev/null)
+  stderr_output=$(validate_behavioral_gate "$INPUT_NO_MARKER" "execute" 2>&1 1>/dev/null || true)
   if echo "$stderr_output" | grep -q "BLOCKED"; then
     pass "[ENFC-01] stderr output for blocked stage contains BLOCKED"
   else
