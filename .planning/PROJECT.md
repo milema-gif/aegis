@@ -12,20 +12,33 @@ Never lose context, direction, or consistency across a project's entire lifecycl
 
 ### Validated
 
-(None yet — ship to validate)
+<!-- Shipped in v1.0, confirmed via smoke test (seismic-globe) -->
+
+- ✓ 9-stage pipeline orchestrator (intake → deploy) with hard gates — v1.0
+- ✓ Persistent cross-project memory via Engram (decisions, bugs, patterns, gotchas) — v1.0
+- ✓ Multi-model consultation: DeepSeek (free), Codex (paid/guarded) — v1.0
+- ✓ Checkpoint-based autonomy (pause at each gate for user approval) — v1.0
+- ✓ Code duplication detection — verify stage checks fix propagation — v1.0
+- ✓ Rollback capability at each phase (git tags) — v1.0
+- ✓ `/aegis:launch` skill command as the single entry point — v1.0
+- ✓ Graceful degradation when Sparrow/Engram unavailable — v1.0
 
 ### Active
 
-- [ ] 9-stage pipeline orchestrator (intake → deploy) with hard gates between stages
-- [ ] Persistent cross-project memory via Engram (decisions, bugs, patterns, gotchas)
-- [ ] Multi-model consultation: DeepSeek/OpenClaw (free), GPT Codex (paid/guarded), GPT-4 Mini (autonomous tasks)
-- [ ] Checkpoint-based autonomy (auto-run stages, pause at each for user approval)
-- [ ] Code duplication detection — verify fixes propagate, old broken code is removed
-- [ ] Cross-stack consistency checks (shared contracts + lint/audit gate for backend/frontend variable naming)
-- [ ] Rollback capability at each phase (git tags + service restart)
-- [ ] Docker/PM2 and static site deployment support
-- [ ] `/aegis:launch` skill command as the single entry point
-- [ ] Graceful degradation when Sparrow/Engram unavailable (for open-source portability)
+<!-- v2.0: Quality Enforcement -->
+
+(Defined in REQUIREMENTS.md)
+
+## Current Milestone: v2.0 Quality Enforcement
+
+**Goal:** Ensure every agent at every stage does verified, grounded work with persistent memory — not just plausible output. Ship v1.1 debt + quality enforcement in one milestone.
+
+**Target features:**
+- Subagent behavioral gate (verification before edits)
+- Stage-boundary context checkpoints (prevent context exhaustion)
+- Memory quality control (project scoping, decay, pollution prevention)
+- Deploy preflight guard (read state, verify scope, approve)
+- v1.1 debt: namespace isolation, complete_stage() helper, global install
 
 ### Out of Scope
 
@@ -60,5 +73,9 @@ Never lose context, direction, or consistency across a project's entire lifecycl
 | ai-core-01 primary, open-source secondary | Build tight integration first, add graceful fallbacks for portability | — Pending |
 | Multi-model architecture | Each model plays to its strength: Claude orchestrates, DeepSeek consults free, Codex reviews critical gates, Mini handles cheap autonomous work | — Pending |
 
+| Behavioral gate for subagents | Subagents rush like Claude does — enforcement prevents unverified edits in pipeline | — Pending |
+| Stage checkpoints over full transcript injection | Compact structured summaries prevent context exhaustion without losing decisions | — Pending |
+| Memory project-scoping first, cross-project opt-in | Prevents memory pollution — Project A decisions don't leak into Project B | — Pending |
+
 ---
-*Last updated: 2026-03-09 after initialization*
+*Last updated: 2026-03-21 after v2.0 milestone start*
