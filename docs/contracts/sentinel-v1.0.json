@@ -1,0 +1,125 @@
+{
+  "contract_version": "1.0",
+  "contract_name": "aegis-sentinel",
+  "description": "Interface contract between Aegis and Sentinel. Defines boundary responsibilities, status/doctor response schemas, error codes, and failure modes for the coexistence model.",
+  "schemas": {
+    "sentinel_status_response": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "SentinelStatusResponse",
+      "description": "Response from sentinel status command. Reports current protection state.",
+      "type": "object",
+      "required": ["protection_status"],
+      "properties": {
+        "protection_status": {
+          "type": "string",
+          "enum": ["PROTECTED", "NOT_PROTECTED"],
+          "description": "Whether Sentinel tool-boundary enforcement is currently active"
+        },
+        "version": {
+          "type": "string",
+          "description": "Sentinel version string"
+        },
+        "policy_loaded": {
+          "type": "boolean",
+          "description": "Whether Sentinel has successfully loaded its policy config"
+        },
+        "hooks_active": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of active hook names (e.g. PreToolUse, PostToolUse)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "sentinel_doctor_response": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "SentinelDoctorResponse",
+      "description": "Response from sentinel doctor command. Health check with per-component status.",
+      "type": "object",
+      "required": ["overall_status", "checks"],
+      "properties": {
+        "overall_status": {
+          "type": "string",
+          "enum": ["healthy", "degraded", "error"],
+          "description": "Aggregate health status across all checks"
+        },
+        "checks": {
+          "type": "array",
+          "description": "Individual health check results",
+          "items": {
+            "type": "object",
+            "required": ["name", "status", "message"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Check identifier (e.g. 'policy_loaded', 'hooks_registered', 'file_patterns')"
+              },
+              "status": {
+                "type": "string",
+                "enum": ["pass", "warn", "fail"],
+                "description": "Individual check result"
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable check result detail"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "boundary_table": [
+    {
+      "concern": "file_mutation",
+      "aegis_role": "Behavioral gate checks subagent output for BEHAVIORAL_GATE_CHECK marker (output-level verification)",
+      "sentinel_role": "Checks each Edit/Write call against file allowlist (tool-level enforcement)",
+      "resolution": "Both run. Sentinel acts first at tool invocation. Aegis acts second at output verification. Different checks at different layers, no conflict."
+    },
+    {
+      "concern": "deployment_commands",
+      "aegis_role": "Deploy preflight guard verifies state, runs rollback drill (stage-level gate)",
+      "sentinel_role": "May block dangerous Bash commands such as rm -rf (tool-level enforcement)",
+      "resolution": "Both run. Sentinel prevents dangerous commands. Aegis prevents premature deployment. Complementary."
+    },
+    {
+      "concern": "sensitive_file_access",
+      "aegis_role": "Not in Aegis scope",
+      "sentinel_role": "Blocks access to .env, credentials, and other sensitive files (tool-level enforcement)",
+      "resolution": "Sentinel only. Aegis does not manage file-level access control."
+    },
+    {
+      "concern": "stage_gate_bypass",
+      "aegis_role": "Logs bypass audit, enforces consultation requirements (stage-level gate)",
+      "sentinel_role": "Not in Sentinel scope",
+      "resolution": "Aegis only. Sentinel does not know about pipeline stages."
+    }
+  ],
+  "error_codes": {
+    "SENTINEL_UNREACHABLE": {
+      "code": "SENTINEL_UNREACHABLE",
+      "description": "Sentinel status command failed or not found",
+      "severity": "warn",
+      "pipeline_action": "continue_unprotected"
+    },
+    "SENTINEL_INVALID_RESPONSE": {
+      "code": "SENTINEL_INVALID_RESPONSE",
+      "description": "Sentinel response did not match expected schema",
+      "severity": "warn",
+      "pipeline_action": "continue_unprotected"
+    },
+    "SENTINEL_DISABLED": {
+      "code": "SENTINEL_DISABLED",
+      "description": "Sentinel integration disabled in aegis-policy.json",
+      "severity": "info",
+      "pipeline_action": "skip"
+    }
+  },
+  "failure_modes": {
+    "unreachable": "Log warning. Pipeline continues without tool-boundary enforcement awareness.",
+    "invalid_response": "Log schema violation. Treat as unreachable.",
+    "disabled": "Skip all Sentinel checks. No log entry needed."
+  }
+}

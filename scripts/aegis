@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# aegis - Global wrapper for Aegis pipeline
+# Delegates to Claude Code skill launcher
+AEGIS_HOME="${AEGIS_HOME:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+exec claude --skill-file "$AEGIS_HOME/skills/aegis-launch.md" "$@"

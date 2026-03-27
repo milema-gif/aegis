@@ -1,0 +1,169 @@
+{
+  "policy_version": "1.2.0",
+  "description": "Aegis gate policy configuration",
+  "updated_at": "2026-03-27T14:12:00Z",
+  "gates": {
+    "intake": {
+      "type": "approval",
+      "skippable": true,
+      "max_retries": 0,
+      "backoff": "none",
+      "timeout_seconds": 0
+    },
+    "research": {
+      "type": "approval",
+      "skippable": true,
+      "max_retries": 0,
+      "backoff": "none",
+      "timeout_seconds": 0
+    },
+    "roadmap": {
+      "type": "approval",
+      "skippable": true,
+      "max_retries": 0,
+      "backoff": "none",
+      "timeout_seconds": 0
+    },
+    "phase-plan": {
+      "type": "quality",
+      "skippable": false,
+      "max_retries": 2,
+      "backoff": "fixed-5s",
+      "timeout_seconds": 120
+    },
+    "execute": {
+      "type": "quality",
+      "skippable": false,
+      "max_retries": 3,
+      "backoff": "fixed-5s",
+      "timeout_seconds": 300
+    },
+    "verify": {
+      "type": "quality",
+      "skippable": false,
+      "max_retries": 2,
+      "backoff": "fixed-5s",
+      "timeout_seconds": 120
+    },
+    "test-gate": {
+      "type": "quality",
+      "skippable": false,
+      "max_retries": 3,
+      "backoff": "exp-5s",
+      "timeout_seconds": 180
+    },
+    "advance": {
+      "type": "none",
+      "skippable": true,
+      "max_retries": 0,
+      "backoff": "none",
+      "timeout_seconds": 0
+    },
+    "deploy": {
+      "type": "quality,external",
+      "skippable": false,
+      "max_retries": 1,
+      "backoff": "none",
+      "timeout_seconds": 60
+    }
+  },
+  "consultation": {
+    "intake": {
+      "type": "none",
+      "context_limit": 0
+    },
+    "research": {
+      "type": "routine",
+      "context_limit": 2000
+    },
+    "roadmap": {
+      "type": "routine",
+      "context_limit": 2000
+    },
+    "phase-plan": {
+      "type": "routine",
+      "context_limit": 2000
+    },
+    "execute": {
+      "type": "none",
+      "context_limit": 0
+    },
+    "verify": {
+      "type": "critical",
+      "context_limit": 4000
+    },
+    "test-gate": {
+      "type": "none",
+      "context_limit": 0
+    },
+    "advance": {
+      "type": "none",
+      "context_limit": 0
+    },
+    "deploy": {
+      "type": "critical",
+      "context_limit": 4000
+    }
+  },
+  "behavioral_enforcement": {
+    "intake": "none",
+    "research": "warn",
+    "roadmap": "none",
+    "phase-plan": "warn",
+    "execute": "block",
+    "verify": "block",
+    "test-gate": "none",
+    "advance": "none",
+    "deploy": "block"
+  },
+  "consultation_budget": {
+    "max_consultations_per_run": 10,
+    "max_per_stage": 2,
+    "codex_max_per_run": 3
+  },
+  "risk_thresholds": {
+    "file_count": {
+      "low": 3,
+      "high": 10
+    },
+    "line_count": {
+      "low": 50,
+      "high": 200
+    },
+    "mutation_scope": {
+      "read_only": "low",
+      "create": "med",
+      "modify": "med",
+      "modified": "med",
+      "delete": "high",
+      "deploy": "high"
+    }
+  },
+  "rollback_drill": {
+    "enabled": true,
+    "block_on_failure": true,
+    "skip_phases": [],
+    "description": "Deterministic rollback drill verifies recovery capability before phase tagging"
+  },
+  "gate_rules": {
+    "quality_never_skippable": true,
+    "external_never_skippable": true,
+    "compound_evaluation": "left-to-right-short-circuit"
+  },
+  "cortex": {
+    "enabled": false,
+    "url": "http://127.0.0.1:8092",
+    "preflight_timeout_ms": 2000,
+    "max_context_items": 5,
+    "max_context_chars": 500,
+    "filter_lifecycle": [
+      "active"
+    ],
+    "contract_version": "1.0"
+  },
+  "sentinel": {
+    "enabled": false,
+    "home": "",
+    "contract_version": "1.0"
+  }
+}

@@ -1,0 +1,174 @@
+{
+  "contract_version": "1.0",
+  "contract_name": "aegis-cortex",
+  "description": "Interface contract between Aegis and Cortex. Defines the two narrow integration points (cortex_preflight and cortex_status) plus health check, error codes, and failure modes.",
+  "schemas": {
+    "cortex_preflight_response": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "PreflightResult",
+      "description": "Response from cortex_preflight(stage, project). Advisory context injection before stage workflow begins.",
+      "type": "object",
+      "required": ["status", "context_items", "injected_count", "latency_ms"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["ok", "degraded", "unavailable"],
+          "description": "ok = full results returned, degraded = partial results at timeout boundary, unavailable = Cortex could not be reached"
+        },
+        "context_items": {
+          "type": "array",
+          "description": "Memory items retrieved from Cortex knowledge graph, capped at max_context_items policy setting",
+          "items": {
+            "type": "object",
+            "required": ["source", "entity", "content", "relevance", "lifecycle"],
+            "properties": {
+              "source": {
+                "type": "string",
+                "description": "Origin system identifier",
+                "const": "cortex"
+              },
+              "entity": {
+                "type": "string",
+                "description": "Entity identifier, e.g. 'decision:auth-strategy'"
+              },
+              "content": {
+                "type": "string",
+                "description": "Memory content text"
+              },
+              "relevance": {
+                "type": "number",
+                "minimum": 0.0,
+                "maximum": 1.0,
+                "description": "Composite relevance score from hybrid FTS+vector search"
+              },
+              "lifecycle": {
+                "type": "string",
+                "enum": ["active", "stale", "deprecated"],
+                "description": "Lifecycle state. Default filter_lifecycle policy excludes non-active items."
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "injected_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of context items actually injected (after filtering and cap)"
+        },
+        "latency_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Wall-clock time for the Cortex call in milliseconds"
+        }
+      },
+      "additionalProperties": false
+    },
+    "cortex_status_response": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "StatusResult",
+      "description": "Response from cortex_status(stage, project, query). Advisory historical pattern retrieval during verify/test-gate stages.",
+      "type": "object",
+      "required": ["status", "matches", "query_latency_ms"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["ok", "degraded", "unavailable"],
+          "description": "ok = query completed, degraded = partial results, unavailable = Cortex unreachable"
+        },
+        "matches": {
+          "type": "array",
+          "description": "Matching entities from Cortex knowledge graph, truncated to top 5 by score",
+          "maxItems": 5,
+          "items": {
+            "type": "object",
+            "required": ["entity", "content", "score", "related_entities", "last_updated"],
+            "properties": {
+              "entity": {
+                "type": "string",
+                "description": "Entity identifier from knowledge graph"
+              },
+              "content": {
+                "type": "string",
+                "description": "Memory content text"
+              },
+              "score": {
+                "type": "number",
+                "minimum": 0.0,
+                "maximum": 1.0,
+                "description": "Composite relevance score (FTS + vector + graph expansion)"
+              },
+              "related_entities": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "Graph-expanded entity connections"
+              },
+              "last_updated": {
+                "type": "string",
+                "format": "date-time",
+                "description": "ISO 8601 timestamp of last entity update"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "query_latency_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Wall-clock time for the Cortex query in milliseconds"
+        }
+      },
+      "additionalProperties": false
+    },
+    "cortex_health": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "CortexHealthCheck",
+      "description": "Response from Cortex /health endpoint, used by detect_integrations() to probe availability.",
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["ok", "degraded", "down"],
+          "description": "Current Cortex service health"
+        },
+        "version": {
+          "type": "string",
+          "description": "Cortex version string"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "error_codes": {
+    "CORTEX_UNREACHABLE": {
+      "code": "CORTEX_UNREACHABLE",
+      "description": "Cortex HTTP endpoint did not respond within timeout",
+      "severity": "warn",
+      "pipeline_action": "continue_without_context"
+    },
+    "CORTEX_TIMEOUT": {
+      "code": "CORTEX_TIMEOUT",
+      "description": "Cortex responded but exceeded preflight_timeout_ms",
+      "severity": "warn",
+      "pipeline_action": "continue_with_partial"
+    },
+    "CORTEX_INVALID_RESPONSE": {
+      "code": "CORTEX_INVALID_RESPONSE",
+      "description": "Cortex response did not match expected schema",
+      "severity": "warn",
+      "pipeline_action": "continue_without_context"
+    },
+    "CORTEX_DISABLED": {
+      "code": "CORTEX_DISABLED",
+      "description": "Cortex integration disabled in aegis-policy.json",
+      "severity": "info",
+      "pipeline_action": "skip"
+    }
+  },
+  "failure_modes": {
+    "unreachable": "Return status=unavailable, empty results. Log warning. Pipeline continues.",
+    "slow": "Return status=degraded with partial results at timeout boundary.",
+    "invalid_response": "Log schema violation. Return status=unavailable. Pipeline continues.",
+    "disabled": "Skip all Cortex calls. No log entry needed."
+  }
+}
